@@ -1,11 +1,4 @@
 #!/usr/bin/env python
-"""
-bitbot - An IRC Bitcoin Arbitrage Bot
-Based on Phenny by Sean Palmer and btc-arbitrage by maxme
-
-Run ./bitbot, then edit ~/.phenny/default.py
-Then run ./bitbot again
-"""
 
 import sys, os, imp, optparse
 from textwrap import dedent as trim
@@ -21,7 +14,7 @@ def check_python_version():
 def create_default_config(fn): 
    f = open(fn, 'w')
    print >> f, trim("""\
-   nick = 'phenny'
+   nick = 'bitbot'
    host = 'irc.example.net'
    channels = ['#example', '#test']
    owner = 'yournickname'
@@ -69,7 +62,7 @@ def create_dotdir(dotdir):
    except Exception, e: 
       print >> sys.stderr, 'There was a problem creating %s:' % dotdir
       print >> sys.stderr, e.__class__, str(e)
-      print >> sys.stderr, 'Please fix this and then run phenny again.'
+      print >> sys.stderr, 'Please fix this and then run bitbot again.'
       sys.exit(1)
 
    create_default_config_file(dotdir)
@@ -156,7 +149,7 @@ def main(argv=None):
 
    try: from __init__ import run
    except ImportError: 
-      try: from phenny import run
+      try: from bitbot import run
       except ImportError: 
          print >> sys.stderr, "Error: Couldn't find bitbot to import"
          sys.exit(1)

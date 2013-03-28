@@ -25,7 +25,7 @@ def run_bitbot(config):
    else: delay = 20
 
    def connect(config): 
-      p = bot.Phenny(config)
+      p = bot.Bitbot(config)
       p.run(config.host, config.port)
 
    try: Watcher()

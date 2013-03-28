@@ -13,7 +13,7 @@ def decode(bytes):
          text = bytes.decode('cp1252')
    return text
 
-class Phenny(irc.Bot): 
+class Bitbot(irc.Bot): 
    def __init__(self, config):
       if hasattr(config, 'use_ssl'):
          use_ssl = config.use_ssl
@@ -149,7 +149,7 @@ class Phenny(irc.Bot):
                bind(self, func.priority, regexp, func)
 
    def wrapped(self, origin, text, match): 
-      class PhennyWrapper(object): 
+      class BitbotWrapper(object): 
          def __init__(self, bitbot): 
             self.bot = bitbot
 
@@ -164,7 +164,7 @@ class Phenny(irc.Bot):
                return lambda msg: self.bot.me(sender, msg)
             return getattr(self.bot, attr)
 
-      return PhennyWrapper(self)
+      return BitbotWrapper(self)
 
    def input(self, origin, text, bytes, match, event, args): 
       class CommandInput(unicode): 

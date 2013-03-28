@@ -155,6 +155,9 @@ class Bot(asynchat.async_chat):
          line = line[:-1]
       self.buffer = ''
 
+      # Raw IRC output
+      print >> sys.stderr, line
+      
       # print 'GOT:', repr(line)
       if line.startswith(':'): 
          source, line = line[1:].split(' ', 1)
