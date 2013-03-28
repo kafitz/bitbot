@@ -6,7 +6,7 @@ Kyle Fitzsimmons 2013, http://kylefitz.com/
 import os
 from BitcoinArbitrage import irc_control
 
-def arb_balance(bitbot, input):
+def arb_txs(bitbot, input):
     if input == ".txs":
         bitbot.say("Getting transactions from all exchanges")
         markets = ['mtgx','bflr','bstp','bctl']
