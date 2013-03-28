@@ -1,0 +1,4 @@
+bctl: bitcoin-central
+bflr: bitfloor
+bstp: bitstamp
+mtgx: mt.gox
