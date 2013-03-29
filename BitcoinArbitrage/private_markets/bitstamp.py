@@ -6,6 +6,7 @@ import json
 
 
 class PrivateBitstamp(Market):
+    name = "Bitstamp"
     ticker_url = {"method": "GET", "url": "https://www.bitstamp.net/api/ticker/"}
     buy_url = {"method": "POST", "url": "https://www.bitstamp.net/api/buy/"}
     sell_url = {"method": "POST", "url": "https://www.bitstamp.net/api/sell/"}
@@ -32,6 +33,7 @@ class PrivateBitstamp(Market):
         
         req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         response = urllib2.urlopen(req)
+
         if response.getcode() == 200:
             jsonstr = response.read()
             return json.loads(jsonstr)
@@ -74,34 +76,38 @@ class PrivateBitstamp(Market):
     def get_txs(self):
         params = {"user": self.user, "password": self.password, "timedelta": "259200"}
         response = self._send_request(self.tx_url, params)
-        print "response"
-        print response
+        self.tx_list = []
         if response:
-            for tx in response:
-                self.datetime = str(tx["datetime"])
-                self.id = int(tx["id"])
-                self.type = int(tx["type"])
-                self.usd = float(tx["usd"])
-                self.btc = float(tx["btc"])
-                self.fee = float(tx["fee"])
+            for transaction in response:
+                tx = {}
+                tx['datetime'] = str(transaction["datetime"])
+                tx['type'] = int(transaction["type"])
+                tx['id'] = int(transaction["id"])
+                tx['usd'] = float(transaction["usd"])
+                tx['btc'] = float(transaction["btc"])
+                tx['fee'] = float(transaction["fee"])
+                self.tx_list.append(tx)
             return response
         return None
     
     def get_orders(self):
         params = {"user": self.user, "password": self.password}
         response = self._send_request(self.orders_url, params)
-        print response
-        
+
+        self.orders_list = []
         if response and "error" not in response:
             for order in response:
-                self.datetime = str(order["datetime"])
-                self.id = int(order["id"])
-                self.type = int(order["type"])
-                self.price = float(order["price"])
-                self.amount = float(order["amount"])
-            return response
+                o = {}
+                o['datetime'] = str(order["datetime"])
+                o['id'] = int(order["id"])
+                o['type'] = int(order["type"])
+                o['price'] = float(order["price"])
+                o['amount'] = float(order["amount"])
+                orders_list.append(o)
+            return 
         elif "error" in response:
             self.error = str(response["error"])
+            self.orders_list = ['error']
             print self.error
             return 1
         return None

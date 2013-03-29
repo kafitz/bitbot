@@ -52,11 +52,12 @@ if __name__ == "__main__":
 	input_market = sys.argv[2]
 	if command in ['balance', 'bal']:
 		get_balance(input_market)
-		pass
 	if command in ['buy']:
 		buy_btc()
 	if command in ['sell']:
 		sell_btc()
+	if command in ['open', 'openorders']:
+		open_orders(input_market)
 	# Seems super dangerous if we enter the wrong address while in dev
 	# if command in ['withdraw']:
 	# 	pass
