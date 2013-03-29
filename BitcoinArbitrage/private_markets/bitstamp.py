@@ -9,7 +9,7 @@ class PrivateBitstamp(Market):
     ticker_url = {"method": "GET", "url": "https://www.bitstamp.net/api/ticker/"}
     buy_url = {"method": "POST", "url": "https://www.bitstamp.net/api/buy/"}
     sell_url = {"method": "POST", "url": "https://www.bitstamp.net/api/sell/"}
-    tx_url = {"method": "GET", "url": "https://www.bitstamp.net/api/user_transactions/"}
+    tx_url = {"method": "POST", "url": "https://www.bitstamp.net/api/user_transactions/"}
     orders_url = {"method": "POST", "url": "https://www.bitstamp.net/api/open_orders/"}
     info_url = {"method": "POST", "url": "https://www.bitstamp.net/api/balance/"}
 
@@ -19,7 +19,6 @@ class PrivateBitstamp(Market):
         self.password = self.config.bitstamp_password
         self.currency = "USD"
         self.initials = "bstp"
-        #self.get_info()
 
     def _send_request(self, url, params, extra_headers=None):
         headers = {
@@ -65,7 +64,7 @@ class PrivateBitstamp(Market):
             self.usd_available = float(response["usd_available"])
             self.btc_available = float(response["btc_balance"])
             self.fee = float(response["fee"])
-            return 1
+            return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance})
         else:
             self.error = str(response["error"])
             print self.error
@@ -73,23 +72,19 @@ class PrivateBitstamp(Market):
         return None
         
     def get_txs(self):
-        params = {"user": self.user, "password": self.password}
+        params = {"user": self.user, "password": self.password, "timedelta": "259200"}
         response = self._send_request(self.tx_url, params)
-        
-        if response and "error" not in response:
+        print "response"
+        print response
+        if response:
             for tx in response:
-                print tx
                 self.datetime = str(tx["datetime"])
                 self.id = int(tx["id"])
                 self.type = int(tx["type"])
                 self.usd = float(tx["usd"])
                 self.btc = float(tx["btc"])
                 self.fee = float(tx["fee"])
-            return 1
-        else:
-            self.error = str(response["error"])
-            print self.error
-            return 1
+            return response
         return None
     
     def get_orders(self):
@@ -99,23 +94,19 @@ class PrivateBitstamp(Market):
         
         if response and "error" not in response:
             for order in response:
-                print order
                 self.datetime = str(order["datetime"])
                 self.id = int(order["id"])
                 self.type = int(order["type"])
                 self.price = float(order["price"])
                 self.amount = float(order["amount"])
-            return 1
+            return response
         elif "error" in response:
             self.error = str(response["error"])
             print self.error
             return 1
         return None
         
-    def __str__(self):
-        return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance, "trade fee": self.fee})
-
 if __name__ == "__main__":
     bitstamp = PrivateBitstamp()
     bitstamp.get_info()
-    print bitstamp
+    #print bitstamp

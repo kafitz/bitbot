@@ -128,7 +128,7 @@ class Arbitrer(object):
         percent_profit = ((sale_total * tx_fee_discount) / buy_total - 1) * 100
         fee_adjusted_profit = (sale_total * tx_fee_discount) - buy_total
         return fee_adjusted_profit, fee_adjusted_volume, percent_profit, self.depths[kask]["asks"][best_selling_index]["price"],\
-            self.depths[kbid]["bids"][best_buying_index]["price"], best_w_buyprice, best_w_sellprice, available_volume
+            self.depths[kbid]["bids"][best_buying_index]["price"], best_w_buyprice, best_w_sellprice, round(available_volume,1)
 
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
         # perc = (bid["price"] - ask["price"]) / bid["price"] * 100
@@ -149,8 +149,9 @@ class Arbitrer(object):
         # line_output = "profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%" %\
         #     # (profit, purchase_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
         # line
-        line_output = "profit: $%.4f USD. %4f BTC/$%.2f [%.1f BTC]: buy $%.4f (%s), sell $%.4f (%s). ~%.2f%%" %\
-            (profit, purchase_volume, buy_total, available_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
+        #print '{0:10} ==> {1:10d}'.format(name, phone)
+        line_output = "${0:.2f} | {1:.2f} of {2:5} BTC for ${3:.0f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
+            profit, purchase_volume, str(available_volume), buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
         return line_output
 
     def update_depths(self):
@@ -195,9 +196,10 @@ class Arbitrer(object):
                 market2 = self.depths[kmarket2]
                 # spammy debug command for testing if there is no market liquidity
                 # print "Is " + kmarket1 + " at " + str(market1["asks"][0]['price']) + " less than " + kmarket2 + " at " + str(market2["bids"][0]['price']) + "?"
-                if float(market1["asks"][0]['price']) < float(market2["bids"][0]['price']):
-                    line_out = self.arbitrage_opportunity(kmarket1, market1["asks"][0], kmarket2, market2["bids"][0])
-                    output_list.append(line_out)
+                if len(market1["asks"]) > 0 and len(market2["bids"]) > 0:
+                    if float(market1["asks"][0]['price']) < float(market2["bids"][0]['price']):
+                        line_out = self.arbitrage_opportunity(kmarket1, market1["asks"][0], kmarket2, market2["bids"][0])
+                        output_list.append(line_out)
 
         for observer in self.observers:
             observer.end_opportunity_finder()
@@ -211,12 +213,12 @@ class Arbitrer(object):
         while True:
             self.depths, self.fees = self.update_depths()
             self.tickers()
-            bitbot.msg(channel, "new crawl: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+            #bitbot.msg(channel, "new crawl: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
             line_outs = self.tick()
             # remove empty outputs
             line_outs = filter(None, line_outs)
             if line_outs == []:
-                bitbot.msg(channel, "No opportunities founds.")
+                bitbot.msg(channel, "No opportunities found.")
             else:
                 for item in line_outs:
                     bitbot.msg(channel, item)

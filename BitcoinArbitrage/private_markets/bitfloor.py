@@ -106,6 +106,7 @@ class PrivateBitfloor(Market):
         params = [("nonce", self._create_nonce())]
         response = self._send_request(self.info_url, params)
         if response:
+            print response
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
                     self.btc_balance = float(wallet['amount'])

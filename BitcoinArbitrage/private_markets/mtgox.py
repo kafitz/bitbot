@@ -105,14 +105,14 @@ class PrivateMtGox(Market):
             self.btc_balance = self._from_int_amount(int(response["return"]["Wallets"]["BTC"]["Balance"]["value_int"]))
             self.usd_balance = self._from_int_price(int(response["return"]["Wallets"]["USD"]["Balance"]["value_int"]))
             self.fee = float(response["return"]["Trade_Fee"])
-            return 1
+            return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
         return None
 
     def __str__(self):
-        return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"trade fee": self.fee})
+        return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
 
 
 if __name__ == "__main__":
     mtgox = PrivateMtGox()
     mtgox.get_info()
-    print mtgox
+    #print mtgox
