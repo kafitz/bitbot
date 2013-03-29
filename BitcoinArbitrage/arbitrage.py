@@ -228,7 +228,7 @@ class Arbitrer(object):
                 for item in line_outs:
                     bitbot.msg(channel, item)
                     
-            if self.alert:
+            # if self.alert:
                 # bitbot.msg("#merlin", self.alertmsg)
                 # bitbot.msg("#merlin", self.alertopp)
             bitbot.msg(channel, "-----------------------------------------------------------------------------------------") 
