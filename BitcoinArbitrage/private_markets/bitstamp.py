@@ -80,8 +80,16 @@ class PrivateBitstamp(Market):
         if response:
             for transaction in response:
                 tx = {}
+                if transaction['type'] == 0:
+                    tx['type'] = 'deposit'
+                elif transaction['type'] == 1:
+                    tx['type'] = 'withdrawal'
+                elif transaction['type'] == 2:
+                    if transaction['usd'] < 0:
+                        tx['type'] = 'buy'
+                    elif transaction['usd'] > 0:
+                        tx['type'] = 'sell'
                 tx['datetime'] = str(transaction["datetime"])
-                tx['type'] = int(transaction["type"])
                 tx['id'] = int(transaction["id"])
                 tx['usd'] = float(transaction["usd"])
                 tx['btc'] = float(transaction["btc"])

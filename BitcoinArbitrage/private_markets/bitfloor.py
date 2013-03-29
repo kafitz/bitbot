@@ -17,6 +17,7 @@ class PrivateBitfloor(Market):
     sell_url = {"method": "POST", "url": "https://api.bitfloor.com/order/new"}
     order_url = {"method": "POST", "url": "https://api.bitfloor.com/order/details"}
     open_orders_url = {"method": "POST", "url": "https://api.bitfloor.com/orders"}
+    tx_url = {"methods": "POST", "url": "https://api.bitfloor.com/trades"}
     info_url = {"method": "POST", "url": "https://api.bitfloor.com/accounts"}
     withdraw_url = {"method": "POST", "url": "https://testnet.bitfloor.com/withdraw"}
 
@@ -113,6 +114,27 @@ class PrivateBitfloor(Market):
                 elif str(wallet['currency']) == 'USD':
                     self.usd_balance = float(wallet['amount'])
             return 1
+        return None
+
+    def get_txs(self):
+        params = {"user": self.user, "password": self.password, "timedelta": "259200"}
+        response = self._send_request(self.tx_url, params)
+        self.tx_list = []
+        if response:
+            for transaction in response:
+                tx = {}
+                if transaction['provider_side'] == 0:
+                    tx['type'] = 'buy'
+                elif transaction['provider_side'] == 1:
+                    tx['type'] = 'sell'
+                tx['timestamp'] = str(transaction["datetime"])
+                tx['provider_side'] = int(transaction["type"])
+                tx['id'] = int(transaction["id"])
+                tx['usd'] = float(transaction["price"])
+                tx['btc'] = float(transaction["size"])
+                tx['seq'] = float(transaction["fee"])
+                self.tx_list.append(tx)
+            return response
         return None
         
     def withdraw(self, amount, destination):

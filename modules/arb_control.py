@@ -36,29 +36,21 @@ def transactions(bitbot, input):
         transactions_object = irc_control.transactions(market)
         # for transaction in transactions_object:
         bitbot.say(transactions_object.name + " transactions:")
-        for transaction_dict in transactions_object.tx_list:
-            if transaction_dict['type'] == 0:
-                tx_type = 'deposit'
-            elif transaction_dict['type'] == 1:
-                tx_type = 'withdrawal'
-            elif transaction_dict['type'] == 2:
-                if transaction_dict['usd'] < 0:
-                    tx_type = 'buy'
-                elif transaction_dict['usd'] > 0:
-                    tx_type = 'sell'
-            if tx_type in ['buy', 'sell']:
-                transactions_output = market + " > " + str(transaction_dict['datetime']) + ": " +\
-                    tx_type + " $" + str(abs(transaction_dict['usd'])) + " for " + str(transaction_dict['btc']) +\
-                    ". Fee of: " + str(transaction_dict['fee'])
-            elif tx_type in ['deposit', 'withdrawal']:
-                if int(transaction_dict['usd']) != 0:
-                    tx_amount = transaction_dict['usd']
+        for transaction in transactions_object.tx_list:
+            print transaction['type']
+            if transaction['type'] in ['buy', 'sell']:
+                transactions_output = market + " > " + str(transaction['datetime']) + ": " +\
+                    transaction['type'] + " $" + str(abs(transaction['usd'])) + " for " + str(transaction['btc']) +\
+                    ". Fee of: " + str(transaction['fee'])
+            elif transaction['type'] in ['deposit', 'withdrawal']:
+                if int(transaction['usd']) != 0:
+                    tx_amount = transaction['usd']
                     tx_currency = "USD"
-                elif int(transaction_dict['btc']) != 0:
-                    tx_amount = transaction_dict['btc']
+                elif int(transaction['btc']) != 0:
+                    tx_amount = transaction['btc']
                     tx_currency = "BTC"
-                transactions_output = market + " > " + str(transaction_dict['datetime']) + ": " +\
-                    str(tx_type) + " of " + str(tx_amount) + " " + str(tx_currency) + ". "
+                transactions_output = market + " > " + str(transaction['datetime']) + ": " +\
+                    str(transaction['type']) + " of " + str(tx_amount) + " " + str(tx_currency) + ". "
             bitbot.say(transactions_output)
 
 def open_orders(bitbot, input):
