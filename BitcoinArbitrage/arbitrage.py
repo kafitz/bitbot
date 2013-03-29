@@ -230,7 +230,7 @@ class Arbitrer(object):
                     
             if self.alert:
                 # bitbot.msg("#merlin", self.alertmsg)
-                bitbot.msg("#merlin", self.alertopp)
+                # bitbot.msg("#merlin", self.alertopp)
             bitbot.msg(channel, "-----------------------------------------------------------------------------------------") 
             time.sleep(120)
 
