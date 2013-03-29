@@ -145,13 +145,18 @@ class Arbitrer(object):
             observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid,
                                  percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_purchase)
         # Line to return to IRC
-        buy_total = purchase_volume * weighted_buyprice
+        buy_total = round(purchase_volume * weighted_buyprice,1)
         # line_output = "profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%" %\
         #     # (profit, purchase_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
         # line
         #print '{0:10} ==> {1:10d}'.format(name, phone)
-        line_output = "${0:.2f} | {1:.2f} of {2:5}BTC for ${3:.0f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
-            profit, purchase_volume, str(available_volume), buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
+        line_output = "${0:.2f} | {1:.2f} of {2:5} BTC for ${3:5} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
+            profit, purchase_volume, str(available_volume), str(buy_total), kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
+            
+        if percent_profit > 5: 
+            self.alert = True
+            self.alertwarning = "/!\ alert5%: these is an opportunity with " + str(round(percent_profit,2)) + "% /!\\"
+            self.alertopp = line_output
         return line_output
 
     def update_depths(self):
@@ -200,7 +205,6 @@ class Arbitrer(object):
                     if float(market1["asks"][0]['price']) < float(market2["bids"][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1["asks"][0], kmarket2, market2["bids"][0])
                         output_list.append(line_out)
-
         for observer in self.observers:
             observer.end_opportunity_finder()
         return output_list
@@ -210,11 +214,11 @@ class Arbitrer(object):
         level = logging.INFO
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
         channel = config.arbitrage_output
+        self.alert = False
         while True:
             self.depths, self.fees = self.update_depths()
             self.tickers()
             #bitbot.msg(channel, "new crawl: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-            bitbot.msg(channel, "---------------------------------------------------------------------------------------")
             line_outs = self.tick()
             # remove empty outputs
             line_outs = filter(None, line_outs)
@@ -223,6 +227,11 @@ class Arbitrer(object):
             else:
                 for item in line_outs:
                     bitbot.msg(channel, item)
+                    
+            if self.alert:
+                bitbot.msg("#merlin", self.alertmsg)
+                bitbot.msg("#merlin", self.alertopp)
+            bitbot.msg(channel, "-----------------------------------------------------------------------------------------") 
             time.sleep(120)
 
 
