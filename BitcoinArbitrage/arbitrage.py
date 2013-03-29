@@ -150,7 +150,7 @@ class Arbitrer(object):
         #     # (profit, purchase_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
         # line
         #print '{0:10} ==> {1:10d}'.format(name, phone)
-        line_output = "${0:.2f} | {1:.2f} of {2:5} BTC for ${3:.0f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
+        line_output = "${0:.2f} | {1:.2f} of {2:5}BTC for ${3:.0f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
             profit, purchase_volume, str(available_volume), buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
         return line_output
 
@@ -214,6 +214,7 @@ class Arbitrer(object):
             self.depths, self.fees = self.update_depths()
             self.tickers()
             #bitbot.msg(channel, "new crawl: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+            bitbot.msg(channel, "---------------------------------------------------------------------------------------")
             line_outs = self.tick()
             # remove empty outputs
             line_outs = filter(None, line_outs)
