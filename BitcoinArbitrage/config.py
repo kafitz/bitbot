@@ -5,7 +5,7 @@ arbitrage_output = "#botbottest"
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
 markets = ["bitfloorUSD", "MtGoxUSD", "BitstampUSD", "CampBXUSD", "VircurexUSD"]
 # private_markets = {"bflr": "Bitfloor", "mtgx": "MtGox", "bstp": "Bitstamp", "bctl": "BitcoinCentral"}
-private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox"}
+private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "btce": "BTCe"}
 
 # observers if any
 # ["Logger", "TraderBot", "TraderBotSim", "HistoryDumper", "Emailer", "Database"]
@@ -26,6 +26,9 @@ bitstamp_password = "1TOsEZms3yaRxNoH"
 bitfloor_key = "e27dcdb8-8388-4227-bfc0-ca641c3bc797"
 bitfloor_secret = "puEtkb4qab/68Tx6o1wnsKuypQClg9P4a1OrjSlbjpzmn+l9/HslL2lzY1Z4SU3CMbRyuBlaDRaLeAl5b/HAug=="
 bitfloor_passphrase = 'dP7Wmoa*G8WAIU2S'
+
+btce_key = "DLNP1XU8-72LB0C24-ICOCAKYY-U2NO627K-S6T1R8KX"
+btce_secret = "863ac534d2f6a7c6de5b968ce3ee61aa5f83fd9a9ba4e184b6847f11e60704ad"
 
 # SafeGuards
 max_purchase = 150  # in USD

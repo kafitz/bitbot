@@ -17,20 +17,19 @@ class PrivateBTCe(Market):
     sell_url = {"method": "POST", "url": ""}
     order_url = {"method": "POST", "url": ""}
     open_orders_url = {"method": "POST", "url": ""}
-    info_url = {"method": "POST", "url": "https://btc-e.com/tapi/getInfo"}
+    info_url = {"method": "POST", "url": "https://btc-e.com/tapi"}
     withdraw_url = {"method": "POST", "url": ""}
 
     def __init__(self):
         super(Market, self).__init__()
         self.key = self.config.btce_key
         self.secret = self.config.btce_secret
-        self.passphrase = self.config.btce_passphrase
         self.currency = "USD"
         self.initials = "btce"
         #self.get_info()
 
     def _create_nonce(self):
-        return int(time.time() * 1000000)
+        return int(time.time())
 
     def _change_currency_url(self, url, currency):
         return re.sub(r'BTC\w{3}', r'BTC' + currency, url)
@@ -58,9 +57,13 @@ class PrivateBTCe(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params, extra_headers=None):
+        params = urllib.urlencode(params)
+        ahmac = hmac.new(self.secret, digestmod=hashlib.sha512)
+        ahmac.update(params)
+        sign = ahmac.hexdigest()
         headers = {
             'Key': self.key,
-            'Sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
+            'Sign': sign,
             'Content-type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
@@ -69,7 +72,7 @@ class PrivateBTCe(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
+        req = urllib2.Request(url['url'], params, headers)
         response = urllib2.urlopen(req)
         if response.getcode() == 200:
             jsonstr = response.read()
@@ -101,8 +104,9 @@ class PrivateBTCe(Market):
         return self.trade(amount, "ask", price)
 
     def get_info(self):
-        params = [("nonce", self._create_nonce())]
+        params = {"nonce": self._create_nonce(), "method": "getInfo"}
         response = self._send_request(self.info_url, params)
+        print response
         if response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
