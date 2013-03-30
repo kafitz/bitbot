@@ -38,14 +38,18 @@ def balance(bitbot, input):
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
     
     for market in markets:
-        try:
-            mo = load(market) # load the correct market object (mo)
-            mo.get_info()            # execute the relevant function
-            usd_str = str(round(mo.usd_balance, 4))
-            btc_str = str(round(mo.btc_balance, 4))
-            bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str,btc_str))
-        except:
-           bitbot.say(market + " > Something went wrong here.")
+#        try:
+        mo = load(market) # load the correct market object (mo)
+        mo.get_info()            # execute the relevant function
+        if mo.error:
+            bitbot.say(market + " > " + mo.errormsg)
+            return
+            
+        usd_str = str(round(mo.usd_balance, 4))
+        btc_str = str(round(mo.btc_balance, 4))
+        bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str,btc_str))
+#        except:
+#           bitbot.say(market + " > Something went wrong here.")
             
 balance.commands = ['balance', 'bal']
 balance.name = 'balance'
@@ -53,7 +57,7 @@ balance.name = 'balance'
 def transactions(bitbot, input):
     if input[1:] in transactions.commands:
         bitbot.say("Getting transactions from all exchanges")
-        mmarkets = sorted(config.private_markets.keys())
+        markets = sorted(config.private_markets.keys())
     else:
         markets = [ input.split(" ", 1)[1] ]
 

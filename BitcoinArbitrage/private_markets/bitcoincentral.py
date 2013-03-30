@@ -27,6 +27,7 @@ class PrivateBitcoinCentral(Market):
         return int(time.time() * 1000000)
 
     def _send_request(self, url, params=[], extra_headers=None):
+        self.error = False
         headers = {
             'Content-type': 'application/json',
             'Accept': 'application/json, text/javascript, */*; q=0.01',

@@ -22,6 +22,7 @@ class PrivateBitstamp(Market):
         self.initials = "bstp"
 
     def _send_request(self, url, params, extra_headers=None):
+        self.error = False
         headers = {
             'Content-type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -32,7 +33,12 @@ class PrivateBitstamp(Market):
                 headers[k] = v
         
         req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
-        response = urllib2.urlopen(req)
+        try:
+            response = urllib2.urlopen(req)
+        except Exception, e:
+            self.error = True
+            self.errormsg = str(e)
+            return None
 
         if response.getcode() == 200:
             jsonstr = response.read()
@@ -67,17 +73,19 @@ class PrivateBitstamp(Market):
             self.btc_available = float(response["btc_balance"])
             self.fee = float(response["fee"])
             return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance})
-        else:
+            
+        elif response and "error" in response:
             self.error = str(response["error"])
             print self.error
             return 1
         return None
         
     def get_txs(self):
-        params = {"user": self.user, "password": self.password, "timedelta": "259200"}
+        params = {"user": self.user, "password": self.password, "timedelta": "604800"}
         response = self._send_request(self.tx_url, params)
         self.tx_list = []
         if response:
+            print response
             for transaction in response:
                 tx = {}
                 if transaction['type'] == 0:
