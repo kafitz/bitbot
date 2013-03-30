@@ -150,7 +150,7 @@ class Arbitrer(object):
         #     # (profit, purchase_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
         # line
         #print '{0:10} ==> {1:10d}'.format(name, phone)
-        line_output = "${0:.2f} | {1:.2f} of {2:5} BTC for ${3:5} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
+        line_output = "${0:.2f} | {1:.2f} of {2:.2f}BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
             profit, purchase_volume, str(available_volume), str(buy_total), kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
             
         if percent_profit > 5: 
