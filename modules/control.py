@@ -24,18 +24,16 @@ def start_arbitrage(bitbot, input):
 start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
 
-def load(initials):
-	private_market_names = config.private_markets
-	for market in private_market_names:
-		exec('import BitcoinArbitrage.private_markets.' + market.lower())
-		market = eval('private_markets.' + str(market.lower()) + '.Private' + str(market) + '()')
-		if market.initials == initials:
-		    return market
+def load(input):
+    market_name = config.private_markets[input]
+    exec('import BitcoinArbitrage.private_markets.' + market_name.lower())
+    market = eval('private_markets.' + market_name.lower() + '.Private' + market_name + '()')
+    return market
 
 def balance(bitbot, input):
     if input[1:] in balance.commands:
         bitbot.say("Getting balances from all exchanges")
-        markets = ['mtgx','bflr','bstp','bctl']
+        markets = sorted(config.private_markets.keys())
     else:
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
     
@@ -55,7 +53,7 @@ balance.name = 'balance'
 def transactions(bitbot, input):
     if input[1:] in transactions.commands:
         bitbot.say("Getting transactions from all exchanges")
-        markets = ['mtgx','bflr','bstp','bctl']
+        mmarkets = sorted(config.private_markets.keys())
     else:
         markets = [ input.split(" ", 1)[1] ]
 
@@ -87,7 +85,7 @@ transactions.name = 'transactions'
 def open_orders(bitbot, input):
     if input[1:] in open_orders.commands:
         bitbot.say("Getting open orders from all exchanges")
-        markets = ['mtgx','bflr','bstp','bctl']
+        markets = sorted(config.private_markets.keys())
     else:
         markets = [ input.split(" ", 1)[1] ]
 
