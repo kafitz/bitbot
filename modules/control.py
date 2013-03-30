@@ -1,29 +1,47 @@
 #!/usr/bin/env python
 """
-btc-arbitrage module
+module to control the BitcoinArbitrage project from IRC
+
 Kyle Fitzsimmons 2013, http://kylefitz.com/
+Bas Pennewaert 2013, bas@pennewaert.com
+
+start_arbitrage ->  start the arbitrage script, looking for opportunities on all public_markets
+balance         ->  balances from private_markets: usd_balance, btc_balance
+transactions    ->  transactions from private_markets: 
+open_orders     ->  currently open orders from private_markets:
+
 """
-import os
+from BitcoinArbitrage import arbitrage
 from BitcoinArbitrage import irc_control
 
-def arb_balance(bitbot, input):
-    if input[1:] in arb_balance.commands:
+def start_arbitrage(bitbot, input):
+    bitbot.say("Starting up btc-arbitrage...")
+    arbitrer = arbitrage.Arbitrer()
+    while True:
+        arbitrer.loop(bitbot)
+        
+start_arbitrage.commands = ['arb','arbitrage']
+start_arbitrage.name = 'start_arbitrage'
+
+
+def balance(bitbot, input):
+    if input[1:] in balance.commands:
         bitbot.say("Getting balances from all exchanges")
         markets = ['mtgx','bflr','bstp','bctl']
     else:
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
     
     for market in markets:
-        balance_object = irc_control.get_balance(market)
-        usd_float = round(balance_object.usd_balance, 4)
-        btc_float = round(balance_object.btc_balance, 4) 
-        usd = " " * (8-len(str(usd_float))) + str(usd_float)
-        btc = " " * (7-len(str(btc_float))) + str(btc_float)
-        balance_output = market + " > USD: " + usd + " | BTC: " + btc
-        bitbot.say(balance_output)
-
-arb_balance.commands = ['balance', 'bal']
-arb_balance.name = 'arb_balance'
+        try:
+            balance_object = irc_control.get_balance(market)
+            usd_str = str(round(balance_object.usd_balance, 4))
+            btc_str = str(round(balance_object.btc_balance, 4))
+            bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str,btc_str))
+        except:
+            bitbot.say(market + " > Something went wrong here.")
+            
+balance.commands = ['balance', 'bal']
+balance.name = 'balance'
 
 def transactions(bitbot, input):
     if input[1:] in transactions.commands:
@@ -53,6 +71,10 @@ def transactions(bitbot, input):
                     str(transaction['type']) + " of " + str(tx_amount) + " " + str(tx_currency) + ". "
             bitbot.say(transactions_output)
 
+transactions.commands = ['transactions','txs']
+transactions.name = 'transactions'            
+
+
 def open_orders(bitbot, input):
     if input[1:] in open_orders.commands:
         bitbot.say("Getting open orders from all exchanges")
@@ -66,13 +88,8 @@ def open_orders(bitbot, input):
     #         # order_output = market + " > " + order['datetime'] + ": " + order_object[] + " " + order_object.type
     #         bitbot.say(str(order))
 
-
 open_orders.commands = ['open', 'openorders']
 open_orders.name = 'open_orders'
-
-
-transactions.commands = ['transactions','txs']
-transactions.name = 'transactions'
 
 
 if __name__ == "__main__":
