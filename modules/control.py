@@ -11,8 +11,9 @@ transactions    ->  transactions from private_markets:
 open_orders     ->  currently open orders from private_markets:
 
 """
-from BitcoinArbitrage import arbitrage
-from BitcoinArbitrage import irc_control
+from BitcoinArbitrage import arbitrage # arbitrage script
+from BitcoinArbitrage import config # read the config file
+from BitcoinArbitrage import private_markets # load private APIs
 
 def start_arbitrage(bitbot, input):
     bitbot.say("Starting up btc-arbitrage...")
@@ -23,6 +24,13 @@ def start_arbitrage(bitbot, input):
 start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
 
+def load(initials):
+	private_market_names = config.private_markets
+	for market in private_market_names:
+		exec('import BitcoinArbitrage.private_markets.' + market.lower())
+		market = eval('private_markets.' + str(market.lower()) + '.Private' + str(market) + '()')
+		if market.initials == initials:
+		    return market
 
 def balance(bitbot, input):
     if input[1:] in balance.commands:
@@ -33,12 +41,13 @@ def balance(bitbot, input):
     
     for market in markets:
         try:
-            balance_object = irc_control.get_balance(market)
-            usd_str = str(round(balance_object.usd_balance, 4))
-            btc_str = str(round(balance_object.btc_balance, 4))
+            mo = load(market) # load the correct market object (mo)
+            mo.get_info()            # execute the relevant function
+            usd_str = str(round(mo.usd_balance, 4))
+            btc_str = str(round(mo.btc_balance, 4))
             bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str,btc_str))
         except:
-            bitbot.say(market + " > Something went wrong here.")
+           bitbot.say(market + " > Something went wrong here.")
             
 balance.commands = ['balance', 'bal']
 balance.name = 'balance'
@@ -51,10 +60,10 @@ def transactions(bitbot, input):
         markets = [ input.split(" ", 1)[1] ]
 
     for market in markets:
-        transactions_object = irc_control.transactions(market)
-        # for transaction in transactions_object:
-        bitbot.say(transactions_object.name + " transactions:")
-        for transaction in transactions_object.tx_list:
+        mo = load(market)
+        mo.get_txs()
+        bitbot.say(mo.name + " transactions:")
+        for transaction in mo.tx_list:
             print transaction['type']
             if transaction['type'] in ['buy', 'sell']:
                 transactions_output = market + " > " + str(transaction['datetime']) + ": " +\
@@ -83,8 +92,9 @@ def open_orders(bitbot, input):
         markets = [ input.split(" ", 1)[1] ]
 
     # for market in markets:
-    #     order_object = irc_control.open_orders(market)
-    #     for order in order_object.orders_list:
+    #     mo = load(market)
+    #     mo.get_orders()
+    #     for order in mo.orders_list:
     #         # order_output = market + " > " + order['datetime'] + ": " + order_object[] + " " + order_object.type
     #         bitbot.say(str(order))
 
