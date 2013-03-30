@@ -137,6 +137,9 @@ class PrivateBitfloor(Market):
             return response
         return None
         
+    def get_orders(self):
+        pass
+
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
         response = self._send_request(self.withdraw_url, params)

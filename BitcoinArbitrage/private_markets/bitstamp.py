@@ -36,6 +36,7 @@ class PrivateBitstamp(Market):
         try:
             response = urllib2.urlopen(req)
         except Exception, e:
+            print e
             self.error = True
             self.errormsg = str(e)
             return None
@@ -98,10 +99,10 @@ class PrivateBitstamp(Market):
                     elif transaction['usd'] > 0:
                         tx['type'] = 'sell'
                 tx['datetime'] = str(transaction["datetime"])
-                tx['id'] = int(transaction["id"])
-                tx['usd'] = float(transaction["usd"])
-                tx['btc'] = float(transaction["btc"])
-                tx['fee'] = float(transaction["fee"])
+                tx['id'] = str(transaction["id"])
+                tx['usd'] = str(transaction["usd"])
+                tx['btc'] = str(transaction["btc"])
+                tx['fee'] = str(transaction["fee"])
                 self.tx_list.append(tx)
             return response
         return None
@@ -114,12 +115,14 @@ class PrivateBitstamp(Market):
         if response and "error" not in response:
             for order in response:
                 o = {}
+                if order['type'] == 0:
+                    o['type'] = 'buy'
+                elif order['type'] == 1:
+                    o['type'] = 'sell'
                 o['datetime'] = str(order["datetime"])
-                o['id'] = int(order["id"])
-                o['type'] = int(order["type"])
-                o['price'] = float(order["price"])
-                o['amount'] = float(order["amount"])
-                orders_list.append(o)
+                o['price'] = str(order["price"])
+                o['amount'] = str(order["amount"])
+                self.orders_list.append(o)
             return 
         elif "error" in response:
             self.error = str(response["error"])

@@ -79,6 +79,9 @@ class PrivateBitcoinCentral(Market):
             self.usd_balance = Decimal(response["USD"])
             self.gbp_balance = Decimal(response["GBP"])
 
+    def get_orders(self):
+        pass
+
     def __str__(self):
         return str({"btc_balance": self.btc_balance, "eur_balance": self.eur_balance,
                     "usd_balance": self.usd_balance, "gbp_balance": self.gbp_balance})

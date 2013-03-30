@@ -62,10 +62,10 @@ def transactions(bitbot, input):
         markets = [ input.split(" ", 1)[1] ]
 
     for market in markets:
-        mo = load(market)
+        market_obj = load(market)
         mo.get_txs()
-        bitbot.say(mo.name + " transactions:")
-        for transaction in mo.tx_list:
+        bitbot.say(market_obj.name + " transactions:")
+        for transaction in market_obj.tx_list:
             print transaction['type']
             if transaction['type'] in ['buy', 'sell']:
                 transactions_output = market + " > " + str(transaction['datetime']) + ": " +\
@@ -93,12 +93,18 @@ def open_orders(bitbot, input):
     else:
         markets = [ input.split(" ", 1)[1] ]
 
-    # for market in markets:
-    #     mo = load(market)
-    #     mo.get_orders()
-    #     for order in mo.orders_list:
-    #         # order_output = market + " > " + order['datetime'] + ": " + order_object[] + " " + order_object.type
-    #         bitbot.say(str(order))
+    for market in markets:
+        market_obj = load(market)
+        market_obj.get_orders()
+        for order in market_obj.orders_list:
+            # Attempt to deal with unicode issues from difference encodings at different exchanges
+            amount = order["amount"]
+            try:
+                amount = amount.decode("utf-8", "ignore")
+            except: pass
+            order_output = market + " > " + order["datetime"].encode("utf-8") + ": " + order["type"] + " " +\
+                amount + " for " + order["price"] + ". "
+            bitbot.say(order_output)
 
 open_orders.commands = ['open', 'openorders']
 open_orders.name = 'open_orders'

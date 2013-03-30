@@ -111,6 +111,9 @@ class PrivateBTCe(Market):
                     self.usd_balance = float(wallet['amount'])
             return 1
         return None
+
+    def get_orders(self):
+        pass
         
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]

@@ -1,5 +1,6 @@
 from market import Market
 import time
+import datetime
 import base64
 import hmac
 import urllib
@@ -108,6 +109,29 @@ class PrivateMtGox(Market):
             self.fee = float(response["return"]["Trade_Fee"])
             return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
         return None
+
+    def get_orders(self):
+        params = [("nonce", self._create_nonce())]
+        response = self._send_request(self.open_orders_url, params)
+        self.orders_list = []
+        if response and "error" not in response:
+            for order in response['return']:
+                o = {}
+                if order["type"] == "ask":
+                    o["type"] = "sell"
+                if order["type"] == "bid":
+                    o["type"] = "buy"
+                o["datetime"] = datetime.datetime.fromtimestamp(int(order["date"])).strftime('%Y-%m-%d %H:%M:%S')
+                o["price"] = order["price"]["display_short"]
+                o["amount"] = order["amount"]["display_short"].encode("utf-8")
+                self.orders_list.append(o)
+            return 
+        elif "error" in response:
+            self.error = str(response["error"])
+            self.orders_list = ['error']
+            print self.error
+            return 1
+        print response
 
     def __str__(self):
         return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
