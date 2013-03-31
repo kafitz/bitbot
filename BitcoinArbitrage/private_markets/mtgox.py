@@ -12,12 +12,13 @@ import re
 from decimal import Decimal
 
 class PrivateMtGox(Market):
-    ticker_url = {"method": "GET", "url": "https://mtgox.com/api/1/BTCUSD/public/ticker"}
-    buy_url = {"method": "POST", "url": "https://mtgox.com/api/1/BTCUSD/private/order/add"}
-    sell_url = {"method": "POST", "url": "https://mtgox.com/api/1/BTCUSD/private/order/add"}
-    order_url = {"method": "POST", "url": "https://mtgox.com/api/1/generic/private/order/result"}
-    open_orders_url = {"method": "POST", "url": "https://mtgox.com/api/1/generic/private/orders"}
-    info_url = {"method": "POST", "url": "https://mtgox.com/api/1/generic/private/info"}
+    ticker_url = "https://mtgox.com/api/1/BTCUSD/public/ticker"
+    buy_url = "https://mtgox.com/api/1/BTCUSD/private/order/add"
+    sell_url = "https://mtgox.com/api/1/BTCUSD/private/order/add"
+    order_url = "https://mtgox.com/api/1/generic/private/order/result"
+    open_orders_url = "https://mtgox.com/api/1/generic/private/orders"
+    info_url = "https://mtgox.com/api/1/generic/private/info"
+    cancel_url = "https://data.mtgox.com/api/0/cancelOrder.php"
 
     def __init__(self):
         super(Market, self).__init__()
@@ -56,8 +57,9 @@ class PrivateMtGox(Market):
         # FIXME: should take JPY and SEK into account
         return Decimal(amount) / Decimal(100000.)
 
-    def _send_request(self, url, params, extra_headers=None):
+    def _send_request(self, url, params=[], extra_headers=None):
         self.error = False
+        params += [("nonce", self._create_nonce())]
         headers = {
             'Rest-Key': self.key,
             'Rest-Sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
@@ -69,7 +71,7 @@ class PrivateMtGox(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
+        req = urllib2.Request(url, urllib.urlencode(params), headers)
         response = urllib2.urlopen(req)
         print response
         if response.getcode() == 200:
@@ -82,10 +84,9 @@ class PrivateMtGox(Market):
             price = self._to_int_price(price, self.currency)
         amount = self._to_int_amount(amount)
 
-        self.buy_url["url"] = self._change_currency_url(self.buy_url["url"], self.currency)
+        self.buy_url = self._change_currency_url(self.buy_url, self.currency)
 
-        params = [("nonce", self._create_nonce()),
-                  ("amount_int", str(amount)),
+        params = [("amount_int", str(amount)),
                   ("type", ttype)]
         if price:
             params.append(("price_int", str(price)))
@@ -102,14 +103,20 @@ class PrivateMtGox(Market):
         return self.trade(amount, "ask", price)
 
     def cancel(self, order_id):
-        params = [("nonce", self._create_nonce())]
-        cancel_url = "https://data.mtgox.com/api/0/cancelOrder.php"
+        params = [(u"oid", order_id)]
+        self.get_orders()
+        if len(self.orders_list) == 0:
+            return "No open orders."
+        for order in self.orders_list:
+            if order_id == order["id"]:
+                order_type = order["type"]
+        print params, self.cancel_url
 
         pass
 
     def get_info(self):
-        params = [("nonce", self._create_nonce())]
-        response = self._send_request(self.info_url, params)
+        params = []
+        response = self._send_request(self.info_url)
         if response and "result" in response and response["result"] == "success":
             self.btc_balance = self._from_int_amount(int(response["return"]["Wallets"]["BTC"]["Balance"]["value_int"]))
             self.usd_balance = self._from_int_price(int(response["return"]["Wallets"]["USD"]["Balance"]["value_int"]))
@@ -118,8 +125,8 @@ class PrivateMtGox(Market):
         return None
 
     def get_orders(self):
-        params = [("nonce", self._create_nonce())]
-        response = self._send_request(self.open_orders_url, params)
+        params = []
+        response = self._send_request(self.open_orders_url)
         self.orders_list = []
         if response and "error" not in response:
             for order in response['return']:
@@ -131,6 +138,7 @@ class PrivateMtGox(Market):
                 o["timestamp"] = datetime.datetime.fromtimestamp(int(order["date"])).strftime('%Y-%m-%d %H:%M:%S')
                 o["price"] = order["price"]["display_short"]
                 o["amount"] = order["amount"]["display_short"]
+                o["id"] = order["oid"]
                 self.orders_list.append(o)
             return 
         elif "error" in response:
@@ -145,6 +153,7 @@ class PrivateMtGox(Market):
 
 if __name__ == "__main__":
     mtgox = PrivateMtGox()
-    mtgox.get_orders()
-    print mtgox.orders_list
+    mtgox.cancel("4439922a-2011-41ad-ad6e-59398b922d1b")
+    # mtgox.get_orders()
+    # print mtgox.orders_list
     #print mtgox

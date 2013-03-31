@@ -108,7 +108,7 @@ def open_orders(bitbot, input):
         try:
             market_obj = load(market)
         except:
-            bitbot.say('Error: invalid exchange specified - "' + str(market) + '".')
+            bitbot.say('Error - open_orders: invalid exchange specified - "' + str(market) + '".')
             return
         market_obj.get_orders()
         for order in market_obj.orders_list:
@@ -129,14 +129,18 @@ def cancel_order(bitbot, input):
     try:
         order_id = input_list[2]
     except:
-        bitbot.say("Error: invalid # of arguments specified. (.cancel exchange #order_id)")
+        bitbot.say("Error - cancel_order: invalid # of arguments specified. (.cancel exchange #order_id)")
         return
     try:
         market_obj = load(market)
     except:
-        bitbot.say('Error: invalid exchange specified - "' + str(market) + '".')
+        bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
         return
-    bitbot.say("Cancel order function: " + str(market_obj.name) + ", order id: " + str(order_id))
+    return_output = market_obj.cancel(order_id)
+    if return_output == 1:
+        bitbot.say("Cancel order function: " + str(market_obj.name) + ", order id: " + str(order_id))
+    else:
+        bitbot.say("Error - cancel_order: " + str(return_output))
 
 cancel_order.commands = ['cancel']
 cancel_order.name = 'cancel_order'
