@@ -154,7 +154,6 @@ class PrivateBitfloor(Market):
                 o['price'] = unicode(round(float(order["price"]), 2)) # Round to 2 places (e.g., $5.35) and output a unicode
                 o['amount'] = unicode(round(float(order["size"]), 4)) # e.g., 3.2534 BTC
                 self.orders_list.append(o)
-            print self.orders_list
             return
         elif "error" in response:
             self.error = str(response["error"])
