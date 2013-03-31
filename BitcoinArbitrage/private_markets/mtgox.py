@@ -11,9 +11,6 @@ import json
 import re
 from decimal import Decimal
 
-
-print "test"
-
 class PrivateMtGox(Market):
     ticker_url = {"method": "GET", "url": "https://mtgox.com/api/1/BTCUSD/public/ticker"}
     buy_url = {"method": "POST", "url": "https://mtgox.com/api/1/BTCUSD/private/order/add"}
