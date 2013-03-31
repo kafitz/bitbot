@@ -119,8 +119,9 @@ class PrivateBitstamp(Market):
                 elif order['type'] == 1:
                     o['type'] = 'sell'
                 o['timestamp'] = str(order["datetime"])
-                o['price'] = str(order["price"])
-                o['amount'] = str(order["amount"])
+                o['price'] = str(order["price"]) + " USD/BTC"
+                o['amount'] = str(round(float(order["amount"]),1)) + " BTC"
+                o['id'] = str(order['id'])
                 self.orders_list.append(o)
             return 
         elif "error" in response:
@@ -132,4 +133,3 @@ class PrivateBitstamp(Market):
 if __name__ == "__main__":
     bitstamp = PrivateBitstamp()
     bitstamp.get_info()
-    #print bitstamp

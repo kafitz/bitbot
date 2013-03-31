@@ -54,10 +54,9 @@ class PrivateMtGox(Market):
         return Decimal(amount) / Decimal(100000000.)
 
     def _from_int_price(self, amount):
-        # FIXME: should take JPY and SEK into account
         return Decimal(amount) / Decimal(100000.)
 
-    def _send_request(self, url, params, extra_headers=None):
+    def _send_request(self, url, params=[], extra_headers=None):
         self.error = False
         params += [("nonce", self._create_nonce())]
 

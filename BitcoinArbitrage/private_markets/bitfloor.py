@@ -56,7 +56,6 @@ class PrivateBitfloor(Market):
         return Decimal(amount) / Decimal(100000000.)
 
     def _from_int_price(self, amount):
-        # FIXME: should take JPY and SEK into account
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params=[], extra_headers=None):
@@ -76,10 +75,17 @@ class PrivateBitfloor(Market):
                 headers[k] = v
 
         req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
-        response = urllib2.urlopen(req)
+        
+        try:
+            response = urllib2.urlopen(req)
+        except Exception, e:
+            print e
+            self.error = True
+            self.errormsg = str(e)
+            return None
+            
         if response.getcode() == 200:
             jsonstr = response.read()
-            print jsonstr
             return json.loads(jsonstr)
         return None
 
@@ -119,11 +125,10 @@ class PrivateBitfloor(Market):
         return None
 
     def get_txs(self, order_id):
-        # params = {"user": self.user, "password": self.password, "timedelta": "259200"}
         self.tx_list = []
         if order_id is None:
             return "Error: must enter an order ID for bitfloor."
-        params = [("nonce", self._create_nonce()), ("order_id", order_id)]
+        params = [("order_id", order_id)]
         transaction = self._send_request(self.order_url, params)
         if transaction:
             tx = {}
@@ -157,7 +162,7 @@ class PrivateBitfloor(Market):
                 o['id'] = order['order_id']
                 self.orders_list.append(o)
             return
-        elif "error" in response:
+        elif response and "error" in response:
             self.error = str(response["error"])
             self.orders_list = ['error']
             print self.error
@@ -165,15 +170,13 @@ class PrivateBitfloor(Market):
         return None
         
     def cancel(self, order_id):
-        params = [(u"oid", order_id),(u"product_id", "1")]
-        self.get_orders()
-        if len(self.orders_list) == 0:
-            return "No open orders."
-            
-        for order in self.orders_list:
-            if order_id == order["id"]:
-                response = self._send_request(self.cancel_url, params)
-                print response
+        params = [("order_id", order_id),("product_id", "1")]
+        response = self._send_request(self.cancel_url, params)
+        print response
+        self.cancelled_id = response["order_id"]
+        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
+        return 1
+                
 
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]

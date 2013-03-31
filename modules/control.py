@@ -24,10 +24,11 @@ def start_arbitrage(bitbot, input):
 start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
 
-def load(input):
-    market_name = config.private_markets[input]
+def load(initials):
+    market_name = config.private_markets[initials]
     exec('import BitcoinArbitrage.private_markets.' + market_name.lower())
     market = eval('private_markets.' + market_name.lower() + '.Private' + market_name + '()')
+    
     return market
 
 def balance(bitbot, input):
@@ -38,7 +39,6 @@ def balance(bitbot, input):
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
     
     for market in markets:
-#        try:
         market_obj = load(market) # load the correct market object (mo)
         market_obj.get_info()            # execute the relevant function
         if market_obj.error:
@@ -48,8 +48,6 @@ def balance(bitbot, input):
         usd_str = str(round(market_obj.usd_balance, 4))
         btc_str = str(round(market_obj.btc_balance, 4))
         bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str, btc_str))
-#        except:
-#           bitbot.say(market + " > Something went wrong here.")
             
 balance.commands = ['balance', 'bal']
 balance.name = 'balance'
@@ -111,12 +109,16 @@ def open_orders(bitbot, input):
             bitbot.say('Error - open_orders: invalid exchange specified - "' + str(market) + '".')
             return
         market_obj.get_orders()
-        for order in market_obj.orders_list:
-            # Attempt to deal with unicode issues from difference encodings at different exchanges
-            order_output = market + u" > " + order["timestamp"] + u": " + order["type"] + u" " +\
-                order["amount"] + u" for " + order["price"] + u". " + order["id"]
+        
+        if market_obj.error:
+            bitbot.say(market + " > " + market_obj.errormsg)
+        else:
+            for order in market_obj.orders_list:
+                # Attempt to deal with unicode issues from difference encodings at different exchanges
+                order_output = market + u" > " + order["timestamp"] + u": " + order["type"] + u" " +\
+                    order["amount"] + u" for " + order["price"] + u". id: " + order["id"]
 
-            bitbot.say(order_output)
+                bitbot.say(order_output)
 
 open_orders.commands = ['open', 'openorders']
 open_orders.name = 'open_orders'
@@ -137,11 +139,12 @@ def cancel_order(bitbot, input):
     except:
         bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
         return
+        
     return_output = market_obj.cancel(order_id)
     if return_output == 1:
-        bitbot.say("Cancel order function: " + str(market_obj.name) + ", order id: " + str(order_id))
+        bitbot.say(market + " > cancel > order " + market_obj.cancelled_id + " successfully cancelled at " + market_obj.cancelled_time)
     else:
-        bitbot.say("Error - cancel_order: " + str(return_output))
+        bitbot.say(market + " > cancel > error: " + str(return_output))
 
 cancel_order.commands = ['cancel']
 cancel_order.name = 'cancel_order'
