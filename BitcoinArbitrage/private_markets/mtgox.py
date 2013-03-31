@@ -72,6 +72,7 @@ class PrivateMtGox(Market):
 
         req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         response = urllib2.urlopen(req)
+        print response
         if response.getcode() == 200:
             jsonstr = response.read()
             return json.loads(jsonstr)
@@ -102,6 +103,9 @@ class PrivateMtGox(Market):
         return self.trade(amount, "ask", price)
 
     def cancel(self, order_id):
+        params = [("nonce", self._create_nonce())]
+        cancel_url = "https://data.mtgox.com/api/0/cancelOrder.php"
+
         pass
 
     def get_info(self):
