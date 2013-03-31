@@ -110,7 +110,6 @@ class PrivateBitstamp(Market):
     def get_orders(self):
         params = {"user": self.user, "password": self.password}
         response = self._send_request(self.orders_url, params)
-
         self.orders_list = []
         if response and "error" not in response:
             for order in response:
@@ -126,7 +125,6 @@ class PrivateBitstamp(Market):
             return 
         elif "error" in response:
             self.error = str(response["error"])
-            self.orders_list = ['error']
             print self.error
             return 1
         return None
