@@ -176,10 +176,23 @@ buy.commands = ['buy']
 buy.name = 'buy'
 
 def sell(bitbot, input):
-    bitbot.say("Sell command not yet implemented.")
+    # Test input formatting
+    parameters = input.split(" ")[1:]
+    if len(parameters) != 3:
+        bitbot.say("Error - buy: insufficient parameters. (.buy exchange $USD_total $price_limit_per_btc)")
+        return
+    market = parameters[0]
+    total_usd = Decimal(parameters[1])
+    price_limit = Decimal(parameters[2])
+    try:
+        market_obj = load(market)
+    except:
+        bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
+        return
+    # Run buy function
+    return_output = market_obj.sell(total_usd, price_limit)
+    bitbot.say(return_output)
     return
-    if input[1:] in sell.commands:
-        pass
 
 sell.commands = ['sell']
 sell.name = 'sell'
