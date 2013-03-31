@@ -2,6 +2,7 @@ import sys
 sys.path.append('../')
 sys.path.append('.')
 from BitcoinArbitrage import config
+# import config
 
 class Market(object):
     config = config

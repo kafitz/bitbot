@@ -123,7 +123,7 @@ class PrivateMtGox(Market):
                     o["type"] = "buy"
                 o["datetime"] = datetime.datetime.fromtimestamp(int(order["date"])).strftime('%Y-%m-%d %H:%M:%S')
                 o["price"] = order["price"]["display_short"]
-                o["amount"] = order["amount"]["display_short"].encode("utf-8")
+                o["amount"] = order["amount"]["display_short"]
                 self.orders_list.append(o)
             return 
         elif "error" in response:

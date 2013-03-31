@@ -98,12 +98,8 @@ def open_orders(bitbot, input):
         market_obj.get_orders()
         for order in market_obj.orders_list:
             # Attempt to deal with unicode issues from difference encodings at different exchanges
-            amount = order["amount"]
-            try:
-                amount = amount.decode("utf-8", "ignore")
-            except: pass
-            order_output = market + " > " + order["datetime"].encode("utf-8") + ": " + order["type"] + " " +\
-                amount + " for " + order["price"] + ". "
+            order_output = market + u" > " + order["datetime"] + u": " + order["type"] + u" " +\
+                order["amount"] + u" for " + order["price"] + u". "
             bitbot.say(order_output)
 
 open_orders.commands = ['open', 'openorders']

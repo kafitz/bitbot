@@ -1,5 +1,6 @@
 from market import Market
 import time
+import datetime
 import base64
 import hmac
 import urllib
@@ -138,7 +139,29 @@ class PrivateBitfloor(Market):
         return None
         
     def get_orders(self):
-        pass
+        params = [("nonce", self._create_nonce())]
+        response = self._send_request(self.open_orders_url, params)
+
+        self.orders_list = []
+        if response and "error" not in response:
+            for order in response:
+                o = {}
+                if order['side'] == 0:
+                    o['type'] = 'buy'
+                elif order['side'] == 1:
+                    o['type'] = 'sell'
+                o["datetime"] = datetime.datetime.fromtimestamp(float(order["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
+                o['price'] = unicode(round(float(order["price"]), 2)) # Round to 2 places (e.g., $5.35) and output a unicode
+                o['amount'] = unicode(round(float(order["size"]), 4)) # e.g., 3.2534 BTC
+                self.orders_list.append(o)
+            print self.orders_list
+            return
+        elif "error" in response:
+            self.error = str(response["error"])
+            self.orders_list = ['error']
+            print self.error
+            return 1
+        return None
 
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
@@ -155,6 +178,6 @@ class PrivateBitfloor(Market):
 
 if __name__ == "__main__":
     bitfloor = PrivateBitfloor()
-    bitfloor.get_info()
-    print bitfloor
+    bitfloor.get_orders()
+    # print bitfloor
     #bitfloor.withdraw(0,"1E774iqGeTrr7GUP1L6jpwDsWg1pERQhNo")
