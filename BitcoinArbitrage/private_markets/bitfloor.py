@@ -21,6 +21,7 @@ class PrivateBitfloor(Market):
     open_orders_url = {"method": "POST", "url": "https://api.bitfloor.com/orders"}
     info_url = {"method": "POST", "url": "https://api.bitfloor.com/accounts"}
     withdraw_url = {"method": "POST", "url": "https://testnet.bitfloor.com/withdraw"}
+    cancel_url = {"method": "POST", "url": "https://api.bitfloor.com/order/cancel"}
 
 
     def __init__(self):
@@ -29,8 +30,6 @@ class PrivateBitfloor(Market):
         self.secret = self.config.bitfloor_secret
         self.passphrase = self.config.bitfloor_passphrase
         self.currency = "USD"
-        self.initials = "bflr"
-        #self.get_info()
 
     def _create_nonce(self):
         return int(time.time() * 1000000)
@@ -60,8 +59,9 @@ class PrivateBitfloor(Market):
         # FIXME: should take JPY and SEK into account
         return Decimal(amount) / Decimal(100000.)
 
-    def _send_request(self, url, params, extra_headers=None):
+    def _send_request(self, url, params=[], extra_headers=None):
         self.error = False
+        params += [("nonce", self._create_nonce())]
         headers = {
             'bitfloor-key': self.key,
             'bitfloor-sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
@@ -79,6 +79,7 @@ class PrivateBitfloor(Market):
         response = urllib2.urlopen(req)
         if response.getcode() == 200:
             jsonstr = response.read()
+            print jsonstr
             return json.loads(jsonstr)
         return None
 
@@ -107,8 +108,7 @@ class PrivateBitfloor(Market):
         return self.trade(amount, "ask", price)
 
     def get_info(self):
-        params = [("nonce", self._create_nonce())]
-        response = self._send_request(self.info_url, params)
+        response = self._send_request(self.info_url)
         if response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
@@ -142,9 +142,7 @@ class PrivateBitfloor(Market):
         return None
         
     def get_orders(self):
-        params = [("nonce", self._create_nonce())]
-        response = self._send_request(self.open_orders_url, params)
-
+        response = self._send_request(self.open_orders_url)
         self.orders_list = []
         if response and "error" not in response:
             for order in response:
@@ -154,8 +152,9 @@ class PrivateBitfloor(Market):
                 elif order['side'] == 1:
                     o['type'] = 'sell'
                 o['timestamp'] = datetime.datetime.fromtimestamp(float(order["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
-                o['price'] = unicode(round(float(order["price"]), 2)) # Round to 2 places (e.g., $5.35) and output a unicode
-                o['amount'] = unicode(round(float(order["size"]), 4)) # e.g., 3.2534 BTC
+                o['price'] = unicode(round(float(order["price"]), 2)) + " USD/BTC" # Round to 2 places (e.g., $5.35) and output a unicode
+                o['amount'] = unicode(round(float(order["size"]), 4)) + " BTC" # e.g., 3.2534 BTC
+                o['id'] = order['order_id']
                 self.orders_list.append(o)
             return
         elif "error" in response:
@@ -164,6 +163,17 @@ class PrivateBitfloor(Market):
             print self.error
             return 1
         return None
+        
+    def cancel(self, order_id):
+        params = [(u"oid", order_id),(u"product_id", "1")]
+        self.get_orders()
+        if len(self.orders_list) == 0:
+            return "No open orders."
+            
+        for order in self.orders_list:
+            if order_id == order["id"]:
+                response = self._send_request(self.cancel_url, params)
+                print response
 
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
