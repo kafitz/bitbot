@@ -39,14 +39,8 @@ def balance(bitbot, input):
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
     
     for market in markets:
-<<<<<<< HEAD
         market_obj = load(market) # load the correct market object (mo)
         market_obj.get_info()            # execute the relevant function
-=======
-#        try:
-        market_obj = load(market)       # load the correct market object
-        market_obj.get_info()           # execute the relevant function
->>>>>>> 5739c0d6416bcc02741cbd7f95099bb56aa6d162
         if market_obj.error:
             bitbot.say(market + " > " + market_obj.errormsg)
             return
@@ -147,11 +141,8 @@ def cancel_order(bitbot, input):
     except:
         bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
         return
-<<<<<<< HEAD
-        
-=======
+
     # Run cancellation function
->>>>>>> 5739c0d6416bcc02741cbd7f95099bb56aa6d162
     return_output = market_obj.cancel(order_id)
     if return_output == 1:
         bitbot.say(market + " > cancel > order " + market_obj.cancelled_id + " successfully cancelled at " + market_obj.cancelled_time)
