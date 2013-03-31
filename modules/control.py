@@ -11,9 +11,9 @@ transactions    ->  transactions from private_markets:
 open_orders     ->  currently open orders from private_markets:
 
 """
-from BitcoinArbitrage import arbitrage # arbitrage script
-from BitcoinArbitrage import config # read the config file
-from BitcoinArbitrage import private_markets # load private APIs
+from BitcoinArbitrage import arbitrage          # arbitrage script
+from BitcoinArbitrage import config             # read the config file
+from BitcoinArbitrage import private_markets    # load private APIs
 
 def start_arbitrage(bitbot, input):
     bitbot.say("Starting up btc-arbitrage...")
@@ -39,8 +39,8 @@ def balance(bitbot, input):
     
     for market in markets:
 #        try:
-        market_obj = load(market) # load the correct market object (mo)
-        market_obj.get_info()            # execute the relevant function
+        market_obj = load(market)       # load the correct market object
+        market_obj.get_info()           # execute the relevant function
         if market_obj.error:
             bitbot.say(market + " > " + market_obj.errormsg)
             return
@@ -114,14 +114,14 @@ def open_orders(bitbot, input):
         for order in market_obj.orders_list:
             # Attempt to deal with unicode issues from difference encodings at different exchanges
             order_output = market + u" > " + order["timestamp"] + u": " + order["type"] + u" " +\
-                order["amount"] + u" for " + order["price"] + u". " + order["id"]
-
+                order["amount"] + u" for " + order["price"] + u". Order id: " + order["id"] + "." 
             bitbot.say(order_output)
 
 open_orders.commands = ['open', 'openorders']
 open_orders.name = 'open_orders'
 
 def cancel_order(bitbot, input):
+    # Test input formatting
     if input[1:] in cancel_order.commands:
         bitbot.say("Error: must provide exchange and order ID with cancel function. (.cancel exchange #order_id)")
         return
@@ -137,6 +137,7 @@ def cancel_order(bitbot, input):
     except:
         bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
         return
+    # Run cancellation function
     return_output = market_obj.cancel(order_id)
     if return_output == 1:
         bitbot.say("Cancel order function: " + str(market_obj.name) + ", order id: " + str(order_id))
@@ -147,8 +148,36 @@ cancel_order.commands = ['cancel']
 cancel_order.name = 'cancel_order'
 
 def buy(bitbot, input):
-    pass
+    # Test input formatting
+    parameters = input.split(" ")[1:]
+    print parameters
+    if len(parameters) != 3:
+        bitbot.say("Error - buy: insufficient parameters. (.buy exchange $USD_total $price_limit_per_btc)")
+        return
+    market = parameters[0]
+    total_usd = parameters[1]
+    price_limit = parameters[2]
+    try:
+        market_obj = load(market)
+    except:
+        bitbot.say("Error - buy: Unknown market specified.")
+        return
+    # Run buy function
+    return_output = market_obj.buy(total_usd, price_limit)
+    bitbot.say(return_output)
+    return
 
+buy.commands = ['buy']
+buy.name = 'buy'
+
+def sell(bitbot, input):
+    bitbot.say("Sell command not yet implemented.")
+    return
+    if input[1:] in sell.commands:
+        pass
+
+sell.commands = ['sell']
+sell.name = 'sell'
 
 if __name__ == "__main__":
     print __doc__.strip()
