@@ -32,7 +32,7 @@ def load(input):
 
 def balance(bitbot, input):
     if input[1:] in balance.commands:
-        bitbot.say("Getting balances from all exchanges")
+        bitbot.say("Getting balances from all exchanges:")
         markets = sorted(config.private_markets.keys())
     else:
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
@@ -55,20 +55,31 @@ balance.commands = ['balance', 'bal']
 balance.name = 'balance'
 
 def transactions(bitbot, input):
+    order_id = None
     if input[1:] in transactions.commands:
         bitbot.say("Getting transactions from all exchanges")
         markets = sorted(config.private_markets.keys())
     else:
-        markets = [ input.split(" ", 1)[1] ]
+        parameters = input.split(" ")[1:]
+        markets = [ parameters[0] ]
+        try:
+            order_id = parameters[1]
+        except: pass
 
     for market in markets:
         market_obj = load(market)
-        market_obj.get_txs()
+        response = market_obj.get_txs(order_id)
+        # Out of place error handling, find better solution
+        if len(market_obj.tx_list) == 0:
+            try:
+                bitbot.say(response)
+            except:
+                bitbot.say("No recent Bitstamp transactions found.")
+            return
         bitbot.say(market_obj.name + " transactions:")
         for transaction in market_obj.tx_list:
-            print transaction['type']
             if transaction['type'] in ['buy', 'sell']:
-                transactions_output = market + " > " + str(transaction['datetime']) + ": " +\
+                transactions_output = market + " > " + str(transaction['timestamp']) + ": " +\
                     transaction['type'] + " $" + str(abs(transaction['usd'])) + " for " + str(transaction['btc']) +\
                     ". Fee of: " + str(transaction['fee'])
             elif transaction['type'] in ['deposit', 'withdrawal']:
@@ -78,7 +89,7 @@ def transactions(bitbot, input):
                 elif int(transaction['btc']) != 0:
                     tx_amount = transaction['btc']
                     tx_currency = "BTC"
-                transactions_output = market + " > " + str(transaction['datetime']) + ": " +\
+                transactions_output = market + " > " + str(transaction['timestamp']) + ": " +\
                     str(transaction['type']) + " of " + str(tx_amount) + " " + str(tx_currency) + ". "
             bitbot.say(transactions_output)
 
@@ -88,7 +99,7 @@ transactions.name = 'transactions'
 
 def open_orders(bitbot, input):
     if input[1:] in open_orders.commands:
-        bitbot.say("Getting open orders from all exchanges")
+        bitbot.say("Getting open orders from all exchanges:")
         markets = sorted(config.private_markets.keys())
     else:
         markets = [ input.split(" ", 1)[1] ]
@@ -98,7 +109,7 @@ def open_orders(bitbot, input):
         market_obj.get_orders()
         for order in market_obj.orders_list:
             # Attempt to deal with unicode issues from difference encodings at different exchanges
-            order_output = market + u" > " + order["datetime"] + u": " + order["type"] + u" " +\
+            order_output = market + u" > " + order["timestamp"] + u": " + order["type"] + u" " +\
                 order["amount"] + u" for " + order["price"] + u". "
             bitbot.say(order_output)
 

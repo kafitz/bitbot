@@ -81,7 +81,7 @@ class PrivateBitstamp(Market):
             return 1
         return None
         
-    def get_txs(self):
+    def get_txs(self, order_id=None):
         params = {"user": self.user, "password": self.password, "timedelta": "604800"}
         response = self._send_request(self.tx_url, params)
         self.tx_list = []
@@ -98,7 +98,7 @@ class PrivateBitstamp(Market):
                         tx['type'] = 'buy'
                     elif transaction['usd'] > 0:
                         tx['type'] = 'sell'
-                tx['datetime'] = str(transaction["datetime"])
+                tx['timestamp'] = str(transaction["datetime"])
                 tx['id'] = str(transaction["id"])
                 tx['usd'] = str(transaction["usd"])
                 tx['btc'] = str(transaction["btc"])
@@ -119,7 +119,7 @@ class PrivateBitstamp(Market):
                     o['type'] = 'buy'
                 elif order['type'] == 1:
                     o['type'] = 'sell'
-                o['datetime'] = str(order["datetime"])
+                o['timestamp'] = str(order["datetime"])
                 o['price'] = str(order["price"])
                 o['amount'] = str(order["amount"])
                 self.orders_list.append(o)

@@ -121,7 +121,7 @@ class PrivateMtGox(Market):
                     o["type"] = "sell"
                 if order["type"] == "bid":
                     o["type"] = "buy"
-                o["datetime"] = datetime.datetime.fromtimestamp(int(order["date"])).strftime('%Y-%m-%d %H:%M:%S')
+                o["timestamp"] = datetime.datetime.fromtimestamp(int(order["date"])).strftime('%Y-%m-%d %H:%M:%S')
                 o["price"] = order["price"]["display_short"]
                 o["amount"] = order["amount"]["display_short"]
                 self.orders_list.append(o)
@@ -131,7 +131,6 @@ class PrivateMtGox(Market):
             self.orders_list = ['error']
             print self.error
             return 1
-        print response
 
     def __str__(self):
         return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})

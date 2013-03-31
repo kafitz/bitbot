@@ -13,14 +13,15 @@ from decimal import Decimal
 
 
 class PrivateBitfloor(Market):
+    name = "Bitfloor"
     ticker_url = {"method": "GET", "url": ""}
     buy_url = {"method": "POST", "url": "https://api.bitfloor.com/order/new"}
     sell_url = {"method": "POST", "url": "https://api.bitfloor.com/order/new"}
     order_url = {"method": "POST", "url": "https://api.bitfloor.com/order/details"}
     open_orders_url = {"method": "POST", "url": "https://api.bitfloor.com/orders"}
-    tx_url = {"methods": "POST", "url": "https://api.bitfloor.com/trades"}
     info_url = {"method": "POST", "url": "https://api.bitfloor.com/accounts"}
     withdraw_url = {"method": "POST", "url": "https://testnet.bitfloor.com/withdraw"}
+
 
     def __init__(self):
         super(Market, self).__init__()
@@ -117,25 +118,27 @@ class PrivateBitfloor(Market):
             return 1
         return None
 
-    def get_txs(self):
-        params = {"user": self.user, "password": self.password, "timedelta": "259200"}
-        response = self._send_request(self.tx_url, params)
+    def get_txs(self, order_id):
+        # params = {"user": self.user, "password": self.password, "timedelta": "259200"}
         self.tx_list = []
-        if response:
-            for transaction in response:
-                tx = {}
-                if transaction['provider_side'] == 0:
-                    tx['type'] = 'buy'
-                elif transaction['provider_side'] == 1:
-                    tx['type'] = 'sell'
-                tx['timestamp'] = str(transaction["datetime"])
-                tx['provider_side'] = int(transaction["type"])
-                tx['id'] = int(transaction["id"])
-                tx['usd'] = float(transaction["price"])
-                tx['btc'] = float(transaction["size"])
-                tx['seq'] = float(transaction["fee"])
-                self.tx_list.append(tx)
-            return response
+        if order_id is None:
+            return "Error: must enter an order ID for bitfloor."
+        params = [("nonce", self._create_nonce()), ("order_id", order_id)]
+        transaction = self._send_request(self.order_url, params)
+        if transaction:
+            tx = {}
+            if transaction['side'] == 0:
+                tx['type'] = 'buy'
+            elif transaction['side'] == 1:
+                tx['type'] = 'sell'
+            tx['timestamp'] = str(transaction["timestamp"])
+            tx['id'] = transaction["order_id"]
+            tx['usd'] = float(transaction["price"])
+            tx['btc'] = float(transaction["size"])
+            tx['fee'] = tx['usd'] * 0.001
+            # tx['seq'] = float(transaction["fee"])
+            self.tx_list.append(tx)
+            return transaction
         return None
         
     def get_orders(self):
@@ -150,7 +153,7 @@ class PrivateBitfloor(Market):
                     o['type'] = 'buy'
                 elif order['side'] == 1:
                     o['type'] = 'sell'
-                o["datetime"] = datetime.datetime.fromtimestamp(float(order["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
+                o['timestamp'] = datetime.datetime.fromtimestamp(float(order["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
                 o['price'] = unicode(round(float(order["price"]), 2)) # Round to 2 places (e.g., $5.35) and output a unicode
                 o['amount'] = unicode(round(float(order["size"]), 4)) # e.g., 3.2534 BTC
                 self.orders_list.append(o)
