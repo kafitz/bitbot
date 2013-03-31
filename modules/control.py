@@ -14,6 +14,7 @@ open_orders     ->  currently open orders from private_markets:
 from BitcoinArbitrage import arbitrage          # arbitrage script
 from BitcoinArbitrage import config             # read the config file
 from BitcoinArbitrage import private_markets    # load private APIs
+from decimal import Decimal
 
 def start_arbitrage(bitbot, input):
     bitbot.say("Starting up btc-arbitrage...")
@@ -164,17 +165,16 @@ cancel_order.name = 'cancel_order'
 def buy(bitbot, input):
     # Test input formatting
     parameters = input.split(" ")[1:]
-    print parameters
     if len(parameters) != 3:
         bitbot.say("Error - buy: insufficient parameters. (.buy exchange $USD_total $price_limit_per_btc)")
         return
     market = parameters[0]
-    total_usd = parameters[1]
-    price_limit = parameters[2]
+    total_usd = Decimal(parameters[1])
+    price_limit = Decimal(parameters[2])
     try:
         market_obj = load(market)
     except:
-        bitbot.say("Error - buy: Unknown market specified.")
+        bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
         return
     # Run buy function
     return_output = market_obj.buy(total_usd, price_limit)
