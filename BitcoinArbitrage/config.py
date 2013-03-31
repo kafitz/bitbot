@@ -5,7 +5,7 @@ arbitrage_output = "#botbottest"
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
 markets = ["bitfloorUSD", "MtGoxUSD", "BitstampUSD", "CampBXUSD", "VircurexUSD"]
 # private_markets = {"bflr": "Bitfloor", "mtgx": "MtGox", "bstp": "Bitstamp", "bctl": "BitcoinCentral"}
-private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "btce": "BTCe", "bflr": "Bitfloor"}
+private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor"}
 
 # observers if any
 # ["Logger", "TraderBot", "TraderBotSim", "HistoryDumper", "Emailer", "Database"]
