@@ -114,7 +114,7 @@ def open_orders(bitbot, input):
         for order in market_obj.orders_list:
             # Attempt to deal with unicode issues from difference encodings at different exchanges
             order_output = market + u" > " + order["timestamp"] + u": " + order["type"] + u" " +\
-                order["amount"] + u" for " + order["price"] + u". "
+                order["amount"] + u" for " + order["price"] + u". Order id: " + order["id"] + "." 
             bitbot.say(order_output)
 
 open_orders.commands = ['open', 'openorders']

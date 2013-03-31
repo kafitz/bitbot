@@ -57,9 +57,10 @@ class PrivateMtGox(Market):
         # FIXME: should take JPY and SEK into account
         return Decimal(amount) / Decimal(100000.)
 
-    def _send_request(self, url, params=[], extra_headers=None):
+    def _send_request(self, url, params, extra_headers=None):
         self.error = False
         params += [("nonce", self._create_nonce())]
+
         headers = {
             'Rest-Key': self.key,
             'Rest-Sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
@@ -73,7 +74,7 @@ class PrivateMtGox(Market):
 
         req = urllib2.Request(url, urllib.urlencode(params), headers)
         response = urllib2.urlopen(req)
-        print response
+
         if response.getcode() == 200:
             jsonstr = response.read()
             return json.loads(jsonstr)
@@ -103,16 +104,15 @@ class PrivateMtGox(Market):
         return self.trade(amount, "ask", price)
 
     def cancel(self, order_id):
-        params = [(u"oid", order_id)]
         self.get_orders()
         if len(self.orders_list) == 0:
             return "No open orders."
         for order in self.orders_list:
             if order_id == order["id"]:
                 order_type = order["type"]
-        print params, self.cancel_url
-
-        pass
+        params = [(u"oid", order_id), (u"type", order_type)]
+        self._send_request(self.cancel_url, params)
+        return 1
 
     def get_info(self):
         params = []
@@ -126,7 +126,7 @@ class PrivateMtGox(Market):
 
     def get_orders(self):
         params = []
-        response = self._send_request(self.open_orders_url)
+        response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
         if response and "error" not in response:
             for order in response['return']:
