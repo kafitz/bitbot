@@ -109,8 +109,14 @@ class PrivateMtGox(Market):
         for order in self.orders_list:
             if order_id == order["id"]:
                 order_type = order["type"]
+        try:
+            order_type = order_type
+        except:
+            return "Order does not exist."
         params = [(u"oid", order_id), (u"type", order_type)]
-        self._send_request(self.cancel_url, params)
+        response = self._send_request(self.cancel_url, params)
+        self.cancelled_id = order_id
+        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["orders"][0]["date"])).strftime('%Y-%m-%d %H:%M:%S')
         return 1
 
     def get_info(self):
@@ -152,7 +158,6 @@ class PrivateMtGox(Market):
 
 if __name__ == "__main__":
     mtgox = PrivateMtGox()
-    mtgox.cancel("4439922a-2011-41ad-ad6e-59398b922d1b")
-    # mtgox.get_orders()
-    # print mtgox.orders_list
-    #print mtgox
+    # mtgox.cancel("01613cd0-e886-43ba-b86e-a66868430fa0")
+    mtgox.get_orders()
+    print mtgox.orders_list
