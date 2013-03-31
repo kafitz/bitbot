@@ -22,6 +22,7 @@ class PrivateMtGox(Market):
 
     def __init__(self):
         super(Market, self).__init__()
+        self.name = "MtGox"
         self.key = self.config.mtgox_key
         self.secret = self.config.mtgox_secret
         self.currency = "USD"
@@ -100,6 +101,9 @@ class PrivateMtGox(Market):
     def sell(self, amount, price=None):
         return self.trade(amount, "ask", price)
 
+    def cancel(self, order_id):
+        pass
+
     def get_info(self):
         params = [("nonce", self._create_nonce())]
         response = self._send_request(self.info_url, params)
@@ -138,5 +142,6 @@ class PrivateMtGox(Market):
 
 if __name__ == "__main__":
     mtgox = PrivateMtGox()
-    mtgox.get_info()
+    mtgox.get_orders()
+    print mtgox.orders_list
     #print mtgox

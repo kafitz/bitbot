@@ -102,10 +102,14 @@ def open_orders(bitbot, input):
         bitbot.say("Getting open orders from all exchanges:")
         markets = sorted(config.private_markets.keys())
     else:
-        markets = [ input.split(" ", 1)[1] ]
+        markets = input.split(" ")[1:] # Create a list of specified exchanges
 
     for market in markets:
-        market_obj = load(market)
+        try:
+            market_obj = load(market)
+        except:
+            bitbot.say('Error: invalid exchange specified - "' + str(market) + '".')
+            return
         market_obj.get_orders()
         for order in market_obj.orders_list:
             # Attempt to deal with unicode issues from difference encodings at different exchanges
@@ -115,6 +119,30 @@ def open_orders(bitbot, input):
 
 open_orders.commands = ['open', 'openorders']
 open_orders.name = 'open_orders'
+
+def cancel_order(bitbot, input):
+    if input[1:] in cancel_order.commands:
+        bitbot.say("Error: must provide exchange and order ID with cancel function. (.cancel exchange #order_id)")
+        return
+    input_list = input.split(" ")
+    market = input_list[1]
+    try:
+        order_id = input_list[2]
+    except:
+        bitbot.say("Error: invalid # of arguments specified. (.cancel exchange #order_id)")
+        return
+    try:
+        market_obj = load(market)
+    except:
+        bitbot.say('Error: invalid exchange specified - "' + str(market) + '".')
+        return
+    bitbot.say("Cancel order function: " + str(market_obj.name) + ", order id: " + str(order_id))
+
+cancel_order.commands = ['cancel']
+cancel_order.name = 'cancel_order'
+
+def buy(bitbot, input):
+    pass
 
 
 if __name__ == "__main__":
