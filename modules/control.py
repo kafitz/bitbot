@@ -39,15 +39,15 @@ def balance(bitbot, input):
     
     for market in markets:
 #        try:
-        mo = load(market) # load the correct market object (mo)
-        mo.get_info()            # execute the relevant function
-        if mo.error:
-            bitbot.say(market + " > " + mo.errormsg)
+        market_obj = load(market) # load the correct market object (mo)
+        market_obj.get_info()            # execute the relevant function
+        if market_obj.error:
+            bitbot.say(market + " > " + market_obj.errormsg)
             return
             
-        usd_str = str(round(mo.usd_balance, 4))
-        btc_str = str(round(mo.btc_balance, 4))
-        bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str,btc_str))
+        usd_str = str(round(market_obj.usd_balance, 4))
+        btc_str = str(round(market_obj.btc_balance, 4))
+        bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str, btc_str))
 #        except:
 #           bitbot.say(market + " > Something went wrong here.")
             
@@ -63,7 +63,7 @@ def transactions(bitbot, input):
 
     for market in markets:
         market_obj = load(market)
-        mo.get_txs()
+        market_obj.get_txs()
         bitbot.say(market_obj.name + " transactions:")
         for transaction in market_obj.tx_list:
             print transaction['type']
