@@ -15,6 +15,23 @@ The IRC bot is a stripped-down version of the Phenny/Jenni framework with its pr
 * web.py - provides a web framework for various default phenny/jenni plugins, not yet sure if needed with stripped down version
 * BeautifulSoup.py - used for providing unicode support for characters in page titles used by modules/url.py
 * BitcoinArbitrage/ - version of btc-arbitrage customized to output to IRC via "yield" statements in get_ticker() loop
+    * observers - methods to output results
+        * database.py - puts every deal in a sqlite db
+        * emailer.py - send emails with deals
+        * historydumper
+        * logger.py
+        * observer.py
+        * specializedtraderbot.py
+        * traderbot.py
+        * traderbotsim.py
+    * private_markets - functions interacting with private APIs
+        * bitcoincentral.py
+        * bitfloor.py
+        * bitstamp.py
+        * btce.py
+        * market.py - generic class template
+        * mtgox.py
+    * public_markets - functions interacting with public APIs 
 * modules/:
 	* admin.py - provides control commands for bot through IRC
 	* control.py - module to control the BitcoinArbitrage project from IRC
