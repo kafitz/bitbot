@@ -9,8 +9,13 @@ start_arbitrage ->  start the arbitrage script, looking for opportunities on all
 balance         ->  balances from private_markets: usd_balance, btc_balance
 transactions    ->  transactions from private_markets: 
 open_orders     ->  currently open orders from private_markets:
-
+cancel_order    ->  cancel an open order
+buy             ->  place a buy order
+sell            ->  place a sell order
+withdraw        ->  TODO
+deposit         ->  TODO
 """
+
 from BitcoinArbitrage import arbitrage          # arbitrage script
 from BitcoinArbitrage import config             # read the config file
 from BitcoinArbitrage import private_markets    # load private APIs
@@ -25,29 +30,34 @@ def start_arbitrage(bitbot, input):
 start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
 
+# load the correct market, given its initials
 def load(initials):
     market_name = config.private_markets[initials]
     exec('import BitcoinArbitrage.private_markets.' + market_name.lower())
-    market = eval('private_markets.' + market_name.lower() + '.Private' + market_name + '()')
-    
+    market = eval('private_markets.' + market_name.lower() + '.Private' + market_name + '()')   
     return market
 
-def balance(bitbot, input):
-    if input[1:] in balance.commands:
-        bitbot.say("Getting balances from all exchanges:")
+# determine which markets to query  
+def which(input,commands):
+    if input[1:] in commands:
         markets = sorted(config.private_markets.keys())
     else:
-        markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
-    
+        markets = [ input.split(" ", 1)[1] ]
+    return markets
+
+def balance(bitbot, input):
+    markets = which(input,balance.commands) 
+    bitbot.say("Getting balance from " + ", ".join(markets) + ":")  
     for market in markets:
         market_obj = load(market)       # load the correct market object (mo)
         market_obj.get_info()           # execute the relevant function
-        if market_obj.error:
+        
+        if market_obj.error:            # query received an HTTP Error
             bitbot.say(market + " > " + market_obj.errormsg)
-            
-        usd_str = str(round(market_obj.usd_balance, 4))
-        btc_str = str(round(market_obj.btc_balance, 4))
-        bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str, btc_str))
+        else:    
+            usd_str = str(round(market_obj.usd_balance, 4))
+            btc_str = str(round(market_obj.btc_balance, 4))
+            bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str, btc_str))
             
 balance.commands = ['balance', 'bal']
 balance.name = 'balance'
@@ -96,12 +106,8 @@ transactions.name = 'transactions'
 
 
 def open_orders(bitbot, input):
-    if input[1:] in open_orders.commands:
-        bitbot.say("Getting open orders from all exchanges:")
-        markets = sorted(config.private_markets.keys())
-    else:
-        markets = input.split(" ")[1:] # Create a list of specified exchanges
-
+    markets = which(input,open_orders.commands)
+    bitbot.say("Getting open orders from " + ", ".join(markets) + ":")  
     for market in markets:
         try:
             market_obj = load(market)

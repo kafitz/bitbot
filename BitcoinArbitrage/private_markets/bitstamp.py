@@ -21,7 +21,6 @@ class PrivateBitstamp(Market):
         self.user = self.config.bitstamp_user
         self.password = self.config.bitstamp_password
         self.currency = "USD"
-        self.initials = "bstp"
 
     def _send_request(self, url, params, extra_headers=None):
         self.error = False
