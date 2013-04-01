@@ -40,11 +40,10 @@ def balance(bitbot, input):
         markets = [ input.split(" ", 1)[1] ] # remove ".balance" command from string
     
     for market in markets:
-        market_obj = load(market) # load the correct market object (mo)
-        market_obj.get_info()            # execute the relevant function
+        market_obj = load(market)       # load the correct market object (mo)
+        market_obj.get_info()           # execute the relevant function
         if market_obj.error:
             bitbot.say(market + " > " + market_obj.errormsg)
-            return
             
         usd_str = str(round(market_obj.usd_balance, 4))
         btc_str = str(round(market_obj.btc_balance, 4))
@@ -179,7 +178,7 @@ def sell(bitbot, input):
     # Test input formatting
     parameters = input.split(" ")[1:]
     if len(parameters) != 3:
-        bitbot.say("Error - buy: insufficient parameters. (.buy exchange $USD_total $price_limit_per_btc)")
+        bitbot.say("Error - buy: insufficient parameters. (.sell exchange $USD_total $price_limit_per_btc)")
         return
     market = parameters[0]
     total_usd = Decimal(parameters[1])

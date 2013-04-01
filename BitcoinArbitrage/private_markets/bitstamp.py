@@ -1,4 +1,5 @@
 from market import Market
+import datetime
 import urllib
 import urllib2
 import sys
@@ -13,6 +14,7 @@ class PrivateBitstamp(Market):
     tx_url = {"method": "POST", "url": "https://www.bitstamp.net/api/user_transactions/"}
     orders_url = {"method": "POST", "url": "https://www.bitstamp.net/api/open_orders/"}
     info_url = {"method": "POST", "url": "https://www.bitstamp.net/api/balance/"}
+    cancel_url = {"method": "POST", "url": "https://bitstamp.net/api/cancel_order/"}
 
     def __init__(self):
         super(Market, self).__init__()
@@ -129,6 +131,25 @@ class PrivateBitstamp(Market):
             print self.error
             return 1
         return None
+
+    def cancel(self, order_id):
+        params = {"user": self.user, "password": self.password}
+        self.get_orders()
+        if len(self.orders_list) == 0:
+            return "No open orders."
+        for order in self.orders_list:
+            if order_id == order["id"]:
+                order_type = order["type"]
+        try:
+            order_type = order_type
+        except:
+            return "Order does not exist."
+        params = [(u"oid", order_id), (u"type", order_type)]
+        response = self._send_request(self.cancel_url, params)
+        print response
+        self.cancelled_id = order_id
+        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["orders"][0]["date"])).strftime('%Y-%m-%d %H:%M:%S')
+        return 1
         
 if __name__ == "__main__":
     bitstamp = PrivateBitstamp()
