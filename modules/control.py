@@ -13,7 +13,6 @@ cancel_order    ->  cancel an open order
 buy             ->  place a buy order
 sell            ->  place a sell order
 withdraw        ->  TODO
-deposit         ->  TODO
 """
 
 from BitcoinArbitrage import arbitrage          # arbitrage script
@@ -51,13 +50,13 @@ def balance(bitbot, input):
     for market in markets:
         market_obj = load(market)       # load the correct market object (mo)
         market_obj.get_info()           # execute the relevant function
-        
-        if market_obj.error:            # query received an HTTP Error
-            bitbot.say(market + " > " + market_obj.errormsg)
-        else:    
+
+        if market_obj.error == "":
             usd_str = str(round(market_obj.usd_balance, 4))
             btc_str = str(round(market_obj.btc_balance, 4))
             bitbot.say(market + " > USD: {0:7} | BTC: {1:7}".format(usd_str, btc_str))
+        else:
+            bitbot.say(market + " > " + market_obj.error)
             
 balance.commands = ['balance', 'bal']
 balance.name = 'balance'
@@ -115,17 +114,16 @@ def open_orders(bitbot, input):
             bitbot.say('Error - open_orders: invalid exchange specified - "' + str(market) + '".')
             return
         market_obj.get_orders()
-        
-        if market_obj.error:
-            bitbot.say(market + " > " + market_obj.errormsg)
-        else:
+      
+        if market_obj.error == "":
             for order in market_obj.orders_list:
                 # Attempt to deal with unicode issues from difference encodings at different exchanges
                 order_output = market + u" > " + order["timestamp"] + u": " + order["type"] + u" " +\
                     order["amount"] + u" for " + order["price"] + u". id: " + order["id"]
-
                 bitbot.say(order_output)
-
+        else:
+            bitbot.say(market + " > " + market_obj.error)
+          
 
 open_orders.commands = ['open', 'openorders']
 open_orders.name = 'open_orders'

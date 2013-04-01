@@ -51,10 +51,10 @@ def startup(bitbot, input):
    if hasattr(bitbot.config, 'serverpass'): 
       bitbot.write(('PASS', bitbot.config.serverpass))
 
-   if hasattr(bitbot.config, 'password'): 
-      bitbot.msg('NickServ', 'IDENTIFY %s' % bitbot.config.password)
-      time.sleep(5)
-
+   #if hasattr(bitbot.config, 'password'): 
+      #bitbot.msg('NickServ', 'IDENTIFY %s' % bitbot.config.password)
+      #time.sleep(5)
+      
    # Cf. http://swhack.com/logs/2005-12-05#T19-32-36
    for channel in bitbot.channels: 
       bitbot.write(('JOIN', channel))

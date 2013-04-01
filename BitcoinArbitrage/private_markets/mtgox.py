@@ -26,6 +26,7 @@ class PrivateMtGox(Market):
         self.key = self.config.mtgox_key
         self.secret = self.config.mtgox_secret
         self.currency = "USD"
+        self.error = ""
 
     def _create_nonce(self):
         return int(time.time() * 1000000)
@@ -55,7 +56,6 @@ class PrivateMtGox(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params=[], extra_headers=None):
-        self.error = False
         params += [("nonce", self._create_nonce())]
 
         headers = {
@@ -125,6 +125,9 @@ class PrivateMtGox(Market):
             self.usd_balance = self._from_int_price(int(response["return"]["Wallets"]["USD"]["Balance"]["value_int"]))
             self.fee = float(response["return"]["Trade_Fee"])
             return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
+        elif response and "error" in response:
+            self.error = str(response["error"])
+            return 1
         return None
 
     def get_orders(self):

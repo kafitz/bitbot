@@ -30,6 +30,7 @@ class PrivateBitfloor(Market):
         self.secret = self.config.bitfloor_secret
         self.passphrase = self.config.bitfloor_passphrase
         self.currency = "USD"
+        self.error = ""
 
     def _create_nonce(self):
         return int(time.time() * 1000000)
@@ -59,7 +60,6 @@ class PrivateBitfloor(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params=[], extra_headers=None):
-        self.error = False
         params += [("nonce", self._create_nonce())]
         headers = {
             'bitfloor-key': self.key,
@@ -78,15 +78,13 @@ class PrivateBitfloor(Market):
         
         try:
             response = urllib2.urlopen(req)
-        except Exception, e:
-            print e
-            self.error = True
-            self.errormsg = str(e)
-            return None
-            
-        if response.getcode() == 200:
-            jsonstr = response.read()
-            return json.loads(jsonstr)
+        except urllib2.HTTPError, e:
+            print str(e)
+            return json.loads(e.read())
+        else:
+            jsonstr = json.loads(response.read())
+#            response.close()
+            return jsonstr
         return None
 
     def trade(self, amount, ttype, price=None):
@@ -115,12 +113,15 @@ class PrivateBitfloor(Market):
 
     def get_info(self):
         response = self._send_request(self.info_url)
-        if response:
+        if response and "error" not in response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
                     self.btc_balance = float(wallet['amount'])
                 elif str(wallet['currency']) == 'USD':
                     self.usd_balance = float(wallet['amount'])
+            return 1
+        elif response and "error" in response:
+            self.error = str(response["error"])
             return 1
         return None
 
@@ -164,8 +165,6 @@ class PrivateBitfloor(Market):
             return
         elif response and "error" in response:
             self.error = str(response["error"])
-            self.orders_list = ['error']
-            print self.error
             return 1
         return None
         

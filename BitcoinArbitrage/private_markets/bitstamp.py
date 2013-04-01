@@ -21,9 +21,9 @@ class PrivateBitstamp(Market):
         self.user = self.config.bitstamp_user
         self.password = self.config.bitstamp_password
         self.currency = "USD"
-
+        self.error = ""
+        
     def _send_request(self, url, params, extra_headers=None):
-        self.error = False
         headers = {
             'Content-type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -78,7 +78,6 @@ class PrivateBitstamp(Market):
             
         elif response and "error" in response:
             self.error = str(response["error"])
-            print self.error
             return 1
         return None
         
