@@ -148,10 +148,10 @@ def cancel_order(bitbot, input):
 
     # Run cancellation function
     return_output = market_obj.cancel(order_id)
-    if return_output == 1:
+    if market_obj.error == "":
         bitbot.say(market + " > cancel > order " + market_obj.cancelled_id + " successfully cancelled at " + market_obj.cancelled_time)
     else:
-        bitbot.say(market + " > cancel > error: " + str(return_output))
+        bitbot.say(market + " > cancel > error: " + str(market_obj.error))
 
 cancel_order.commands = ['cancel']
 cancel_order.name = 'cancel_order'

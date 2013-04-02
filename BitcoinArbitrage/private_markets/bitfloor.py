@@ -59,23 +59,21 @@ class PrivateBitfloor(Market):
     def _from_int_price(self, amount):
         return Decimal(amount) / Decimal(100000.)
 
-    def _send_request(self, url, params=[], extra_headers=None):
-        params += [("nonce", self._create_nonce())]
+    def _send_request(self, url, params, extra_headers=None):
+        enc_params = urllib.urlencode(params)      
         headers = {
             'bitfloor-key': self.key,
-            'bitfloor-sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
+            'bitfloor-sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), enc_params, hashlib.sha512).digest())),
             'bitfloor-passphrase':  self.passphrase,
             'bitfloor-version': 1,
             'Content-type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
         }
+
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
-        
+        req = urllib2.Request(url['url'], enc_params, headers)
         try:
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
@@ -83,7 +81,6 @@ class PrivateBitfloor(Market):
             return json.loads(e.read())
         else:
             jsonstr = json.loads(response.read())
-#            response.close()
             return jsonstr
         return None
 
@@ -112,7 +109,8 @@ class PrivateBitfloor(Market):
         return self.trade(amount, "ask", price)
 
     def get_info(self):
-        response = self._send_request(self.info_url)
+        params = [("nonce", self._create_nonce())]
+        response = self._send_request(self.info_url,params)
         if response and "error" not in response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
@@ -129,7 +127,7 @@ class PrivateBitfloor(Market):
         self.tx_list = []
         if order_id is None:
             return "Error: must enter an order ID for bitfloor."
-        params = [("order_id", order_id)]
+        params = [("nonce", self._create_nonce()),("order_id", order_id)]
         transaction = self._send_request(self.order_url, params)
         if transaction:
             tx = {}
@@ -148,7 +146,8 @@ class PrivateBitfloor(Market):
         return None
         
     def get_orders(self):
-        response = self._send_request(self.open_orders_url)
+        params = [("nonce", self._create_nonce())]
+        response = self._send_request(self.open_orders_url,params)
         self.orders_list = []
         if response and "error" not in response:
             for order in response:
@@ -169,16 +168,19 @@ class PrivateBitfloor(Market):
         return None
         
     def cancel(self, order_id):
-        params = [("order_id", order_id),("product_id", "1")]
+        params = [("nonce", self._create_nonce()),("order_id", order_id),("product_id", "1")]
         response = self._send_request(self.cancel_url, params)
-        print response
-        self.cancelled_id = response["order_id"]
-        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
-        return 1
+        if response and "error" not in response:
+            self.cancelled_id = response["order_id"]
+            self.cancelled_time = datetime.datetime.fromtimestamp(float(response["timestamp"])).strftime('%Y-%m-%d %H:%M:%S') 
+            return 1
+        elif response and "error" in response:
+            self.error = str(response["error"])
+            return 1
                 
 
     def withdraw(self, amount, destination):
-        params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
+        params = [("nonce", self._create_nonce()),("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
         response = self._send_request(self.withdraw_url, params)
         if response:
             print response
