@@ -31,22 +31,22 @@ class Arbitrer(object):
 
     def get_profit_for(self, selling_index, buying_index, kask, kbid):
         # check to make sure input buying price actually lower than selling price
-        if self.depths[kask]["asks"][selling_index]["price"] >= self.depths[kbid]["bids"][buying_index]["price"]:
+        if self.depths[kask]['asks'][selling_index]['price'] >= self.depths[kbid]['bids'][buying_index]['price']:
             return 0, 0, 0, 0, 0 
 
         # get the maximum amount of asks or bids that can current be filled by
         # the market within our spread
         max_amount_buy = 0
         for i in range(selling_index + 1):
-            max_amount_buy += self.depths[kask]["asks"][i]["amount"]
+            max_amount_buy += self.depths[kask]['asks'][i]['amount']
         max_amount_sell = 0
         for j in range(buying_index + 1):
-            max_amount_sell += self.depths[kbid]["bids"][j]["amount"]
+            max_amount_sell += self.depths[kbid]['bids'][j]['amount']
         purchase_cap = float(config.max_purchase)
         # Estimate an approximate maximum volume to buy by multiplying cofig value by lowest market price
-        if float(self.depths[kask]["asks"][i]["price"]) == 0:
+        if float(self.depths[kask]['asks'][i]['price']) == 0:
             return 0, 0, 0, 0, 0
-        est_volume = purchase_cap / float(self.depths[kask]["asks"][i]["price"])
+        est_volume = purchase_cap / float(self.depths[kask]['asks'][i]['price'])
         max_amount = min(max_amount_buy, max_amount_sell, est_volume)
 
         buy_total = 0
@@ -54,9 +54,9 @@ class Arbitrer(object):
         total_available_volume = 0
         # For as long as we have bitcoin available, look for transactions we can make
         for i in range(selling_index + 1):
-            price = self.depths[kask]["asks"][i]["price"]
-            amount = min(max_amount, buy_total + self.depths[kask]["asks"][i]["amount"]) - buy_total
-            total_available_volume += self.depths[kask]["asks"][i]["amount"]
+            price = self.depths[kask]['asks'][i]['price']
+            amount = min(max_amount, buy_total + self.depths[kask]['asks'][i]['amount']) - buy_total
+            total_available_volume += self.depths[kask]['asks'][i]['amount']
             if amount <= 0:
                 break
             buy_total += amount
@@ -67,8 +67,8 @@ class Arbitrer(object):
         sell_total = 0
         w_sellprice = 0
         for j in range(buying_index + 1):
-            price = self.depths[kbid]["bids"][j]["price"]
-            amount = min(max_amount, sell_total + self.depths[kbid]["bids"][j]["amount"]) - sell_total
+            price = self.depths[kbid]['bids'][j]['price']
+            amount = min(max_amount, sell_total + self.depths[kbid]['bids'][j]['amount']) - sell_total
             if amount <= 0:
                 break
             sell_total += amount
@@ -82,17 +82,17 @@ class Arbitrer(object):
 
     def get_max_depth(self, kask, kbid):
         i = 0
-        if len(self.depths[kbid]["bids"]) != 0 and len(self.depths[kask]["asks"]) != 0:
+        if len(self.depths[kbid]['bids']) != 0 and len(self.depths[kask]['asks']) != 0:
             # Create a list of the indices of selling offer key/pairs (price, volume) that are less than the current max buying offer
-            while self.depths[kask]["asks"][i]["price"] < self.depths[kbid]["bids"][0]["price"]:
-                if i >= len(self.depths[kask]["asks"]) - 1:
+            while self.depths[kask]['asks'][i]['price'] < self.depths[kbid]['bids'][0]['price']:
+                if i >= len(self.depths[kask]['asks']) - 1:
                     break
                 i += 1
         j = 0
-        if len(self.depths[kask]["asks"]) != 0 and len(self.depths[kbid]["bids"]) != 0:
+        if len(self.depths[kask]['asks']) != 0 and len(self.depths[kbid]['bids']) != 0:
             # Create a list of the indices of buying offer key/pairs that are less than the current maxium selling offer
-            while self.depths[kask]["asks"][0]["price"] < self.depths[kbid]["bids"][j]["price"]:
-                if j >= len(self.depths[kbid]["bids"]) - 1:
+            while self.depths[kask]['asks'][0]['price'] < self.depths[kbid]['bids'][j]['price']:
+                if j >= len(self.depths[kbid]['bids']) - 1:
                     break
                 j += 1
         max_selling_index = i
@@ -127,11 +127,11 @@ class Arbitrer(object):
             return 0, 0, 0, 0, 0, 0, 0, 0
         percent_profit = ((sale_total * tx_fee_discount) / buy_total - 1) * 100
         fee_adjusted_profit = (sale_total * tx_fee_discount) - buy_total
-        return fee_adjusted_profit, fee_adjusted_volume, percent_profit, self.depths[kask]["asks"][best_selling_index]["price"],\
-            self.depths[kbid]["bids"][best_buying_index]["price"], best_w_buyprice, best_w_sellprice, round(available_volume,1)
+        return fee_adjusted_profit, fee_adjusted_volume, percent_profit, self.depths[kask]['asks'][best_selling_index]['price'],\
+            self.depths[kbid]['bids'][best_buying_index]['price'], best_w_buyprice, best_w_sellprice, round(available_volume,1)
 
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
-        # perc = (bid["price"] - ask["price"]) / bid["price"] * 100
+        # perc = (bid['price'] - ask['price']) / bid['price'] * 100
         profit, purchase_volume, percent_profit, buyprice, sellprice, weighted_buyprice,\
             weighted_sellprice, available_volume = self.arbitrage_depth_opportunity(kask, kbid)
         if purchase_volume == 0 or buyprice == 0:
@@ -146,16 +146,16 @@ class Arbitrer(object):
                                  percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_purchase)
         # Line to return to IRC
         buy_total = round(purchase_volume * weighted_buyprice,1)
-        # line_output = "profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%" %\
+        # line_output = 'profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%' %\
         #     # (profit, purchase_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
         # line
         #print '{0:10} ==> {1:10d}'.format(name, phone)
-        line_output = "${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%".format(\
+        line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
             profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
             
         if percent_profit > 5: 
             self.alert = True
-            self.alertwarning = "/!\ alert5%: these is an opportunity with " + str(round(percent_profit,2)) + "% /!\\"
+            self.alertwarning = '/!\ alert5%: these is an opportunity with ' + str(round(percent_profit,2)) + '% /!\\'
             self.alertopp = line_output
         return line_output
 
@@ -170,9 +170,9 @@ class Arbitrer(object):
     def tickers(self):
         for market in self.markets:
             try:
-                logging.debug("ticker: " + market.name + " - " + str(market.get_ticker()))
+                logging.debug('ticker: ' + market.name + ' - ' + str(market.get_ticker()))
             except:
-                logging.debug("error: unable to get ticker for " + market.name)
+                logging.debug('error: unable to get ticker for ' + market.name)
 
     def replay_history(self, directory):
         import os
@@ -200,10 +200,10 @@ class Arbitrer(object):
                 market1 = self.depths[kmarket1]
                 market2 = self.depths[kmarket2]
                 # spammy debug command for testing if there is no market liquidity
-                # print "Is " + kmarket1 + " at " + str(market1["asks"][0]['price']) + " less than " + kmarket2 + " at " + str(market2["bids"][0]['price']) + "?"
-                if len(market1["asks"]) > 0 and len(market2["bids"]) > 0:
-                    if float(market1["asks"][0]['price']) < float(market2["bids"][0]['price']):
-                        line_out = self.arbitrage_opportunity(kmarket1, market1["asks"][0], kmarket2, market2["bids"][0])
+                # print 'Is ' + kmarket1 + ' at ' + str(market1['asks'][0]['price']) + ' less than ' + kmarket2 + ' at ' + str(market2['bids'][0]['price']) + '?'
+                if len(market1['asks']) > 0 and len(market2['bids']) > 0:
+                    if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
+                        line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         output_list.append(line_out)
         for observer in self.observers:
             observer.end_opportunity_finder()
@@ -218,20 +218,20 @@ class Arbitrer(object):
         while True:
             self.depths, self.fees = self.update_depths()
             self.tickers()
-            #bitbot.msg(channel, "new crawl: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+            #bitbot.msg(channel, 'new crawl: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
             line_outs = self.tick()
             # remove empty outputs
             line_outs = filter(None, line_outs)
             if line_outs == []:
-                bitbot.msg(channel, "No opportunities found.")
+                bitbot.msg(channel, 'arb > no opportunities found')
             else:
                 for item in line_outs:
                     bitbot.msg(channel, item)
+                bitbot.msg(channel, '-----------------------------------------------------------------------------------------')                   
                     
             # if self.alert:
-                # bitbot.msg("#merlin", self.alertmsg)
-                # bitbot.msg("#merlin", self.alertopp)
-            bitbot.msg(channel, "-----------------------------------------------------------------------------------------") 
+                # bitbot.msg('#merlin', self.alertmsg)
+                # bitbot.msg('#merlin', self.alertopp)
             time.sleep(60)
 
 

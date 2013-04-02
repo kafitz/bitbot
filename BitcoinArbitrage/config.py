@@ -3,7 +3,7 @@ arbitrage_output = "#merlin-spam"
 
 # watch the following markets
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
-markets = ["bitfloorUSD", "MtGoxUSD", "BitstampUSD", "CampBXUSD", "VircurexUSD"]
+markets = ["bitfloorUSD", "MtGoxUSD", "BitstampUSD"]
 # private_markets = {"bflr": "Bitfloor", "mtgx": "MtGox", "bstp": "Bitstamp", "bctl": "BitcoinCentral"}
 private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor"}
 

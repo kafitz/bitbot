@@ -21,7 +21,7 @@ from BitcoinArbitrage import private_markets    # load private APIs
 from decimal import Decimal
 
 def start_arbitrage(bitbot, input):
-    bitbot.say('Starting up btc-arbitrage...')
+    bitbot.say('arb > starting up...')
     arbitrer = arbitrage.Arbitrer()
     while True:
         arbitrer.loop(bitbot)
