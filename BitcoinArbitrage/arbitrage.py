@@ -43,7 +43,7 @@ class Arbitrer(object):
         for j in range(buying_index + 1):
             max_amount_sell += self.depths[kbid]["bids"][j]["amount"]
         purchase_cap = float(config.max_purchase)
-        # Determine an approximate maximum volume to buy by multiplying cofig value by lowest market price
+        # Estimate an approximate maximum volume to buy by multiplying cofig value by lowest market price
         if float(self.depths[kask]["asks"][i]["price"]) == 0:
             return 0, 0, 0, 0, 0
         est_volume = purchase_cap / float(self.depths[kask]["asks"][i]["price"])
