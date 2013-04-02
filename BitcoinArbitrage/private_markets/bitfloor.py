@@ -15,8 +15,7 @@ from decimal import Decimal
 class PrivateBitfloor(Market):
     name = "Bitfloor"
     ticker_url = {"method": "GET", "url": ""}
-    buy_url = {"method": "POST", "url": "https://api.bitfloor.com/order/new"}
-    sell_url = {"method": "POST", "url": "https://api.bitfloor.com/order/new"}
+    trade_url = {"method": "POST", "url": "https://api.bitfloor.com/order/new"}
     order_url = {"method": "POST", "url": "https://api.bitfloor.com/order/details"}
     open_orders_url = {"method": "POST", "url": "https://api.bitfloor.com/orders"}
     info_url = {"method": "POST", "url": "https://api.bitfloor.com/accounts"}
@@ -60,7 +59,7 @@ class PrivateBitfloor(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params, extra_headers=None):
-        enc_params = urllib.urlencode(params)      
+        enc_params = urllib.urlencode(params)
         headers = {
             'bitfloor-key': self.key,
             'bitfloor-sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), enc_params, hashlib.sha512).digest())),
@@ -84,33 +83,49 @@ class PrivateBitfloor(Market):
             return jsonstr
         return None
 
-    def trade(self, amount, ttype, price=None):
-        if price:
-            price = self._to_int_price(price, self.currency)
-        amount = self._to_int_amount(amount)
+    def trade(self, product_id, size, side, price=None):
+        # if price:
+            # price = self._to_int_price(price, self.currency)
+        # size = self._to_int_amount(size)
 
-        self.buy_url["url"] = self._change_currency_url(self.buy_url["url"], self.currency)
+        # self.buy_url["url"] = self._change_currency_url(self.buy_url["url"], self.currency)
 
         params = [("nonce", self._create_nonce()),
-                  ("amount_int", str(amount)),
-                  ("type", ttype)]
-        if price:
-            params.append(("price_int", str(price)))
+                  ("product_id", product_id),
+                  ("size", str(size)),
+                  ("side", side)]
 
-        response = self._send_request(self.buy_url, params)
-        if response and "result" in response and response["result"] == "success":
-            return response["return"]
+        if price:
+            params.append(("price", str(price)))
+        response = self._send_request(self.trade_url, params)
+        if response and "order_id" in response:
+            return response["order_id"]
+        elif "error" in response:
+            return response["error"]
         return None
 
-    def buy(self, amount, price=None):
-        return self.trade(amount, "bid", price)
+    def buy(self, amount, price):
+        product_id = 1  # indicates exchanges as BTCUSD
+        if price: # If price is specified, buy order is stru
+            size = float(amount) / float(price)
+        else:
+            size = amount
+        side = 0 # indicates buy order
+        return self.trade(product_id, size, side, price)
 
-    def sell(self, amount, price=None):
-        return self.trade(amount, "ask", price)
+    def sell(self, amount, price):
+        product_id = 1
+        size = amount
+        side = 1 # indicates sell order
+        return self.trade(product_id, size, side, price)
 
     def get_info(self):
         params = [("nonce", self._create_nonce())]
+<<<<<<< HEAD
         response = self._send_request(self.info_url,params)
+=======
+        response = self._send_request(self.info_url, params)
+>>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
         if response and "error" not in response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
@@ -127,7 +142,11 @@ class PrivateBitfloor(Market):
         self.tx_list = []
         if order_id is None:
             return "Error: must enter an order ID for bitfloor."
+<<<<<<< HEAD
         params = [("nonce", self._create_nonce()),("order_id", order_id)]
+=======
+        params = [("nonce", self._create_nonce()), ("order_id", order_id)]
+>>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
         transaction = self._send_request(self.order_url, params)
         if transaction:
             tx = {}
@@ -147,7 +166,11 @@ class PrivateBitfloor(Market):
         
     def get_orders(self):
         params = [("nonce", self._create_nonce())]
+<<<<<<< HEAD
         response = self._send_request(self.open_orders_url,params)
+=======
+        response = self._send_request(self.open_orders_url, params)
+>>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
         self.orders_list = []
         if response and "error" not in response:
             for order in response:
@@ -168,6 +191,7 @@ class PrivateBitfloor(Market):
         return None
         
     def cancel(self, order_id):
+<<<<<<< HEAD
         params = [("nonce", self._create_nonce()),("order_id", order_id),("product_id", "1")]
         response = self._send_request(self.cancel_url, params)
         if response and "error" not in response:
@@ -177,6 +201,13 @@ class PrivateBitfloor(Market):
         elif response and "error" in response:
             self.error = str(response["error"])
             return 1
+=======
+        params = [("nonce", self._create_nonce()), ("order_id", order_id), ("product_id", "1")]
+        response = self._send_request(self.cancel_url, params)
+        self.cancelled_id = response["order_id"]
+        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
+        return 1
+>>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
                 
 
     def withdraw(self, amount, destination):

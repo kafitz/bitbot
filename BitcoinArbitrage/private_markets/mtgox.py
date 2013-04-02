@@ -108,6 +108,7 @@ class PrivateMtGox(Market):
         for order in self.orders_list:
             if order_id == order["id"]:
                 order_type = order["type"]
+                order_amount = order["amount"]
         try:
             order_type = order_type
         except:
@@ -115,7 +116,8 @@ class PrivateMtGox(Market):
         params = [(u"oid", order_id), (u"type", order_type)]
         response = self._send_request(self.cancel_url, params)
         self.cancelled_id = order_id
-        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["orders"][0]["date"])).strftime('%Y-%m-%d %H:%M:%S')
+        self.cancelled_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.cancelled_amount = order_amount
         return 1
 
     def get_info(self):

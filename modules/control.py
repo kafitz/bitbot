@@ -149,7 +149,7 @@ def cancel_order(bitbot, input):
     # Run cancellation function
     return_output = market_obj.cancel(order_id)
     if market_obj.error == "":
-        bitbot.say(market + " > cancel > order " + market_obj.cancelled_id + " successfully cancelled at " + market_obj.cancelled_time)
+        bitbot.say(market + " > cancel > order " + market_obj.cancelled_id + " [" + market_obj.cancelled_amount + "] successfully cancelled at " + market_obj.cancelled_time)
     else:
         bitbot.say(market + " > cancel > error: " + str(market_obj.error))
 
@@ -168,7 +168,7 @@ def buy(bitbot, input):
     try:
         market_obj = load(market)
     except:
-        bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
+        bitbot.say('Error - buy: invalid exchange specified - "' + str(market) + '".')
         return
     # Run buy function
     return_output = market_obj.buy(total_usd, price_limit)
@@ -182,7 +182,7 @@ def sell(bitbot, input):
     # Test input formatting
     parameters = input.split(" ")[1:]
     if len(parameters) != 3:
-        bitbot.say("Error - buy: insufficient parameters. (.sell exchange $USD_total $price_limit_per_btc)")
+        bitbot.say("Error - sell: insufficient parameters. (.sell exchange $USD_total $price_limit_per_btc)")
         return
     market = parameters[0]
     total_usd = Decimal(parameters[1])
@@ -190,9 +190,9 @@ def sell(bitbot, input):
     try:
         market_obj = load(market)
     except:
-        bitbot.say('Error - cancel_order: invalid exchange specified - "' + str(market) + '".')
+        bitbot.say('Error - sell: invalid exchange specified - "' + str(market) + '".')
         return
-    # Run buy function
+    # Run sell function
     return_output = market_obj.sell(total_usd, price_limit)
     bitbot.say(return_output)
     return
