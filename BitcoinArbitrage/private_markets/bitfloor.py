@@ -93,7 +93,7 @@ class PrivateBitfloor(Market):
             params.append(('price', str(price)))
         response = self._send_request(self.trade_url, params)
         if response and 'order_id' in response:
-            return response['order_id']
+            return 'order ' + response['order_id'] + ' placed at ' + datetime.datetime.fromtimestamp(float(response['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
         elif 'error' in response:
             return response['error']
         return None
@@ -177,11 +177,9 @@ class PrivateBitfloor(Market):
         
     def cancel(self, order_id):
         self.get_orders()
-        params = [('nonce', self._create_nonce()),('order_id', order_id),('product_id', '1')] # product_id = 1 => BTC/USD exchange
-        
+        params = [('nonce', self._create_nonce()),('order_id', order_id),('product_id', '1')] # product_id = 1 => BTC/USD exchange      
         response = self._send_request(self.cancel_url, params)
-        if len(self.orders_list) == 0:
-            return 'No open orders.'
+        
         for order in self.orders_list:
             if order_id == order['id']:
                 order_amount = order['amount']

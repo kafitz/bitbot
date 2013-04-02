@@ -143,7 +143,7 @@ open_orders.name = 'open_orders'
 def cancel_order(bitbot, input):
     # Test input formatting
     if input[1:] in cancel_order.commands:
-        bitbot.say('Error: must provide exchange and order ID with cancel function. (.cancel exchange #order_id)')
+        bitbot.say('cancel > ' + 'must provide exchange and order ID with cancel function: .cancel exchange #order_id')
         return
     input_list = input.split(' ')
     market = input_list[1]
@@ -153,19 +153,17 @@ def cancel_order(bitbot, input):
         bitbot.say('Error - cancel_order: invalid # of arguments specified. (.cancel exchange #order_id)')
         return
         
-    error, market_obj = load(market)        # load the correct market object
-    if error == 0:                          # market was loaded without errors
-        market_obj.get_orders()             # execute the relevant function
-    elif error == 1:                        # an error occured
+    error, market_obj = load(market)                    # load the correct market object
+    if error == 0:                                      # market was loaded without errors
+        return_output = market_obj.cancel(order_id)     # execute the relevant function
+    elif error == 1:                                    # an error occured
         bitbot.say('cancel > ' + market + ' > ' + market_obj)
         return 0
-
-    # Run cancellation function
-    return_output = market_obj.cancel(order_id)
+    
     if market_obj.error == '':
-        bitbot.say(market + ' > cancel > order ' + market_obj.cancelled_id + ' [' + market_obj.cancelled_amount + '] successfully cancelled at ' + market_obj.cancelled_time)
+        bitbot.say('cancel > ' + market + ' > order ' + market_obj.cancelled_id + ' [' + market_obj.cancelled_amount + '] cancelled at ' + market_obj.cancelled_time)
     else:
-        bitbot.say(market + ' > cancel > error: ' + str(market_obj.error))
+        bitbot.say('cancel > ' + market + ' > error: ' + str(market_obj.error))
 
 cancel_order.commands = ['cancel']
 cancel_order.name = 'cancel_order'
@@ -174,7 +172,7 @@ def buy(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('Error - buy: insufficient parameters. (.buy exchange $USD_total $price_limit_per_btc)')
+        bitbot.say('buy > insufficient parameters: .buy exchange $USD_total $price_limit_per_btc')
         return
     market = parameters[0]
     total_usd = Decimal(parameters[1])
@@ -183,7 +181,7 @@ def buy(bitbot, input):
     error, market_obj = load(market)                            # load the correct market object
     if error == 0:                                              # market was loaded without errors
         return_output = market_obj.buy(total_usd, price_limit)  # execute the relevant function
-        bitbot.say(return_output)            
+        bitbot.say('buy > ' + market + ' > ' + return_output)            
         return 1
     elif error == 1:                                            # an error occured
         bitbot.say('buy > ' + market + ' > ' + market_obj)
@@ -197,7 +195,7 @@ def sell(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('Error - sell: insufficient parameters. (.sell exchange $USD_total $price_limit_per_btc)')
+        bitbot.say('sell > insufficient parameters: .sell exchange $USD_total $price_limit_per_btc')
         return
     market = parameters[0]
     total_usd = Decimal(parameters[1])
@@ -206,10 +204,10 @@ def sell(bitbot, input):
     error, market_obj = load(market)                            # load the correct market object
     if error == 0:                                              # market was loaded without errors
         return_output = market_obj.sell(total_usd, price_limit) # execute the relevant function
-        bitbot.say(return_output)            
+        bitbot.say('sell > ' + market + ' > ' + return_output)            
         return 1
     elif error == 1:                                            # an error occured
-        bitbot.say('buy > ' + market + ' > ' + market_obj)
+        bitbot.say('sell > ' + market + ' > ' + market_obj)
         return 0
 
 sell.commands = ['sell']
