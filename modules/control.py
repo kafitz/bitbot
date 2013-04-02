@@ -215,16 +215,17 @@ sell.commands = ['sell']
 sell.name = 'sell'
 
 def deposit(bitbot, input):
-    markets = which(input,deposit.commands) 
+    markets = which(input, deposit.commands) 
     bitbot.say('dep > Getting deposit address from ' + ', '.join(markets) + ':')  
     for market in markets:
         error, market_obj = load(market)        # load the correct market object
         if error == 0:                          # market was loaded without errors
             market_obj.deposit()                # execute the relevant function
         elif error == 1:                        # an error occured
-            bitbot.say('bal > ' + market + ' > ' + market_obj)
+            bitbot.say('dep > ' + market + ' > ' + market_obj)
             return 0
 
+        
         if market_obj.error == '':
             bitbot.say('dep > ' + market + ' > address: ' + market_obj.address)
         else:

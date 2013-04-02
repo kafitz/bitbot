@@ -19,6 +19,7 @@ class PrivateMtGox(Market):
     open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
     info_url = 'https://mtgox.com/api/1/generic/private/info'
     cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
+    wallet_url = 'https://data.mtgox.com/api/1/generic/bitcoin/address'
 
     def __init__(self):
         super(Market, self).__init__()
@@ -158,6 +159,17 @@ class PrivateMtGox(Market):
             self.orders_list = ['error']
             print self.error
             return 1
+
+    def withdraw(self):
+        pass
+
+    def deposit(self):
+        params = []
+        response = self._send_request(self.wallet_url, params)
+        if 'error' not in response:
+            self.address = response['return']['addr']
+        else:
+            self.error = response['error']
 
 if __name__ == '__main__':
     mtgox = PrivateMtGox()
