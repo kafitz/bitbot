@@ -12,7 +12,8 @@ open_orders     ->  currently open orders from private_markets:
 cancel_order    ->  cancel an open order
 buy             ->  place a buy order
 sell            ->  place a sell order
-withdraw        ->  TODO
+deposit         ->  get the bitcoin deposit address
+withdraw        ->  withdraw bitcoin from exchange
 '''
 
 from BitcoinArbitrage import arbitrage          # arbitrage script
@@ -213,6 +214,49 @@ def sell(bitbot, input):
 sell.commands = ['sell']
 sell.name = 'sell'
 
+def deposit(bitbot, input):
+    markets = which(input,deposit.commands) 
+    bitbot.say('dep > Getting deposit address from ' + ', '.join(markets) + ':')  
+    for market in markets:
+        error, market_obj = load(market)        # load the correct market object
+        if error == 0:                          # market was loaded without errors
+            market_obj.deposit()                # execute the relevant function
+        elif error == 1:                        # an error occured
+            bitbot.say('bal > ' + market + ' > ' + market_obj)
+            return 0
+
+        if market_obj.error == '':
+            bitbot.say('dep > ' + market + ' > address: ' + market_obj.address)
+        else:
+            bitbot.say('dep > ' + market + ' > ' + market_obj.error) 
+            
+deposit.commands = ['deposit','dep']
+deposit.name = 'deposit'     
+       
+            
+def withdraw(bitbot, input):
+    # Test input formatting
+    parameters = input.split(' ')[1:]
+    if len(parameters) != 3:
+        bitbot.say('wdw > insufficient parameters: .wdw exchange amount address')
+        return
+    market = parameters[0]
+    amount = parameters[1]
+    address = parameters[2]
+    
+    error, market_obj = load(market)                            # load the correct market object
+    if error == 0:                                              # market was loaded without errors
+        market_obj.withdraw(amount, address)    # execute the relevant function          
+    elif error == 1:                                            # an error occured
+        bitbot.say('wdw > ' + market + ' > ' + market_obj)
+        return 0
+    if market_obj.error == '':
+        bitbot.say('wdw > ' + market + ' > ' + market_obj.status)
+    else:
+        bitbot.say('wdw > ' + market + ' > ' + market_obj.error)
+            
+withdraw.commands = ['withdraw','wdw']
+withdraw.name = 'withdraw'
 
 if __name__ == '__main__':
     print __doc__.strip()
