@@ -121,11 +121,7 @@ class PrivateBitfloor(Market):
 
     def get_info(self):
         params = [("nonce", self._create_nonce())]
-<<<<<<< HEAD
-        response = self._send_request(self.info_url,params)
-=======
         response = self._send_request(self.info_url, params)
->>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
         if response and "error" not in response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
@@ -142,11 +138,7 @@ class PrivateBitfloor(Market):
         self.tx_list = []
         if order_id is None:
             return "Error: must enter an order ID for bitfloor."
-<<<<<<< HEAD
-        params = [("nonce", self._create_nonce()),("order_id", order_id)]
-=======
         params = [("nonce", self._create_nonce()), ("order_id", order_id)]
->>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
         transaction = self._send_request(self.order_url, params)
         if transaction:
             tx = {}
@@ -166,11 +158,7 @@ class PrivateBitfloor(Market):
         
     def get_orders(self):
         params = [("nonce", self._create_nonce())]
-<<<<<<< HEAD
-        response = self._send_request(self.open_orders_url,params)
-=======
         response = self._send_request(self.open_orders_url, params)
->>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
         self.orders_list = []
         if response and "error" not in response:
             for order in response:
@@ -191,24 +179,23 @@ class PrivateBitfloor(Market):
         return None
         
     def cancel(self, order_id):
-<<<<<<< HEAD
+        self.get_orders()
         params = [("nonce", self._create_nonce()),("order_id", order_id),("product_id", "1")]
+        
         response = self._send_request(self.cancel_url, params)
+        if len(self.orders_list) == 0:
+            return "No open orders."
+        for order in self.orders_list:
+            if order_id == order["id"]:
+                order_amount = order["amount"]
         if response and "error" not in response:
             self.cancelled_id = response["order_id"]
             self.cancelled_time = datetime.datetime.fromtimestamp(float(response["timestamp"])).strftime('%Y-%m-%d %H:%M:%S') 
+            self.cancelled_amount = order_amount
             return 1
         elif response and "error" in response:
             self.error = str(response["error"])
             return 1
-=======
-        params = [("nonce", self._create_nonce()), ("order_id", order_id), ("product_id", "1")]
-        response = self._send_request(self.cancel_url, params)
-        self.cancelled_id = response["order_id"]
-        self.cancelled_time = datetime.datetime.fromtimestamp(float(response["timestamp"])).strftime('%Y-%m-%d %H:%M:%S')
-        return 1
->>>>>>> Fixed bitfloor balance nonce issue; added buy/sell to bitfloor (NEEDS CANCEL); fixed MtGox cancel order timestamp; improved cancel order output
-                
 
     def withdraw(self, amount, destination):
         params = [("nonce", self._create_nonce()),("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
