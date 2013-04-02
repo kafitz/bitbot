@@ -12,21 +12,21 @@ import re
 from decimal import Decimal
 
 class PrivateMtGox(Market):
-    ticker_url = "https://mtgox.com/api/1/BTCUSD/public/ticker"
-    buy_url = "https://mtgox.com/api/1/BTCUSD/private/order/add"
-    sell_url = "https://mtgox.com/api/1/BTCUSD/private/order/add"
-    order_url = "https://mtgox.com/api/1/generic/private/order/result"
-    open_orders_url = "https://mtgox.com/api/1/generic/private/orders"
-    info_url = "https://mtgox.com/api/1/generic/private/info"
-    cancel_url = "https://data.mtgox.com/api/0/cancelOrder.php"
+    ticker_url = 'https://mtgox.com/api/1/BTCUSD/public/ticker'
+    buy_url = 'https://mtgox.com/api/1/BTCUSD/private/order/add'
+    sell_url = 'https://mtgox.com/api/1/BTCUSD/private/order/add'
+    order_url = 'https://mtgox.com/api/1/generic/private/order/result'
+    open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
+    info_url = 'https://mtgox.com/api/1/generic/private/info'
+    cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
 
     def __init__(self):
         super(Market, self).__init__()
-        self.name = "MtGox"
+        self.name = 'MtGox'
         self.key = self.config.mtgox_key
         self.secret = self.config.mtgox_secret
-        self.currency = "USD"
-        self.error = ""
+        self.currency = 'USD'
+        self.error = ''
 
     def _create_nonce(self):
         return int(time.time() * 1000000)
@@ -36,11 +36,11 @@ class PrivateMtGox(Market):
 
     def _to_int_price(self, price, currency):
         ret_price = None
-        if currency in ["USD", "EUR", "GBP", "PLN", "CAD", "AUD", "CHF", "CNY",
-                        "NZD", "RUB", "DKK", "HKD", "SGD", "THB"]:
+        if currency in ['USD', 'EUR', 'GBP', 'PLN', 'CAD', 'AUD', 'CHF', 'CNY',
+                        'NZD', 'RUB', 'DKK', 'HKD', 'SGD', 'THB']:
             ret_price = Decimal(price)
             ret_price = int(price * 100000)
-        elif currency in ["JPY", "SEK"]:
+        elif currency in ['JPY', 'SEK']:
             ret_price = Decimal(price)
             ret_price = int(price * 1000)
         return ret_price
@@ -56,7 +56,7 @@ class PrivateMtGox(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params=[], extra_headers=None):
-        params += [("nonce", self._create_nonce())]
+        params += [('nonce', self._create_nonce())]
 
         headers = {
             'Rest-Key': self.key,
@@ -84,36 +84,36 @@ class PrivateMtGox(Market):
 
         self.buy_url = self._change_currency_url(self.buy_url, self.currency)
 
-        params = [("amount_int", str(amount)),
-                  ("type", ttype)]
+        params = [('amount_int', str(amount)),
+                  ('type', ttype)]
         if price:
-            params.append(("price_int", str(price)))
+            params.append(('price_int', str(price)))
 
         response = self._send_request(self.buy_url, params)
-        if response and "result" in response and response["result"] == "success":
-            return response["return"]
+        if response and 'result' in response and response['result'] == 'success':
+            return response['return']
         return None
 
     def buy(self, total_usd, price):
         amount = total_usd / price
-        return self.trade(amount, "bid", price)
+        return self.trade(amount, 'bid', price)
 
     def sell(self, amount, price=None):
-        return self.trade(amount, "ask", price)
+        return self.trade(amount, 'ask', price)
 
     def cancel(self, order_id):
         self.get_orders()
         if len(self.orders_list) == 0:
-            return "No open orders."
+            return 'No open orders.'
         for order in self.orders_list:
-            if order_id == order["id"]:
-                order_type = order["type"]
-                order_amount = order["amount"]
+            if order_id == order['id']:
+                order_type = order['type']
+                order_amount = order['amount']
         try:
             order_type = order_type
         except:
-            return "Order does not exist."
-        params = [(u"oid", order_id), (u"type", order_type)]
+            return 'Order does not exist.'
+        params = [(u'oid', order_id), (u'type', order_type)]
         response = self._send_request(self.cancel_url, params)
         self.cancelled_id = order_id
         self.cancelled_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -123,13 +123,13 @@ class PrivateMtGox(Market):
     def get_info(self):
         params = []
         response = self._send_request(self.info_url)
-        if response and "result" in response and response["result"] == "success":
-            self.btc_balance = self._from_int_amount(int(response["return"]["Wallets"]["BTC"]["Balance"]["value_int"]))
-            self.usd_balance = self._from_int_price(int(response["return"]["Wallets"]["USD"]["Balance"]["value_int"]))
-            self.fee = float(response["return"]["Trade_Fee"])
-            return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
-        elif response and "error" in response:
-            self.error = str(response["error"])
+        if response and 'result' in response and response['result'] == 'success':
+            self.btc_balance = self._from_int_amount(int(response['return']['Wallets']['BTC']['Balance']['value_int']))
+            self.usd_balance = self._from_int_price(int(response['return']['Wallets']['USD']['Balance']['value_int']))
+            self.fee = float(response['return']['Trade_Fee'])
+            return str({'btc_balance': self.btc_balance, 'usd_balance': self.usd_balance,'fee': self.fee})
+        elif response and 'error' in response:
+            self.error = str(response['error'])
             return 1
         return None
 
@@ -137,31 +137,28 @@ class PrivateMtGox(Market):
         params = []
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
-        if response and "error" not in response:
+        if response and len(response['return']) == 0:
+            self.error = 'no open orders listed'
+            return 1
+        if response and 'error' not in response:
             for order in response['return']:
                 o = {}
-                if order["type"] == "ask":
-                    o["type"] = "sell"
-                if order["type"] == "bid":
-                    o["type"] = "buy"
-                o["timestamp"] = datetime.datetime.fromtimestamp(int(order["date"])).strftime('%Y-%m-%d %H:%M:%S')
-                o["price"] = order["price"]["display_short"]
-                o["amount"] = order["amount"]["display_short"]
-                o["id"] = order["oid"]
+                if order['type'] == 'ask':
+                    o['type'] = 'sell'
+                if order['type'] == 'bid':
+                    o['type'] = 'buy'
+                o['timestamp'] = datetime.datetime.fromtimestamp(int(order['date'])).strftime('%Y-%m-%d %H:%M:%S')
+                o['price'] = order['price']['display_short']
+                o['amount'] = order['amount']['display_short']
+                o['id'] = order['oid']
                 self.orders_list.append(o)
-            return 
-        elif "error" in response:
-            self.error = str(response["error"])
+            return 1
+        elif 'error' in response:
+            self.error = str(response['error'])
             self.orders_list = ['error']
             print self.error
             return 1
 
-    def __str__(self):
-        return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance,"fee": self.fee})
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     mtgox = PrivateMtGox()
-    # mtgox.cancel("01613cd0-e886-43ba-b86e-a66868430fa0")
-    mtgox.get_orders()
-    print mtgox.orders_list
+    mtgox.get_info()
