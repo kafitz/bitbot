@@ -52,6 +52,7 @@ class PrivateBitstamp(Market):
     def trade(self, url, amount, price):
         params = {'user': self.user, 'password': self.password, 'amount': str(amount), 'price': str(price)}
         response = self._send_request(url, params)
+        print response
         if response and 'error' not in response:
             self.price = str(response['price'])
             self.id = str(response['id'])
@@ -59,7 +60,7 @@ class PrivateBitstamp(Market):
             self.amount = str(response['amount'])
             return 1
         elif response and 'error' in response:
-            self.error = response['error']['__all__'][0]
+            self.error = str(response['error'])
             return 1
         return 0
 
