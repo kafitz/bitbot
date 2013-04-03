@@ -70,33 +70,20 @@ balance.commands = ['balance', 'bal']
 balance.name = 'balance'
 
 def transactions(bitbot, input):
-    order_id = None
-    if input[1:] in transactions.commands:
-        bitbot.say('txs > Getting transactions from all exchanges')
-        markets = sorted(config.private_markets.keys())
-    else:
-        parameters = input.split(' ')[1:]
-        markets = [ parameters[0] ]
-        try:
-            order_id = parameters[1]
-        except: pass
-
+    markets = which(input,transactions.commands) 
+    bitbot.say('bal > Getting transactions from ' + ', '.join(markets) + ':')  
     for market in markets:
         error, market_obj = load(market)                # load the correct market object
         if error == 0:                                  # market was loaded without errors
-            response = market_obj.get_txs(order_id)     # execute the relevant function
+            market_obj.get_txs()     # execute the relevant function
         elif error == 1:                                # an error occured
             bitbot.say('txs > ' + market + ' > ' + market_obj)
             return 0
-        
-        # Out of place error handling, find better solution
-        if len(market_obj.tx_list) == 0:
-            try:
-                bitbot.say(response)
-            except:
-                bitbot.say('txs > ' + market + 'no recent transactions found')
-            return
-        bitbot.say(market + ' transactions:')
+            
+        if market_obj.error != '':
+            bitbot.say('txs > ' + market + ' > ' + market_obj.error)
+            return 1
+
         for transaction in market_obj.tx_list:
             if transaction['type'] in ['buy', 'sell']:
                 transactions_output = 'txs > ' + market + ' > ' + str(transaction['timestamp']) + ': ' +\
@@ -132,7 +119,7 @@ def open_orders(bitbot, input):
             for order in market_obj.orders_list:
                 # Attempt to deal with unicode issues from difference encodings at different exchanges
                 order_output = 'open > ' + market + u' > ' + order['timestamp'] + u': ' + order['type'] + u' ' +\
-                    order['amount'] + u' for ' + order['price'] + u'. id: ' + order['id']
+                    order['amount'] + u' for ' + order['price'] + u' [' + order['id'] + ']'
                 bitbot.say(order_output)
         else:
             bitbot.say('open > ' + market + ' > ' + market_obj.error)
@@ -144,14 +131,14 @@ open_orders.name = 'open_orders'
 def cancel_order(bitbot, input):
     # Test input formatting
     if input[1:] in cancel_order.commands:
-        bitbot.say('cancel > ' + 'must provide exchange and order ID with cancel function: .cancel exchange #order_id')
+        bitbot.say('cancel > invalid # of arguments specified: .cancel exchange #order_id')
         return
     input_list = input.split(' ')
     market = input_list[1]
     try:
         order_id = input_list[2]
     except:
-        bitbot.say('Error - cancel_order: invalid # of arguments specified. (.cancel exchange #order_id)')
+        bitbot.say('cancel > ' + market + ' > invalid # of arguments specified: .cancel exchange #order_id')
         return
         
     error, market_obj = load(market)                    # load the correct market object
@@ -162,7 +149,7 @@ def cancel_order(bitbot, input):
         return 0
     
     if market_obj.error == '':
-        bitbot.say('cancel > ' + market + ' > order ' + market_obj.cancelled_id + ' [' + market_obj.cancelled_amount + '] cancelled at ' + market_obj.cancelled_time)
+        bitbot.say('cancel > ' + market + ' > ' + market_obj.cancelled_time + ': cancelled ' + market_obj.cancelled_amount + ' [' + market_obj.cancelled_id + '] ')
     else:
         bitbot.say('cancel > ' + market + ' > error: ' + str(market_obj.error))
 
@@ -173,20 +160,25 @@ def buy(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('buy > insufficient parameters: .buy exchange BTC_total $price_limit_per_btc')
+        bitbot.say('buy > invalid # of arguments specified: .buy exchange BTC_total $price_limit_per_btc')
         return
     market = parameters[0]
-    total_usd = Decimal(parameters[1])
+    total_btc = Decimal(parameters[1])
     price_limit = Decimal(parameters[2])
     
     error, market_obj = load(market)                                # load the correct market object
     if error == 0:                                                  # market was loaded without errors
-        return_output = str(market_obj.buy(total_usd, price_limit))  # execute the relevant function
-        bitbot.say('buy > ' + market + ' > ' + return_output)            
-        return 1
-    elif error == 1:                                            # an error occured
+        market_obj.buy(total_btc, price_limit)                      # execute the relevant function
+    elif error == 1:                                                # an error occured
         bitbot.say('buy > ' + market + ' > ' + market_obj)
         return 0
+        
+    if market_obj.error == '':
+        bitbot.say('buy > ' + market + ' > ' + market_obj.timestamp + ': bid ' + market_obj.amount + ' BTC for ' +\
+            market_obj.price + ' USD/BTC placed [' + market_obj.id + ']')  
+    else: 
+        bitbot.say('buy > ' + market + ' > error: ' + market_obj.error) 
+        return 1
 
 buy.commands = ['buy']
 buy.name = 'buy'
@@ -196,7 +188,7 @@ def sell(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('sell > insufficient parameters: .sell exchange $USD_total $price_limit_per_btc')
+        bitbot.say('sell > invalid # of arguments specified: .sell exchange $USD_total $price_limit_per_btc')
         return
     market = parameters[0]
     total_usd = str(parameters[1])
@@ -204,13 +196,18 @@ def sell(bitbot, input):
     
     error, market_obj = load(market)                            # load the correct market object
     if error == 0:                                              # market was loaded without errors
-        return_output = market_obj.sell(total_usd, price_limit) # execute the relevant function
-        bitbot.say('sell > ' + market + ' > ' + return_output)            
-        return 1
+        market_obj.sell(total_usd, price_limit)                 # execute the relevant function
     elif error == 1:                                            # an error occured
         bitbot.say('sell > ' + market + ' > ' + market_obj)
         return 0
-
+        
+    if market_obj.error == '':
+        bitbot.say('sell > ' + market + ' > ' + market_obj.timestamp + ': ask ' + market_obj.amount + ' BTC for ' +\
+            market_obj.price + ' USD/BTC placed [' + market_obj.id + ']')  
+    else: 
+        bitbot.say('sell > ' + market + ' > error: ' + market_obj.error) 
+        return 1
+        
 sell.commands = ['sell']
 sell.name = 'sell'
 
@@ -229,7 +226,7 @@ def deposit(bitbot, input):
         if market_obj.error == '':
             bitbot.say('dep > ' + market + ' > address: ' + market_obj.address)
         else:
-            bitbot.say('dep > ' + market + ' > ' + market_obj.error) 
+            bitbot.say('dep > ' + market + ' > error: ' + market_obj.error) 
             
 deposit.commands = ['deposit','dep']
 deposit.name = 'deposit'     
@@ -239,7 +236,7 @@ def withdraw(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('wdw > insufficient parameters: .wdw exchange amount address')
+        bitbot.say('wdw > invalid # of arguments specified: .wdw exchange amount address')
         return
     market = parameters[0]
     amount = parameters[1]
@@ -247,12 +244,13 @@ def withdraw(bitbot, input):
     
     error, market_obj = load(market)                            # load the correct market object
     if error == 0:                                              # market was loaded without errors
-        market_obj.withdraw(amount, address)    # execute the relevant function          
+        market_obj.withdraw(amount, address)                    # execute the relevant function          
     elif error == 1:                                            # an error occured
         bitbot.say('wdw > ' + market + ' > ' + market_obj)
         return 0
+        
     if market_obj.error == '':
-        bitbot.say('wdw > ' + market + ' > ' + market_obj.status)
+        bitbot.say('wdw > ' + market + ' > ' + market_obj.timestamp + ': withdrawal processed')
     else:
         bitbot.say('wdw > ' + market + ' > ' + market_obj.error)
             

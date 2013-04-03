@@ -18,6 +18,7 @@ class PrivateMtGox(Market):
     order_url = 'https://mtgox.com/api/1/generic/private/order/result'
     open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
     info_url = 'https://mtgox.com/api/1/generic/private/info'
+    tx_url = 'https://data.mtgox.com/api/1/generic/private/wallet/history'
     cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
     wallet_url = 'https://data.mtgox.com/api/1/generic/bitcoin/address'
     withdraw_url = 'https://data.mtgox.com/api/1/generic/bitcoin/send_simple'
@@ -159,6 +160,34 @@ class PrivateMtGox(Market):
             self.orders_list = ['error']
             print self.error
             return 1
+            
+    def get_txs(self):
+        params = [('currency', self.currency)]
+        response = self._send_request(self.tx_url, params)
+        self.tx_list = []
+        print response
+        if response:
+            for transaction in response:
+                tx = {}
+                if transaction['type'] == 0:
+                    tx['type'] = 'deposit'
+                elif transaction['type'] == 1:
+                    tx['type'] = 'withdrawal'
+                elif transaction['type'] == 2:
+                    if transaction['usd'] < 0:
+                        tx['type'] = 'buy'
+                    elif transaction['usd'] > 0:
+                        tx['type'] = 'sell'
+                tx['timestamp'] = str(transaction['datetime'])
+                tx['id'] = str(transaction['id'])
+                tx['usd'] = str(transaction['usd'])
+                tx['btc'] = str(transaction['btc'])
+                tx['fee'] = str(transaction['fee'])
+                self.tx_list.append(tx)
+            if len(self.tx_list) == 0:
+                self.error = 'no recent transactions found'
+            return 1
+        return None
 
     def withdraw(self, amount, destination, fee=None):
         params = [("amount", amount), ("destination", destination)]

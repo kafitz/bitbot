@@ -19,7 +19,7 @@ class PrivateBitfloor(Market):
     order_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/details'}
     open_orders_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/orders'}
     info_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/accounts'}
-    withdraw_url = {'method': 'POST', 'url': 'https://testnet.bitfloor.com/withdraw'}
+    withdraw_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/withdraw'}
     cancel_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/cancel'}
 
 
@@ -57,6 +57,9 @@ class PrivateBitfloor(Market):
 
     def _from_int_price(self, amount):
         return Decimal(amount) / Decimal(100000.)
+        
+    def _format_time(self,timestamp):
+        return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
     def _send_request(self, url, params, extra_headers=None):
         enc_params = urllib.urlencode(params)
@@ -92,10 +95,16 @@ class PrivateBitfloor(Market):
         if price:
             params.append(('price', str(price)))
         response = self._send_request(self.trade_url, params)
-        if response and 'order_id' in response:
-            return 'order ' + response['order_id'] + ' placed at ' + datetime.datetime.fromtimestamp(float(response['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-        elif 'error' in response:
-            return response['error']
+        print response
+        if response and 'error' not in response:
+            self.price = str(price)
+            self.id = str(response['order_id'])
+            self.timestamp = self._format_time(response['timestamp'])
+            self.amount = str(size)
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
         return None
 
     def buy(self, amount, price):
@@ -128,27 +137,9 @@ class PrivateBitfloor(Market):
             return 1
         return None
 
-    def get_txs(self, order_id):
-        self.tx_list = []
-        if order_id is None:
-            return 'Error: must enter an order ID for bitfloor.'
-        params = [('nonce', self._create_nonce()), ('order_id', order_id)]
-        transaction = self._send_request(self.order_url, params)
-        if transaction:
-            tx = {}
-            if transaction['side'] == 0:
-                tx['type'] = 'buy'
-            elif transaction['side'] == 1:
-                tx['type'] = 'sell'
-            tx['timestamp'] = str(transaction['timestamp'])
-            tx['id'] = transaction['order_id']
-            tx['usd'] = float(transaction['price'])
-            tx['btc'] = float(transaction['size'])
-            tx['fee'] = tx['usd'] * 0.001
-            # tx['seq'] = float(transaction['fee'])
-            self.tx_list.append(tx)
-            return transaction
-        return None
+    def get_txs(self):
+        self.error = 'this API can\'t list transactions'
+        return 1
         
     def get_orders(self):
         params = [('nonce', self._create_nonce())]
@@ -164,7 +155,7 @@ class PrivateBitfloor(Market):
                     o['type'] = 'buy'
                 elif order['side'] == 1:
                     o['type'] = 'sell'
-                o['timestamp'] = datetime.datetime.fromtimestamp(float(order['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                o['timestamp'] = self._format_time(order['timestamp'])
                 o['price'] = unicode(round(float(order['price']), 2)) + ' USD/BTC' # Round to 2 places (e.g., $5.35) and output a unicode
                 o['amount'] = unicode(round(float(order['size']), 4)) + ' BTC' # e.g., 3.2534 BTC
                 o['id'] = order['order_id']
@@ -185,18 +176,28 @@ class PrivateBitfloor(Market):
                 order_amount = order['amount']
         if response and 'error' not in response:
             self.cancelled_id = response['order_id']
-            self.cancelled_time = datetime.datetime.fromtimestamp(float(response['timestamp'])).strftime('%Y-%m-%d %H:%M:%S') 
+            self.cancelled_time = self._format_time(response['timestamp'])
             self.cancelled_amount = order_amount
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
+            
+    def deposit(self):
+        # hardcoded bitcoin address, because there's no way to get it from the API
+        self.address = "1FbvTUCsuVi1cpYwX5TnNQyUQqb3LZo4xg"
+        return 1
 
     def withdraw(self, amount, destination):
         params = [('nonce', self._create_nonce()),('currency', 'BTC'), ('method', 'bitcoin'), ('amount', amount), ('destination', destination)]
         response = self._send_request(self.withdraw_url, params)
-        if response:
+        
+        if response and 'error' not in response:
+            self.timestamp = self._format_time(response['timestamp'])
             print response
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
             return 1
         return None
 

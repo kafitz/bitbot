@@ -35,8 +35,7 @@ class PrivateBitstamp(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-
-        req = urllib2.Request(url, urllib.urlencode(params), headers)
+        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         try:
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
@@ -48,20 +47,24 @@ class PrivateBitstamp(Market):
         return None
 
     def trade(self, url, amount, price):
-        # Next line is commented out to avoid accidental trades, use with caution
         params = {'user': self.user, 'password': self.password, 'amount': str(amount), 'price': str(price)}
-
         response = self._send_request(url, params)
-        if response:
-            return response['id']
-        elif 'error' in response:
-            return response['error']['__all__'][0]
+        if response and 'error' not in response:
+            self.price = str(response['price'])
+            self.id = str(response['id'])
+            self.timestamp = str(response['datetime'])
+            self.amount = str(response['amount'])
+            return 1
+        elif response and 'error' in response:
+            self.error = response['error']['__all__'][0]
+            return 1
+        return 0
 
     def buy(self, amount, price):
-        return self.trade(self.buy_url['url'], amount, price)
+        return self.trade(self.buy_url, amount, price)
 
     def sell(self, amount, price):
-        return self.trade(self.sell_url['url'], amount, price)
+        return self.trade(self.sell_url, amount, price)
 
     def get_info(self):
         params = {'user': self.user, 'password': self.password}
@@ -75,14 +78,13 @@ class PrivateBitstamp(Market):
             self.usd_available = float(response['usd_available'])
             self.btc_available = float(response['btc_balance'])
             self.fee = float(response['fee'])
-            return str({'btc_balance': self.btc_balance, 'usd_balance': self.usd_balance})
-            
+            return 1         
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return None
         
-    def get_txs(self, order_id=None):
+    def get_txs(self):
         params = {'user': self.user, 'password': self.password, 'timedelta': '604800'}
         response = self._send_request(self.tx_url, params)
         self.tx_list = []
@@ -104,12 +106,14 @@ class PrivateBitstamp(Market):
                 tx['btc'] = str(transaction['btc'])
                 tx['fee'] = str(transaction['fee'])
                 self.tx_list.append(tx)
-            return response
+            if len(self.tx_list) == 0:
+                self.error = 'no recent transactions found'
+            return 1
         return None
     
     def get_orders(self):
         params = {'user': self.user, 'password': self.password}
-        response = self._send_request(self.orders_url['url'], params)
+        response = self._send_request(self.orders_url, params)
         self.orders_list = []
         if len(response) == 0:
             self.error = 'no open orders listed'
@@ -145,7 +149,7 @@ class PrivateBitstamp(Market):
         except:
             return 'Order does not exist.'
         params = [(u'oid', order_id), (u'type', order_type)]
-        response = self._send_request(self.cancel_url['url'], params)
+        response = self._send_request(self.cancel_url, params)
         print response
         self.cancelled_id = order_id
         self.cancelled_time = datetime.datetime.fromtimestamp(float(response['orders'][0]['date'])).strftime('%Y-%m-%d %H:%M:%S')
