@@ -31,6 +31,8 @@ class Arbitrer(object):
 
     def get_profit_for(self, selling_index, buying_index, kask, kbid):
         # check to make sure input buying price actually lower than selling price
+        if float(self.depths[kask]['asks'][i]['price']) == 0:
+            return 0, 0, 0, 0, 0
         if self.depths[kask]['asks'][selling_index]['price'] >= self.depths[kbid]['bids'][buying_index]['price']:
             return 0, 0, 0, 0, 0 
 
@@ -42,13 +44,8 @@ class Arbitrer(object):
         max_amount_sell = 0
         for j in range(buying_index + 1):
             max_amount_sell += self.depths[kbid]['bids'][j]['amount']
-        purchase_cap = float(config.max_purchase)
-        # Estimate an approximate maximum volume to buy by multiplying cofig value by lowest market price
-        if float(self.depths[kask]['asks'][i]['price']) == 0:
-            return 0, 0, 0, 0, 0
-        est_volume = purchase_cap / float(self.depths[kask]['asks'][i]['price'])
-        max_amount = min(max_amount_buy, max_amount_sell, est_volume)
 
+        max_amount = min(max_amount_buy, max_amount_sell, config.max_purchase)
         buy_total = 0
         w_buyprice = 0
         total_available_volume = 0
