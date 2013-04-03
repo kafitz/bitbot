@@ -31,8 +31,6 @@ class Arbitrer(object):
 
     def get_profit_for(self, selling_index, buying_index, kask, kbid):
         # check to make sure input buying price actually lower than selling price
-        if float(self.depths[kask]['asks'][i]['price']) == 0:
-            return 0, 0, 0, 0, 0
         if self.depths[kask]['asks'][selling_index]['price'] >= self.depths[kbid]['bids'][buying_index]['price']:
             return 0, 0, 0, 0, 0 
 
@@ -43,8 +41,10 @@ class Arbitrer(object):
             max_amount_buy += self.depths[kask]['asks'][i]['amount']
         max_amount_sell = 0
         for j in range(buying_index + 1):
-            max_amount_sell += self.depths[kbid]['bids'][j]['amount']
-
+            max_amount_sell += self.depths[kbid]['bids'][j]['amount'] 
+        
+        if float(self.depths[kask]['asks'][i]['price']) == 0:
+            return 0, 0, 0, 0, 0
         max_amount = min(max_amount_buy, max_amount_sell, config.max_amount)
         buy_total = 0
         w_buyprice = 0
