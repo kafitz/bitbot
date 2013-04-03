@@ -78,13 +78,16 @@ def transactions(bitbot, input):
             market_obj.get_txs()     # execute the relevant function
         elif error == 1:                                # an error occured
             bitbot.say('txs > ' + market + ' > ' + market_obj)
-            return 0
-            
-        if market_obj.error != '':
+            return 0        
+        if market_obj.error == '':
+            for transaction in market_obj.tx_list:
+                output = 'txs > {0} > {1}: {2} '.format(market, transaction['timestamp'], transaction['desc'])
+                bitbot.say(output)
+        else:
             bitbot.say('txs > ' + market + ' > ' + market_obj.error)
-            return 1
 
-        for transaction in market_obj.tx_list:
+       
+'''                
             if transaction['type'] in ['buy', 'sell']:
                 transactions_output = 'txs > ' + market + ' > ' + str(transaction['timestamp']) + ': ' +\
                     transaction['type'] + ' $' + str(abs(float(transaction['usd']))) + ' for ' + str(transaction['btc']) +\
@@ -98,7 +101,8 @@ def transactions(bitbot, input):
                     tx_currency = 'BTC'
                 transactions_output = 'txs > ' + market + ' > ' + str(transaction['timestamp']) + ': ' +\
                     str(transaction['type']) + ' of ' + str(tx_amount) + ' ' + str(tx_currency) + '. '
-            bitbot.say(transactions_output)
+                    '''
+
 
 transactions.commands = ['transactions','txs']
 transactions.name = 'transactions'            

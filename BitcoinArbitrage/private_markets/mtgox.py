@@ -57,6 +57,9 @@ class PrivateMtGox(Market):
 
     def _from_int_price(self, amount):
         return Decimal(amount) / Decimal(100000.)
+        
+    def _format_time(self,timestamp):
+        return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
     def _send_request(self, url, params=[], extra_headers=None):
         params += [('nonce', self._create_nonce())]
@@ -149,7 +152,7 @@ class PrivateMtGox(Market):
                     o['type'] = 'sell'
                 if order['type'] == 'bid':
                     o['type'] = 'buy'
-                o['timestamp'] = datetime.datetime.fromtimestamp(int(order['date'])).strftime('%Y-%m-%d %H:%M:%S')
+                o['timestamp'] = self._format_time(order['date'])
                 o['price'] = order['price']['display_short']
                 o['amount'] = order['amount']['display_short']
                 o['id'] = order['oid']
@@ -165,28 +168,16 @@ class PrivateMtGox(Market):
         params = [('currency', self.currency)]
         response = self._send_request(self.tx_url, params)
         self.tx_list = []
-        print response
-        if response:
-            for transaction in response:
+        if response['result'] == 'success':
+            for transaction in response['return']['result']:
                 tx = {}
-                if transaction['type'] == 0:
-                    tx['type'] = 'deposit'
-                elif transaction['type'] == 1:
-                    tx['type'] = 'withdrawal'
-                elif transaction['type'] == 2:
-                    if transaction['usd'] < 0:
-                        tx['type'] = 'buy'
-                    elif transaction['usd'] > 0:
-                        tx['type'] = 'sell'
-                tx['timestamp'] = str(transaction['datetime'])
-                tx['id'] = str(transaction['id'])
-                tx['usd'] = str(transaction['usd'])
-                tx['btc'] = str(transaction['btc'])
-                tx['fee'] = str(transaction['fee'])
+                tx['type'] = transaction['Type']
+                tx['timestamp'] = self._format_time(transaction['Date'])
+                tx['desc'] = transaction['Info'].encode('utf-8')
                 self.tx_list.append(tx)
             if len(self.tx_list) == 0:
                 self.error = 'no recent transactions found'
-            return 1
+            return 1                  
         return None
 
     def withdraw(self, amount, destination, fee=None):

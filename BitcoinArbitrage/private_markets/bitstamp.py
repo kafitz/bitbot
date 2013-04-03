@@ -103,8 +103,9 @@ class PrivateBitstamp(Market):
                 tx['timestamp'] = str(transaction['datetime'])
                 tx['id'] = str(transaction['id'])
                 tx['usd'] = str(transaction['usd'])
-                tx['btc'] = str(transaction['btc'])
+                tx['btc'] = str(round(float(transaction['btc']),3))
                 tx['fee'] = str(transaction['fee'])
+                tx['desc'] = '{0:10} | {1:6} USD | {2:6} BTC | fee {3:4} USD'.format(tx['type'], tx['usd'], tx['btc'], tx['fee'])
                 self.tx_list.append(tx)
             if len(self.tx_list) == 0:
                 self.error = 'no recent transactions found'
