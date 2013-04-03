@@ -86,24 +86,6 @@ def transactions(bitbot, input):
         else:
             bitbot.say('txs > ' + market + ' > ' + market_obj.error)
 
-       
-'''                
-            if transaction['type'] in ['buy', 'sell']:
-                transactions_output = 'txs > ' + market + ' > ' + str(transaction['timestamp']) + ': ' +\
-                    transaction['type'] + ' $' + str(abs(float(transaction['usd']))) + ' for ' + str(transaction['btc']) +\
-                    '. Fee of: $' + str(transaction['fee'])
-            elif transaction['type'] in ['deposit', 'withdrawal']:
-                if float(transaction['usd']) != 0.0:
-                    tx_amount = float(transaction['usd'])
-                    tx_currency = 'USD'
-                elif float(transaction['btc']) != 0.0:
-                    tx_amount = float(transaction['btc'])
-                    tx_currency = 'BTC'
-                transactions_output = 'txs > ' + market + ' > ' + str(transaction['timestamp']) + ': ' +\
-                    str(transaction['type']) + ' of ' + str(tx_amount) + ' ' + str(tx_currency) + '. '
-                    '''
-
-
 transactions.commands = ['transactions','txs']
 transactions.name = 'transactions'            
 
@@ -147,7 +129,7 @@ def cancel_order(bitbot, input):
         
     error, market_obj = load(market)                    # load the correct market object
     if error == 0:                                      # market was loaded without errors
-        return_output = market_obj.cancel(order_id)     # execute the relevant function
+        market_obj.cancel(order_id)     # execute the relevant function
     elif error == 1:                                    # an error occured
         bitbot.say('cancel > ' + market + ' > ' + market_obj)
         return 0

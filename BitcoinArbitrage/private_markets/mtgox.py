@@ -13,8 +13,7 @@ from decimal import Decimal
 
 class PrivateMtGox(Market):
     ticker_url = 'https://mtgox.com/api/1/BTCUSD/public/ticker'
-    buy_url = 'https://mtgox.com/api/1/BTCUSD/private/order/add'
-    sell_url = 'https://mtgox.com/api/1/BTCUSD/private/order/add'
+    trade_url = 'https://data.mtgox.com/api/1/BTCUSD/private/order/add'
     order_url = 'https://mtgox.com/api/1/generic/private/order/result'
     open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
     info_url = 'https://mtgox.com/api/1/generic/private/info'
@@ -76,11 +75,13 @@ class PrivateMtGox(Market):
                 headers[k] = v
 
         req = urllib2.Request(url, urllib.urlencode(params), headers)
-        response = urllib2.urlopen(req)
-
-        if response.getcode() == 200:
-            jsonstr = response.read()
-            return json.loads(jsonstr)
+        try:
+            response = urllib2.urlopen(req)
+        except urllib2.HTTPError, e:
+            return {'error': str(e)}
+        else:
+            jsonstr = json.loads(response.read())
+            return jsonstr
         return None
 
     def trade(self, amount, ttype, price=None):
@@ -88,7 +89,7 @@ class PrivateMtGox(Market):
             price = self._to_int_price(price, self.currency)
         amount = self._to_int_amount(amount)
 
-        self.buy_url = self._change_currency_url(self.buy_url, self.currency)
+        self.buy_url = self._change_currency_url(self.trade_url, self.currency)
 
         params = [('amount_int', str(amount)),
                   ('type', ttype)]
@@ -96,8 +97,16 @@ class PrivateMtGox(Market):
             params.append(('price_int', str(price)))
 
         response = self._send_request(self.buy_url, params)
-        if response and 'result' in response and response['result'] == 'success':
-            return response['return']
+        print response
+        if response and 'error' not in response:
+            self.price = str(price)
+            self.id = str(response['return'])
+            self.timestamp = str(datetime.datetime.now())
+            self.amount = str(size)
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
         return None
 
     def buy(self, amount, price):
@@ -110,6 +119,7 @@ class PrivateMtGox(Market):
         self.get_orders()
         if len(self.orders_list) == 0:
             return 'No open orders.'
+            
         for order in self.orders_list:
             if order_id == order['id']:
                 order_type = order['type']
@@ -120,9 +130,13 @@ class PrivateMtGox(Market):
             return 'Order does not exist.'
         params = [(u'oid', order_id), (u'type', order_type)]
         response = self._send_request(self.cancel_url, params)
-        self.cancelled_id = order_id
-        self.cancelled_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.cancelled_amount = order_amount
+        if response and 'error' not in response:
+            self.cancelled_id = order_id
+            self.cancelled_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.cancelled_amount = order_amount
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
         return 1
 
     def get_info(self):
@@ -142,9 +156,10 @@ class PrivateMtGox(Market):
         params = []
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
-        if response and len(response['return']) == 0:
+        if response and 'error' not in response and len(response['return']) == 0:
             self.error = 'no open orders listed'
             return 1
+        print response
         if response and 'error' not in response:
             for order in response['return']:
                 o = {}

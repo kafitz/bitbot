@@ -25,6 +25,9 @@ class PrivateBitstamp(Market):
         self.currency = 'USD'
         self.error = ''
         
+    def _format_time(self,timestamp):
+        return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')    
+        
     def _send_request(self, url, params, extra_headers=None):
         headers = {
             'Content-type': 'application/x-www-form-urlencoded',
@@ -138,23 +141,27 @@ class PrivateBitstamp(Market):
         return None
 
     def cancel(self, order_id):
-        params = {'user': self.user, 'password': self.password}
         self.get_orders()
         if len(self.orders_list) == 0:
-            return 'No open orders.'
+            self.error = 'no open orders listed'
+            return 1
         for order in self.orders_list:
             if order_id == order['id']:
                 order_type = order['type']
+                self.cancelled_amount = order['amount']              
         try:
             order_type = order_type
         except:
-            return 'Order does not exist.'
-        params = [(u'oid', order_id), (u'type', order_type)]
+            self.error = 'order does not exist'
+            return 1
+            
+        params = [('user', self.user), ('password', self.password), (u'id', order_id), (u'type', order_type)]
         response = self._send_request(self.cancel_url, params)
-        print response
-        self.cancelled_id = order_id
-        self.cancelled_time = datetime.datetime.fromtimestamp(float(response['orders'][0]['date'])).strftime('%Y-%m-%d %H:%M:%S')
-        return 1
+        if response:
+            self.cancelled_id = order_id
+            self.cancelled_time = str(datetime.datetime.now()).split(".")[0]
+            return 1
+        return 0
         
     def deposit(self):
         params = {'user': self.user, 'password': self.password}
