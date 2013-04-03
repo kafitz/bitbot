@@ -57,7 +57,8 @@ def balance(bitbot, input, deal_request=False):
             market_obj.get_info()               # execute the relevant function
         elif error == 1:                        # an error occured
             bitbot.say('bal > ' + market + ' > ' + market_obj)
-            return 0
+            if deal_request:
+                return 0
 
         if market_obj.error == '':
             usd = float(market_obj.usd_balance)
