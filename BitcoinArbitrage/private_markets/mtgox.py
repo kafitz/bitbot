@@ -197,11 +197,16 @@ class PrivateMtGox(Market):
         params = [("amount", amount), ("destination", destination)]
         if fee:
             params += ("fee", fee)
-        response = self._send_request(withdraw_url, params)
-        if response:
+        response = self._send_request(self.withdraw_url, params)
+        if response and 'error' not in response:
+            self.timestamp = self._format_time(response['timestamp'])
+            print response
             return 1
-        else:
-            return None
+        elif response and 'error' in response:
+            self.error = unicode(response['error'])
+            print self.error
+            return 1
+        return None
 
     def deposit(self):
         params = []
@@ -213,4 +218,4 @@ class PrivateMtGox(Market):
 
 if __name__ == '__main__':
     mtgox = PrivateMtGox()
-    mtgox.get_info()
+    # mtgox.withdraw(0.00001, "1FbvTUCsuVi1cpYwX5TnNQyUQqb3LZo4xg")
