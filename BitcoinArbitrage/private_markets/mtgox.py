@@ -85,17 +85,17 @@ class PrivateMtGox(Market):
 
     def trade(self, amount, ttype, price=None):
         if price:
-            price = self._to_int_price(price, self.currency)
-        amount = self._to_int_amount(amount)
-
+            int_price = self._to_int_price(price, self.currency)
+        int_amount = self._to_int_amount(amount)
+        
         self.buy_url = self._change_currency_url(self.trade_url, self.currency)
 
-        params = [('amount_int', str(amount)),
+        params = [('amount_int', str(int_amount)),
                   ('type', ttype)]
         if price:
-            params.append(('price_int', str(price)))
+            params.append(('price_int', str(int_price)))
 
-        response = self._send_request(self.buy_url, params)
+        # response = self._send_request(self.buy_url, params)
         if response and 'error' not in response:
             self.price = str(price)
             self.id = str(response['return'])
