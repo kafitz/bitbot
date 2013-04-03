@@ -250,15 +250,20 @@ withdraw.name = 'withdraw'
 def deal(bitbot, input):
     arbitrer = arbitrage.Arbitrer()
     deals = arbitrer.get_arb(bitbot)
-    # if no deals: deals = [{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.6566218314655998, 'buy_market': 'MtGoxUSD', 'percent_profit': 1.1427280663296235, 'buy_price': 133.63, 'sell_price': 136.5189404651163},{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.2855649263999993, 'buy_market': 'MtGoxUSD', 'percent_profit': 0.4956042046893483, 'buy_price': 133.99896, 'sell_price': 136.02}]
+    deals = [{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.6566218314655998, 'buy_market': 'MtGoxUSD', 'percent_profit': 1.1427280663296235, 'buy_price': 133.63, 'sell_price': 136.5189404651163},{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.2855649263999993, 'buy_market': 'MtGoxUSD', 'percent_profit': 0.4956042046893483, 'buy_price': 133.99896, 'sell_price': 136.02}]
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     
     if deals == []:
         bitbot.say('no deals possible at this time')  
         return
         
+    deal_index = 1
     for deal in deals:
-        bitbot.say(str(deal))
+        deal_output = str(deal_index) + ". " + str(deal["profit"]) + " | " + deal["buy_market"] +\
+            "  " + str(deal["buy_price"]) + " => " + str(deal["sell_price"]) + "  " + deal["sell_market"] + " | " +\
+            str(deal["percent_profit"])
+        bitbot.say(deal_output)
+        deal_index += 1
         
     parameters = input.split(' ')[1:]
     if len(parameters) != 1:
