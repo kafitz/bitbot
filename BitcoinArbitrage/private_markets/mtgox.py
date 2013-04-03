@@ -96,8 +96,7 @@ class PrivateMtGox(Market):
             return response['return']
         return None
 
-    def buy(self, total_usd, price):
-        amount = total_usd / price
+    def buy(self, amount, price):
         return self.trade(amount, 'bid', price)
 
     def sell(self, amount, price=None):

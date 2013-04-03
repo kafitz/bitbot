@@ -173,7 +173,7 @@ def buy(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('buy > insufficient parameters: .buy exchange $USD_total $price_limit_per_btc')
+        bitbot.say('buy > insufficient parameters: .buy exchange BTC_total $price_limit_per_btc')
         return
     market = parameters[0]
     total_usd = Decimal(parameters[1])
