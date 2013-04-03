@@ -14,6 +14,7 @@ class Arbitrer(object):
         self.depths = {}
         self.init_markets(config.markets)
         self.init_observers(config.observers)
+        self.deals = []
 
     def init_markets(self, markets):
         self.market_names = markets
@@ -149,11 +150,9 @@ class Arbitrer(object):
         #print '{0:10} ==> {1:10d}'.format(name, phone)
         line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
             profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
-            
-        if percent_profit > 5: 
-            self.alert = True
-            self.alertwarning = '/!\ alert5%: these is an opportunity with ' + str(round(percent_profit,2)) + '% /!\\'
-            self.alertopp = line_output
+        deal = {'profit': profit, 'purchase_volume': purchase_volume, 'buy_market': kask, 'buy_price': weighted_buyprice, 'sell_market': kbid, \
+            'sell_price': weighted_sellprice, 'percent_profit': percent_profit}
+        self.deals.append(deal) 
         return line_output
 
     def update_depths(self):
@@ -211,13 +210,11 @@ class Arbitrer(object):
         level = logging.INFO
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
         channel = config.arbitrage_output
-        self.alert = False
+
         while True:
             self.depths, self.fees = self.update_depths()
             self.tickers()
-            #bitbot.msg(channel, 'new crawl: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
             line_outs = self.tick()
-            # remove empty outputs
             line_outs = filter(None, line_outs)
             if line_outs == []:
                 bitbot.msg(channel, 'arb > no opportunities found')
@@ -225,11 +222,19 @@ class Arbitrer(object):
                 for item in line_outs:
                     bitbot.msg(channel, item)
                 bitbot.msg(channel, '-----------------------------------------------------------------------------------------')                   
-                    
-            # if self.alert:
-                # bitbot.msg('#merlin', self.alertmsg)
-                # bitbot.msg('#merlin', self.alertopp)
             time.sleep(60)
+            
+    def get_arb(self,bitbot):
+        level = logging.INFO
+        logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
+        channel = config.deal_output
+
+        self.depths, self.fees = self.update_depths()
+        self.tickers()
+        line_outs = self.tick()
+        line_outs = filter(None, line_outs)
+
+        return self.deals
 
 
 if __name__ == '__main__':

@@ -107,12 +107,8 @@ class PrivateBitfloor(Market):
             return 1
         return None
 
-    def buy(self, amount, price):
+    def buy(self, amount, size):
         product_id = 1  # indicates exchanges as BTCUSD
-        if price: # If price is specified, buy order is stru
-            size = float(amount) / float(price)
-        else:
-            size = amount
         side = 0 # indicates buy order
         return self.trade(product_id, size, side, price)
 

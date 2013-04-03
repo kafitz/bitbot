@@ -12,7 +12,6 @@ import re
 from decimal import Decimal
 
 class PrivateMtGox(Market):
-    ticker_url = 'https://mtgox.com/api/1/BTCUSD/public/ticker'
     trade_url = 'https://data.mtgox.com/api/1/BTCUSD/private/order/add'
     order_url = 'https://mtgox.com/api/1/generic/private/order/result'
     open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
@@ -97,12 +96,11 @@ class PrivateMtGox(Market):
             params.append(('price_int', str(price)))
 
         response = self._send_request(self.buy_url, params)
-        print response
         if response and 'error' not in response:
             self.price = str(price)
             self.id = str(response['return'])
             self.timestamp = str(datetime.datetime.now())
-            self.amount = str(size)
+            self.amount = amount
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
