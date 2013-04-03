@@ -41,14 +41,11 @@ class Arbitrer(object):
             max_amount_buy += self.depths[kask]['asks'][i]['amount']
         max_amount_sell = 0
         for j in range(buying_index + 1):
-            max_amount_sell += self.depths[kbid]['bids'][j]['amount']
-        purchase_cap = float(config.max_purchase)
-        # Estimate an approximate maximum volume to buy by multiplying cofig value by lowest market price
+            max_amount_sell += self.depths[kbid]['bids'][j]['amount'] 
+        
         if float(self.depths[kask]['asks'][i]['price']) == 0:
             return 0, 0, 0, 0, 0
-        est_volume = purchase_cap / float(self.depths[kask]['asks'][i]['price'])
-        max_amount = min(max_amount_buy, max_amount_sell, est_volume)
-
+        max_amount = min(max_amount_buy, max_amount_sell, config.max_amount)
         buy_total = 0
         w_buyprice = 0
         total_available_volume = 0
@@ -143,7 +140,7 @@ class Arbitrer(object):
             return
         for observer in self.observers:
             observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid,
-                                 percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_purchase)
+                                 percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_amount)
         # Line to return to IRC
         buy_total = round(purchase_volume * weighted_buyprice,1)
         # line_output = 'profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%' %\
