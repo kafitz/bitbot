@@ -48,7 +48,7 @@ def which(input,commands):
         markets = [ input.split(' ', 1)[1] ]
     return markets
 
-def balance(bitbot, input):
+def balance(bitbot, input, deal_request=False):
     markets = which(input,balance.commands) 
     bitbot.say('bal > Getting balance from ' + ', '.join(markets) + ':')  
     for market in markets:
@@ -63,7 +63,8 @@ def balance(bitbot, input):
             usd = float(market_obj.usd_balance)
             btc = float(market_obj.btc_balance)
             bitbot.say('bal > ' + market + ' > USD: {0:7} | BTC: {1:7}'.format(str(round(usd, 3)), str(round(btc, 3))))
-            return usd, btc
+            if deal_request:
+                return usd, btc
         else:
             bitbot.say('bal > ' + market + ' > ' + market_obj.error)
             
@@ -284,7 +285,8 @@ def deal(bitbot, input):
     percent_profit = round(float(deals[i]['percent_profit']),2)
             
     # Control the amount of USD in the buy market
-    usd1, btc1 = balance(bitbot, '.bal ' + buy_market)
+    deal_request = True
+    usd1, btc1 = balance(bitbot, '.bal ' + buy_market, deal_request)
     if buy_volume <= usd1:
         buy_check = True
         bitbot.say('deal > ' + buy_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
