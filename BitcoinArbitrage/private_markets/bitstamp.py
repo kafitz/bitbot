@@ -178,10 +178,10 @@ class PrivateBitstamp(Market):
     def withdraw(self, amount, address):
         params = {'user': self.user, 'password': self.password, 'amount': str(amount), 'address': str(address)}
         response = self._send_request(self.withdraw_url, params)
-        if response and 'error' not in response:
-            self.status = response['result']
+        if response:
+            self.timestamp = str(datetime.datetime.now())
             return 1
-        elif response and 'error' in response:
+        else:
             self.error = str(response['error'])
             print self.error
             return 1
