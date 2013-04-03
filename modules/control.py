@@ -252,31 +252,40 @@ def deal(bitbot, input):
     deals = arbitrer.get_arb(bitbot)
     # if no deals: deals = [{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.6566218314655998, 'buy_market': 'MtGoxUSD', 'percent_profit': 1.1427280663296235, 'buy_price': 133.63, 'sell_price': 136.5189404651163},{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.2855649263999993, 'buy_market': 'MtGoxUSD', 'percent_profit': 0.4956042046893483, 'buy_price': 133.99896, 'sell_price': 136.02}]
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
-
+    
     if deals == []:
-        bitbot.say('no deals possible at this time')
+        bitbot.say('no deals possible at this time')  
         return
-
-    bitbot.say(str(deals[0]))
-    buy_market = names[deals[0]['buy_market'][:-3].lower()]
-    sell_market = names[deals[0]['sell_market'][:-3].lower()]
+        
+    for deal in deals:
+        bitbot.say(str(deal))
+        
+    parameters = input.split(' ')[1:]
+    if len(parameters) != 1:
+        bitbot.say('deal > specify the deal number')
+        return
+         
+    i = int(parameters[0]) - 1 
+ 
+    buy_market = names[deals[i]['buy_market'][:-3].lower()]
+    sell_market = names[deals[i]['sell_market'][:-3].lower()]
     
-    volume = round(float(deals[0]['purchase_volume']),3)
-    buy_price = round(float(deals[0]['buy_price']),2)
+    volume = round(float(deals[i]['purchase_volume']),3)
+    buy_price = round(float(deals[i]['buy_price']),2)
     buy_volume = round(volume*buy_price,2)
-    sell_price = round(float(deals[0]['sell_price']),2)
+    sell_price = round(float(deals[i]['sell_price']),2)
     
-    profit = round(float(deals[0]['profit']),2)
-    percent_profit = round(float(deals[0]['percent_profit']),2)
+    profit = round(float(deals[i]['profit']),2)
+    percent_profit = round(float(deals[i]['percent_profit']),2)
             
     # Control the amount of USD in the buy market
     usd1, btc1 = balance(bitbot, '.bal ' + buy_market)
     if buy_volume <= usd1:
         buy_check = True
-        bitbot.say('deal > ' + sell_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
+        bitbot.say('deal > ' + buy_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
     else:
         buy_check = False
-        bitbot.say('deal > ' + sell_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + '  USD needed)')
+        bitbot.say('deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + '  USD needed)')
     
     # Control the funds in the sell market 
     usd2, btc2 = balance(bitbot, '.bal ' + sell_market)
@@ -290,12 +299,16 @@ def deal(bitbot, input):
     if not buy_check or not sell_check:
         bitbot.say('deal > insufficient funds')
         return
+        
+    bitbot.say('deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)') 
+       
+    bitbot.say('deal > QUITTING: test mode')
+    return
     
-    bitbot.say('deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)')
     bitbot.say('deal > .buy {} {} {}'.format(buy_market, volume, buy_price))
-    buy(bitbot, '.buy {} {} {}'.format(buy_market, volume, buy_price))
+    #buy(bitbot, '.buy {} {} {}'.format(buy_market, volume, buy_price))
     bitbot.say('deal > .sell {} {} {}'.format(sell_market, volume, sell_price))
-    sell(bitbot, '.sell {} {} {}'.format(sell_market, volume, buy_price))
+    #sell(bitbot, '.sell {} {} {}'.format(sell_market, volume, buy_price))
     '''
     address = deposit(bitbot, '.dep ' + sell_market)
     bitbot.say('deal > .wdw {} {} {}'.format(buy_market, volume, address))
