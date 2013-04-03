@@ -140,7 +140,7 @@ class Arbitrer(object):
             return
         for observer in self.observers:
             observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid,
-                                 percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_purchase)
+                                 percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_amount)
         # Line to return to IRC
         buy_total = round(purchase_volume * weighted_buyprice,1)
         # line_output = 'profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%' %\

@@ -31,7 +31,7 @@ btce_key = "DLNP1XU8-72LB0C24-ICOCAKYY-U2NO627K-S6T1R8KX"
 btce_secret = "863ac534d2f6a7c6de5b968ce3ee61aa5f83fd9a9ba4e184b6847f11e60704ad"
 
 # SafeGuards
-max_purchase = 150  # in USD
+max_amount = 0.43  # in BTC
 balance_margin = 0.05  # 5%
 profit_thresh = 1  # in USD
 perc_thresh = 0.1  # in %
