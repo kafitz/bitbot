@@ -179,9 +179,9 @@ def buy(bitbot, input):
     total_usd = Decimal(parameters[1])
     price_limit = Decimal(parameters[2])
     
-    error, market_obj = load(market)                            # load the correct market object
-    if error == 0:                                              # market was loaded without errors
-        return_output = market_obj.buy(total_usd, price_limit)  # execute the relevant function
+    error, market_obj = load(market)                                # load the correct market object
+    if error == 0:                                                  # market was loaded without errors
+        return_output = str(market_obj.buy(total_usd, price_limit))  # execute the relevant function
         bitbot.say('buy > ' + market + ' > ' + return_output)            
         return 1
     elif error == 1:                                            # an error occured
@@ -199,8 +199,8 @@ def sell(bitbot, input):
         bitbot.say('sell > insufficient parameters: .sell exchange $USD_total $price_limit_per_btc')
         return
     market = parameters[0]
-    total_usd = Decimal(parameters[1])
-    price_limit = Decimal(parameters[2])
+    total_usd = str(parameters[1])
+    price_limit = str(parameters[2])
     
     error, market_obj = load(market)                            # load the correct market object
     if error == 0:                                              # market was loaded without errors

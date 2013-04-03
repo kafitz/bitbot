@@ -34,8 +34,9 @@ class PrivateBitstamp(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-        
-        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
+
+
+        req = urllib2.Request(url, urllib.urlencode(params), headers)
         try:
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
@@ -46,20 +47,21 @@ class PrivateBitstamp(Market):
             return jsonstr
         return None
 
-    def trade(self, amount, url, price):
+    def trade(self, url, amount, price):
         # Next line is commented out to avoid accidental trades, use with caution
-        #params = {'user': self.user, 'password': self.password, 'amount': str(self.amount), 'price': str(self.price)}
-        response = self._send_request(self.url, params)
-        print response
-        if response and 'result' in response and response['result'] == 'success':
-            return response['return']
-        return None
+        params = {'user': self.user, 'password': self.password, 'amount': str(amount), 'price': str(price)}
+
+        response = self._send_request(url, params)
+        if response:
+            return response['id']
+        elif 'error' in response:
+            return response['error']['__all__'][0]
 
     def buy(self, amount, price):
-        return self.trade(amount, buy_url, price)
+        return self.trade(self.buy_url['url'], amount, price)
 
     def sell(self, amount, price):
-        return self.trade(amount, sell_url, price)
+        return self.trade(self.sell_url['url'], amount, price)
 
     def get_info(self):
         params = {'user': self.user, 'password': self.password}
@@ -107,7 +109,7 @@ class PrivateBitstamp(Market):
     
     def get_orders(self):
         params = {'user': self.user, 'password': self.password}
-        response = self._send_request(self.orders_url, params)
+        response = self._send_request(self.orders_url['url'], params)
         self.orders_list = []
         if len(response) == 0:
             self.error = 'no open orders listed'
@@ -143,7 +145,7 @@ class PrivateBitstamp(Market):
         except:
             return 'Order does not exist.'
         params = [(u'oid', order_id), (u'type', order_type)]
-        response = self._send_request(self.cancel_url, params)
+        response = self._send_request(self.cancel_url['url'], params)
         print response
         self.cancelled_id = order_id
         self.cancelled_time = datetime.datetime.fromtimestamp(float(response['orders'][0]['date'])).strftime('%Y-%m-%d %H:%M:%S')
