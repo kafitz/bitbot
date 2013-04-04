@@ -15,6 +15,7 @@ sell            ->  place a sell order
 deposit         ->  get the bitcoin deposit address
 withdraw        ->  withdraw bitcoin from exchange
 deal            ->  execute an arbitrage deal
+lag             ->  get lag from trade engine
 '''
 
 from BitcoinArbitrage import arbitrage          # arbitrage script
@@ -211,8 +212,7 @@ def deposit(bitbot, input):
             market_obj.deposit()                # execute the relevant function
         elif error == 1:                        # an error occured
             bitbot.say('dep > ' + market + ' > ' + market_obj)
-            return 0
-       
+            return 1
         if market_obj.error == '':
             bitbot.say('dep > ' + market + ' > address: ' + market_obj.address)
             bitbot.say('dep > ' + market + ' > https://blockchain.info/address/' + market_obj.address)
@@ -240,16 +240,33 @@ def withdraw(bitbot, input):
         market_obj.withdraw(amount, address)                    # execute the relevant function          
     elif error == 1:                                            # an error occured
         bitbot.say('wdw > ' + market + ' > ' + market_obj)
-        return 0
-        
+        return 1
     if market_obj.error == '':
         bitbot.say('wdw > ' + market + ' > ' + market_obj.timestamp + ': withdrawal processed')
-        return True
     else:
         bitbot.say('wdw > ' + market + ' > ' + market_obj.error)
             
 withdraw.commands = ['withdraw','wdw']
 withdraw.name = 'withdraw'
+
+def lag(bitbot, input):
+    markets = which(input,lag.commands) 
+    bitbot.say('lag > Getting lag from ' + ', '.join(markets) + ':')  
+    
+    for market in markets:
+        error, market_obj = load(market)                            # load the correct market object
+        if error == 0:                                              # market was loaded without errors
+            market_obj.get_lag()                     # execute the relevant function          
+        elif error == 1:                                            # an error occured
+            bitbot.say('lag > ' + market + ' > ' + market_obj)
+            return 1
+        if market_obj.error == '':
+            bitbot.say('lag > ' + market + ' > ' + market_obj.lag)
+        else:
+            bitbot.say('lag > ' + market + ' > error: ' + market_obj.error)
+            
+lag.commands = ['lag']
+lag.name = 'lag'
 
 def deal(bitbot, input):
     arbitrer = arbitrage.Arbitrer()

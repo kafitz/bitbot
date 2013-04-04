@@ -186,5 +186,9 @@ class PrivateBitstamp(Market):
             return 1
         return 0
 
+    def get_lag(self):
+        self.error = 'not available from this API'
+        return 1
+
 if __name__ == '__main__':
     bitstamp = PrivateBitstamp()

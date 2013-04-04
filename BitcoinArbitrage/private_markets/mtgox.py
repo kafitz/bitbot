@@ -20,6 +20,7 @@ class PrivateMtGox(Market):
     withdraw_url = 'https://data.mtgox.com/api/1/generic/bitcoin/send_simple'
     cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
     deposit_url = 'https://data.mtgox.com/api/1/generic/bitcoin/address'
+    lag_url = 'https://data.mtgox.com/api/1/generic/order/lag'
 
     def __init__(self):
         super(Market, self).__init__()
@@ -218,5 +219,16 @@ class PrivateMtGox(Market):
             return 1
         return 0
 
+    def get_lag(self):
+        params = []
+        response = self._send_request(self.lag_url, params)
+        if response and 'error' not in response:
+            self.lag = response['return']['lag_text']
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0
+        
 if __name__ == '__main__':
     mtgox = PrivateMtGox()

@@ -171,5 +171,9 @@ class PrivateBitfloor(Market):
         self.address = '1FbvTUCsuVi1cpYwX5TnNQyUQqb3LZo4xg'
         return 1
 
+    def get_lag(self):
+        self.error = 'not available from this API'
+        return 1
+        
 if __name__ == '__main__':
     bitfloor = PrivateBitfloor()
