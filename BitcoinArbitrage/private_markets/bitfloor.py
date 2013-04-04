@@ -107,15 +107,16 @@ class PrivateBitfloor(Market):
             return 1
         return None
 
-    def buy(self, amount, size):
+    def buy(self, amount, price):
         product_id = 1  # indicates exchanges as BTCUSD
         side = 0 # indicates buy order
+        size = amount
         return self.trade(product_id, size, side, price)
 
     def sell(self, amount, price):
         product_id = 1
-        size = amount
         side = 1 # indicates sell order
+        size = amount
         return self.trade(product_id, size, side, price)
 
     def get_info(self):
