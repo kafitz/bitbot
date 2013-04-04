@@ -7,13 +7,14 @@ Bas Pennewaert 2013, bas@pennewaert.com
 
 start_arbitrage ->  start the arbitrage script, looking for opportunities on all public_markets
 balance         ->  balances from private_markets: usd_balance, btc_balance
-transactions    ->  transactions from private_markets: 
-open_orders     ->  currently open orders from private_markets:
+transactions    ->  get previous transactions from private_markets
+open_orders     ->  currently open orders from private_markets
 cancel_order    ->  cancel an open order
 buy             ->  place a buy order
 sell            ->  place a sell order
 deposit         ->  get the bitcoin deposit address
 withdraw        ->  withdraw bitcoin from exchange
+deal            ->  execute an arbitrage deal
 '''
 
 from BitcoinArbitrage import arbitrage          # arbitrage script
@@ -63,7 +64,8 @@ def balance(bitbot, input, deal_request=False):
         if market_obj.error == '':
             usd = float(market_obj.usd_balance)
             btc = float(market_obj.btc_balance)
-            bitbot.say('bal > ' + market + ' > USD: {0:7} | BTC: {1:7}'.format(str(round(usd, 3)), str(round(btc, 3))))
+            bitbot.say('bal > ' + market + ' > USD: {0:7} | BTC: {1:7} | Fee: {2}' \
+                .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)))
             if deal_request:
                 return usd, btc
         else:
@@ -78,7 +80,7 @@ def transactions(bitbot, input):
     for market in markets:
         error, market_obj = load(market)                # load the correct market object
         if error == 0:                                  # market was loaded without errors
-            market_obj.get_txs()     # execute the relevant function
+            market_obj.get_txs()                        # execute the relevant function
         elif error == 1:                                # an error occured
             bitbot.say('txs > ' + market + ' > ' + market_obj)
             return 0        
@@ -103,7 +105,7 @@ def open_orders(bitbot, input):
         elif error == 1:                        # an error occured
             bitbot.say('open > ' + market + ' > ' + market_obj)
             return 0
-      
+
         if market_obj.error == '':
             for order in market_obj.orders_list:
                 # Attempt to deal with unicode issues from difference encodings at different exchanges
@@ -132,7 +134,7 @@ def cancel_order(bitbot, input):
         
     error, market_obj = load(market)                    # load the correct market object
     if error == 0:                                      # market was loaded without errors
-        market_obj.cancel(order_id)     # execute the relevant function
+        market_obj.cancel(order_id)                     # execute the relevant function
     elif error == 1:                                    # an error occured
         bitbot.say('cancel > ' + market + ' > ' + market_obj)
         return 0
@@ -262,7 +264,7 @@ def deal(bitbot, input):
     deal_index = 1
     for deal in deals:
         deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
-            deal["profit"], deal['purchase_volume'], deal["buy_market"], deal["buy_price"], deal["sell_price"], deal["sell_market"], deal["percent_profit"], deal_index)
+            deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
         bitbot.say(deal_output)
         deal_index += 1
     
@@ -321,7 +323,7 @@ def deal(bitbot, input):
     # Execute BTC transfer from buy_market -> sell_market
     address = deposit(bitbot, '.dep ' + sell_market)
     bitbot.say('deal > .wdw {} {} {}'.format(buy_market, volume, address))
-    withdraw(bitbot, ' '.join(['.wdw', buy_market, volume, address]))    
+    withdraw(bitbot, '.wdw {} {} {}'.format(buy_market, volume, address))    
             
 deal.commands = ['deal']
 deal.name = 'deal'

@@ -5,29 +5,27 @@ import urllib2
 import sys
 import json
 
-
 class PrivateBitstamp(Market):
     name = 'Bitstamp'
-    ticker_url = {'method': 'GET', 'url': 'https://www.bitstamp.net/api/ticker/'}
     buy_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/buy/'}
     sell_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/sell/'}
+    open_orders_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/open_orders/'}
     tx_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/user_transactions/'}
-    orders_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/open_orders/'}
     info_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/balance/'}
-    cancel_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/cancel_order/'}
-    deposit_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/bitcoin_deposit_address/'}
+    deposit_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/bitcoin_deposit_address/'}  
     withdraw_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/bitcoin_withdrawal/'}
-    
+    cancel_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/cancel_order/'}  
+
     def __init__(self):
         super(Market, self).__init__()
         self.user = self.config.bitstamp_user
         self.password = self.config.bitstamp_password
         self.currency = 'USD'
         self.error = ''
-        
+
     def _format_time(self,timestamp):
-        return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')    
-        
+        return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+
     def _send_request(self, url, params, extra_headers=None):
         headers = {
             'Content-type': 'application/x-www-form-urlencoded',
@@ -37,22 +35,19 @@ class PrivateBitstamp(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-
         req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         try:
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
-            print str(e)
             return json.loads(e.read())
         else:
             jsonstr = json.loads(response.read())
             return jsonstr
-        return None
+        return 0
 
     def trade(self, url, amount, price):
         params = {'user': self.user, 'password': self.password, 'amount': str(amount), 'price': str(price)}
         response = self._send_request(url, params)
-        print response
         if response and 'error' not in response:
             self.price = str(response['price'])
             self.id = str(response['id'])
@@ -73,21 +68,16 @@ class PrivateBitstamp(Market):
     def get_info(self):
         params = {'user': self.user, 'password': self.password}
         response = self._send_request(self.info_url, params)
-
         if response and 'error' not in response:
             self.usd_balance = float(response['usd_balance'])
             self.btc_balance = float(response['btc_balance'])
-            self.usd_reserved = float(response['usd_reserved'])
-            self.btc_reserved = float(response['btc_reserved'])
-            self.usd_available = float(response['usd_available'])
-            self.btc_available = float(response['btc_balance'])
             self.fee = float(response['fee'])
-            return 1         
+            return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
-        
+        return 0
+
     def get_txs(self):
         params = {'user': self.user, 'password': self.password, 'timedelta': '604800'}
         response = self._send_request(self.tx_url, params)
@@ -109,16 +99,17 @@ class PrivateBitstamp(Market):
                 tx['usd'] = str(transaction['usd'])
                 tx['btc'] = str(round(float(transaction['btc']),3))
                 tx['fee'] = str(transaction['fee'])
-                tx['desc'] = '{0:10} | {1:6} USD | {2:6} BTC | fee {3:4} USD'.format(tx['type'], tx['usd'], tx['btc'], tx['fee'])
+                tx['desc'] = '{0:10} | {1:6} USD | {2:6} BTC | fee {3:4} USD'\
+                    .format(tx['type'], tx['usd'], tx['btc'], tx['fee'])
                 self.tx_list.append(tx)
             if len(self.tx_list) == 0:
                 self.error = 'no recent transactions found'
             return 1
-        return None
-    
+        return 0
+
     def get_orders(self):
         params = {'user': self.user, 'password': self.password}
-        response = self._send_request(self.orders_url, params)
+        response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
         if len(response) == 0:
             self.error = 'no open orders listed'
@@ -136,10 +127,10 @@ class PrivateBitstamp(Market):
                 o['id'] = str(order['id'])
                 self.orders_list.append(o)
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        return 0
 
     def cancel(self, order_id):
         self.get_orders()
@@ -149,44 +140,51 @@ class PrivateBitstamp(Market):
         for order in self.orders_list:
             if order_id == order['id']:
                 order_type = order['type']
-                self.cancelled_amount = order['amount']              
+                self.cancelled_amount = order['amount']
         try:
             order_type = order_type
         except:
             self.error = 'order does not exist'
             return 1
-            
-        params = [('user', self.user), ('password', self.password), (u'id', order_id), (u'type', order_type)]
+
+        params = [('user', self.user),
+                  ('password', self.password),
+                  ('id', order_id),
+                  ('type', order_type)]
         response = self._send_request(self.cancel_url, params)
-        if response:
+        if response and 'error' not in response:
             self.cancelled_id = order_id
-            self.cancelled_time = str(datetime.datetime.now()).split(".")[0]
+            self.cancelled_time = str(datetime.datetime.now()).split('.')[0]
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
             return 1
         return 0
-        
+
+    def withdraw(self, amount, address):
+        params = {'user': self.user, 
+                  'password': self.password, 
+                  'amount': str(amount), 
+                  'address': str(address)}
+        response = self._send_request(self.withdraw_url, params)
+        if response and 'error' not in response:
+            self.timestamp = str(datetime.datetime.now())
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0
+
     def deposit(self):
         params = {'user': self.user, 'password': self.password}
         response = self._send_request(self.deposit_url, params)
         if response and 'error' not in response:
             self.address = response
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return 0
-        
-    def withdraw(self, amount, address):
-        params = {'user': self.user, 'password': self.password, 'amount': str(amount), 'address': str(address)}
-        response = self._send_request(self.withdraw_url, params)
-        if response:
-            self.timestamp = str(datetime.datetime.now())
-            return 1
-        else:
-            self.error = str(response['error'])
-            print self.error
-            return 1
-        return 0    
-        
+
 if __name__ == '__main__':
     bitstamp = PrivateBitstamp()
-    bitstamp.get_info()

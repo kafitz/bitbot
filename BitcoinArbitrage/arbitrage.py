@@ -228,7 +228,6 @@ class Arbitrer(object):
     def get_arb(self,bitbot):
         level = logging.INFO
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
-        channel = config.deal_output
 
         self.depths, self.fees = self.update_depths()
         self.tickers()

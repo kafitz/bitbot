@@ -12,18 +12,17 @@ import re
 from decimal import Decimal
 
 class PrivateMtGox(Market):
+    name = 'MtGox'
     trade_url = 'https://data.mtgox.com/api/1/BTCUSD/private/order/add'
-    order_url = 'https://mtgox.com/api/1/generic/private/order/result'
     open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
     info_url = 'https://mtgox.com/api/1/generic/private/info'
     tx_url = 'https://data.mtgox.com/api/1/generic/private/wallet/history'
-    cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
-    wallet_url = 'https://data.mtgox.com/api/1/generic/bitcoin/address'
     withdraw_url = 'https://data.mtgox.com/api/1/generic/bitcoin/send_simple'
+    cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
+    deposit_url = 'https://data.mtgox.com/api/1/generic/bitcoin/address'
 
     def __init__(self):
         super(Market, self).__init__()
-        self.name = 'MtGox'
         self.key = self.config.mtgox_key
         self.secret = self.config.mtgox_secret
         self.currency = 'USD'
@@ -59,13 +58,11 @@ class PrivateMtGox(Market):
     def _format_time(self,timestamp):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
-    def _send_request(self, url, params=[], extra_headers=None):
-        params += [('nonce', self._create_nonce())]
-
+    def _send_request(self, url, params, extra_headers=None):
         headers = {
+            'Content-type': 'application/x-www-form-urlencoded',
             'Rest-Key': self.key,
             'Rest-Sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
-            'Content-type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
         }
@@ -80,7 +77,7 @@ class PrivateMtGox(Market):
         else:
             jsonstr = json.loads(response.read())
             return jsonstr
-        return None
+        return 0
 
     def trade(self, amount, ttype, price=None):
         if price:
@@ -89,7 +86,8 @@ class PrivateMtGox(Market):
         
         self.buy_url = self._change_currency_url(self.trade_url, self.currency)
 
-        params = [('amount_int', str(int_amount)),
+        params = [('nonce', self._create_nonce()),
+                  ('amount_int', str(int_amount)),
                   ('type', ttype)]
         if price:
             params.append(('price_int', str(int_price)))
@@ -104,7 +102,7 @@ class PrivateMtGox(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        return 0
 
     def buy(self, amount, price):
         return self.trade(amount, 'bid', price)
@@ -112,51 +110,43 @@ class PrivateMtGox(Market):
     def sell(self, amount, price=None):
         return self.trade(amount, 'ask', price)
 
-    def cancel(self, order_id):
-        self.get_orders()
-        if len(self.orders_list) == 0:
-            return 'No open orders.'
-            
-        for order in self.orders_list:
-            if order_id == order['id']:
-                order_type = order['type']
-                order_amount = order['amount']
-        try:
-            order_type = order_type
-        except:
-            return 'Order does not exist.'
-        params = [(u'oid', order_id), (u'type', order_type)]
-        response = self._send_request(self.cancel_url, params)
-        if response and 'error' not in response:
-            self.cancelled_id = order_id
-            self.cancelled_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            self.cancelled_amount = order_amount
-        elif response and 'error' in response:
-            self.error = str(response['error'])
-            return 1
-        return 1
-
     def get_info(self):
-        params = []
-        response = self._send_request(self.info_url)
+        params = [('nonce', self._create_nonce())]
+        response = self._send_request(self.info_url, params)
         if response and 'result' in response and response['result'] == 'success':
             self.btc_balance = self._from_int_amount(int(response['return']['Wallets']['BTC']['Balance']['value_int']))
             self.usd_balance = self._from_int_price(int(response['return']['Wallets']['USD']['Balance']['value_int']))
             self.fee = float(response['return']['Trade_Fee'])
-            return str({'btc_balance': self.btc_balance, 'usd_balance': self.usd_balance,'fee': self.fee})
+            return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        return 0
+
+    def get_txs(self):
+        params = [('nonce', self._create_nonce()),('currency', self.currency)]
+        response = self._send_request(self.tx_url, params)
+        self.tx_list = []
+        if response['result'] == 'success':
+            for transaction in response['return']['result']:
+                tx = {}
+                tx['type'] = transaction['Type']
+                tx['timestamp'] = self._format_time(transaction['Date'])
+                tx['desc'] = transaction['Info'].encode('utf-8')
+                self.tx_list.append(tx)
+            if len(self.tx_list) == 0:
+                self.error = 'no recent transactions found'
+            return 1
+        return 0
 
     def get_orders(self):
-        params = []
+        params = [('nonce', self._create_nonce())]
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
         if response and 'error' not in response and len(response['return']) == 0:
             self.error = 'no open orders listed'
             return 1
-        if response and 'error' not in response:
+        elif response and 'error' not in response:
             for order in response['return']:
                 o = {}
                 if order['type'] == 'ask':
@@ -169,47 +159,64 @@ class PrivateMtGox(Market):
                 o['id'] = order['oid']
                 self.orders_list.append(o)
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
-            self.orders_list = ['error']
             return 1
-            
-    def get_txs(self):
-        params = [('currency', self.currency)]
-        response = self._send_request(self.tx_url, params)
-        self.tx_list = []
-        if response['result'] == 'success':
-            for transaction in response['return']['result']:
-                tx = {}
-                tx['type'] = transaction['Type']
-                tx['timestamp'] = self._format_time(transaction['Date'])
-                tx['desc'] = transaction['Info'].encode('utf-8')
-                self.tx_list.append(tx)
-            if len(self.tx_list) == 0:
-                self.error = 'no recent transactions found'
-            return 1                  
-        return None
+        return 0
 
-    def withdraw(self, amount, destination, fee=None):
-        params = [("amount_int", self._to_int_amount(amount)), ("address", str(destination))]
-        if fee:
-            params += ("fee", fee)
-        response = self._send_request(self.withdraw_url, params)
+    def cancel(self, order_id):
+        self.get_orders()
+        if len(self.orders_list) == 0:
+            self.error = 'no open orders listed'
+            return 1
+        for order in self.orders_list:
+            if order_id == order['id']:
+                order_type = order['type']
+                self.cancelled_amount = order['amount']
+        try:
+            order_type = order_type
+        except:
+            self.error = 'order does not exist'
+            return 1
+
+        params = [('nonce', self._create_nonce()),
+                  ('oid', order_id),
+                  ('type', order_type)]
+        response = self._send_request(self.cancel_url, params)
         if response and 'error' not in response:
-            self.timestamp = str(datetime.datetime.now())
+            self.cancelled_id = order_id
+            self.cancelled_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             return 1
         elif response and 'error' in response:
-            self.error = unicode(response['error'])
+            self.error = str(response['error'])
             return 1
-        return None
+        return 0
+
+    def withdraw(self, amount, destination, fee=None):
+        params = [('nonce', self._create_nonce()),
+                  ('amount_int', self._to_int_amount(amount)),
+                  ('address', str(destination))]
+        if fee:
+            params += ('fee', fee)
+        response = self._send_request(self.withdraw_url, params)
+        if response and 'error' not in response:
+            self.timestamp = str(datetime.datetime.now()).split('.')[0]
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0
 
     def deposit(self):
-        params = []
-        response = self._send_request(self.wallet_url, params)
-        if 'error' not in response:
+        params = [('nonce', self._create_nonce())]
+        response = self._send_request(self.deposit_url, params)
+        if response and 'error' not in response:
             self.address = response['return']['addr']
-        else:
-            self.error = response['error']
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0
 
 if __name__ == '__main__':
     mtgox = PrivateMtGox()

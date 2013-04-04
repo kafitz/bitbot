@@ -11,17 +11,13 @@ import json
 import re
 from decimal import Decimal
 
-
 class PrivateBitfloor(Market):
     name = 'Bitfloor'
-    ticker_url = {'method': 'GET', 'url': ''}
     trade_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/new'}
-    order_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/details'}
     open_orders_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/orders'}
     info_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/accounts'}
     withdraw_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/withdraw'}
     cancel_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/cancel'}
-
 
     def __init__(self):
         super(Market, self).__init__()
@@ -38,40 +34,34 @@ class PrivateBitfloor(Market):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
     def _send_request(self, url, params, extra_headers=None):
-        enc_params = urllib.urlencode(params)
         headers = {
+            'Content-type': 'application/x-www-form-urlencoded',
             'bitfloor-key': self.key,
-            'bitfloor-sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), enc_params, hashlib.sha512).digest())),
+            'bitfloor-sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
             'bitfloor-passphrase':  self.passphrase,
             'bitfloor-version': 1,
-            'Content-type': 'application/x-www-form-urlencoded',
         }
-
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-
-        req = urllib2.Request(url['url'], enc_params, headers)
+        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         try:
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
-            print str(e)
             return json.loads(e.read())
         else:
             jsonstr = json.loads(response.read())
             return jsonstr
-        return None
+        return 0
 
     def trade(self, product_id, size, side, price=None):
         params = [('nonce', self._create_nonce()),
                   ('product_id', product_id),
                   ('size', str(size)),
                   ('side', side)]
-
         if price:
             params.append(('price', str(price)))
         response = self._send_request(self.trade_url, params)
-        print response
         if response and 'error' not in response:
             self.price = str(price)
             self.id = str(response['order_id'])
@@ -81,7 +71,7 @@ class PrivateBitfloor(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        return 0
 
     def buy(self, amount, price):
         product_id = 1  # indicates exchanges as BTCUSD
@@ -104,11 +94,12 @@ class PrivateBitfloor(Market):
                     self.btc_balance = float(wallet['amount'])
                 elif str(wallet['currency']) == 'USD':
                     self.usd_balance = float(wallet['amount'])
+                self.fee = 0.10
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        return 0
 
     def get_txs(self):
         self.error = 'this API can\'t list transactions'
@@ -133,48 +124,52 @@ class PrivateBitfloor(Market):
                 o['amount'] = unicode(round(float(order['size']), 4)) + ' BTC' # e.g., 3.2534 BTC
                 o['id'] = order['order_id']
                 self.orders_list.append(o)
-            return
+            return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
-        
+        return 0
+
     def cancel(self, order_id):
         self.get_orders()
-        params = [('nonce', self._create_nonce()),('order_id', order_id),('product_id', '1')] # product_id = 1 => BTC/USD exchange      
-        response = self._send_request(self.cancel_url, params)
-        
+        if len(self.orders_list) == 0:
+            self.error = 'no open orders listed'
+            return 1
         for order in self.orders_list:
             if order_id == order['id']:
                 order_amount = order['amount']
+                self.cancelled_amount = order_amount
+                
+        params = [('nonce', self._create_nonce()),('order_id', order_id),('product_id', '1')]
+        response = self._send_request(self.cancel_url, params)
         if response and 'error' not in response:
             self.cancelled_id = response['order_id']
             self.cancelled_time = self._format_time(response['timestamp'])
-            self.cancelled_amount = order_amount
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-            
-    def deposit(self):
-        # hardcoded bitcoin address, because there's no way to get it from the API
-        self.address = "1FbvTUCsuVi1cpYwX5TnNQyUQqb3LZo4xg"
-        return 1
+        return 0
 
     def withdraw(self, amount, destination):
-        params = [('nonce', self._create_nonce()),('currency', 'BTC'), ('method', 'bitcoin'), ('amount', amount), ('destination', destination)]
+        params = [('nonce', self._create_nonce()),
+                  ('currency', 'BTC'),
+                  ('method', 'bitcoin'),
+                  ('amount', amount),
+                  ('destination', destination)]
         response = self._send_request(self.withdraw_url, params)
-        
         if response and 'error' not in response:
             self.timestamp = self._format_time(response['timestamp'])
-            print response
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        return 0
 
+    def deposit(self):
+        # hardcoded bitcoin address, because there's no way to get it from the API
+        self.address = '1FbvTUCsuVi1cpYwX5TnNQyUQqb3LZo4xg'
+        return 1
 
 if __name__ == '__main__':
     bitfloor = PrivateBitfloor()
-    bitfloor.get_info()
