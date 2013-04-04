@@ -34,30 +34,6 @@ class PrivateBitfloor(Market):
     def _create_nonce(self):
         return int(time.time() * 1000000)
 
-    def _change_currency_url(self, url, currency):
-        return re.sub(r'BTC\w{3}', r'BTC' + currency, url)
-
-    def _to_int_price(self, price, currency):
-        ret_price = None
-        if currency in ['USD', 'EUR', 'GBP', 'PLN', 'CAD', 'AUD', 'CHF', 'CNY',
-                        'NZD', 'RUB', 'DKK', 'HKD', 'SGD', 'THB']:
-            ret_price = Decimal(price)
-            ret_price = int(price * 100000)
-        elif currency in ['JPY', 'SEK']:
-            ret_price = Decimal(price)
-            ret_price = int(price * 1000)
-        return ret_price
-
-    def _to_int_amount(self, amount):
-        amount = Decimal(amount)
-        return int(amount * 100000000)
-
-    def _from_int_amount(self, amount):
-        return Decimal(amount) / Decimal(100000000.)
-
-    def _from_int_price(self, amount):
-        return Decimal(amount) / Decimal(100000.)
-        
     def _format_time(self,timestamp):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
