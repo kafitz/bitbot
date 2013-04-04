@@ -40,15 +40,15 @@ class PrivateMtGox(Market):
         if currency in ['USD', 'EUR', 'GBP', 'PLN', 'CAD', 'AUD', 'CHF', 'CNY',
                         'NZD', 'RUB', 'DKK', 'HKD', 'SGD', 'THB']:
             ret_price = Decimal(price)
-            ret_price = int(price * 100000)
+            ret_price = int(ret_price * 100000)
         elif currency in ['JPY', 'SEK']:
             ret_price = Decimal(price)
-            ret_price = int(price * 1000)
+            ret_price = int(ret_price * 1000)
         return ret_price
 
     def _to_int_amount(self, amount):
-        amount = Decimal(amount)
-        return int(amount * 100000000)
+        amount = Decimal(amount) * 100000000
+        return int(amount)
 
     def _from_int_amount(self, amount):
         return Decimal(amount) / Decimal(100000000.)
@@ -157,7 +157,6 @@ class PrivateMtGox(Market):
         if response and 'error' not in response and len(response['return']) == 0:
             self.error = 'no open orders listed'
             return 1
-        print response
         if response and 'error' not in response:
             for order in response['return']:
                 o = {}
@@ -200,7 +199,6 @@ class PrivateMtGox(Market):
         response = self._send_request(self.withdraw_url, params)
         if response and 'error' not in response:
             self.timestamp = self._format_time(response['timestamp'])
-            print response
             return 1
         elif response and 'error' in response:
             self.error = unicode(response['error'])
