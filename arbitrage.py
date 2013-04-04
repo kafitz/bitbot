@@ -129,25 +129,18 @@ class Arbitrer(object):
             self.depths[kbid]['bids'][best_buying_index]['price'], best_w_buyprice, best_w_sellprice, round(available_volume,1)
 
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
-        # perc = (bid['price'] - ask['price']) / bid['price'] * 100
         profit, purchase_volume, percent_profit, buyprice, sellprice, weighted_buyprice,\
             weighted_sellprice, available_volume = self.arbitrage_depth_opportunity(kask, kbid)
         if purchase_volume == 0 or buyprice == 0:
             return
-        # maxme_percent_profit is original calculation however it seems off so a simpler one replaces it in arbitrage_depth_opportunity
-        # maxme_percent_profit = (1 - (volume - (profit / weighted_buyprice)) / volume) * 100
         
         if percent_profit < float(config.perc_thresh):
             return
         for observer in self.observers:
-            observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid,
-                                 percent_profit, weighted_buyprice, weighted_sellprice, available_volume, config.max_amount)
+            observer.opportunity(profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, 
+                                weighted_sellprice, kbid, percent_profit, config.max_amount)
         # Line to return to IRC
-        buy_total = round(purchase_volume * weighted_buyprice,1)
-        # line_output = 'profit: %f USD with volume: %f BTC - buy at %.4f (%s) sell at %.4f (%s) ~%.2f%%' %\
-        #     # (profit, purchase_volume, weighted_buyprice, kask, weighted_sellprice, kbid, percent_profit)
-        # line
-        #print '{0:10} ==> {1:10d}'.format(name, phone)
+        buy_total = round(purchase_volume * weighted_buyprice, 1)
         line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
             profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
         deal = {'profit': profit, 'purchase_volume': purchase_volume, 'buy_market': kask, 'buy_price': weighted_buyprice, 'sell_market': kbid, \
@@ -201,8 +194,6 @@ class Arbitrer(object):
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         output_list.append(line_out)
-                        for observer in self.observers:
-                            pass
 
         for observer in self.observers:
             observer.end_opportunity_finder()

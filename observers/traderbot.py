@@ -5,7 +5,7 @@ from observer import Observer
 from private_markets import mtgox
 from private_markets import bitfloor
 from private_markets import bitstamp
-
+from modules import control
 
 class TraderBot(Observer):
     def __init__(self):
@@ -42,7 +42,7 @@ class TraderBot(Observer):
         for kclient in self.clients:
             self.clients[kclient].get_info()
 
-    def opportunity(self, profit, volume, buyprice, kask, sellprice, kbid, perc, weighted_buyprice, weighted_sellprice, available_volume, purchase_cap):
+    def opportunity(self, profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit, purchase_cap):
         if profit < self.profit_thresh or perc < self.perc_thresh:
             return
         if kask not in self.clients:
