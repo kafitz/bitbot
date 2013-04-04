@@ -217,7 +217,8 @@ class Arbitrer(object):
             line_outs = self.tick()
             line_outs = filter(None, line_outs)
             if line_outs == []:
-                bitbot.msg(channel, 'arb > no opportunities found')
+                # bitbot.msg(channel, 'arb > no opportunities found')
+                pass
             else:
                 for item in line_outs:
                     bitbot.msg(channel, item)

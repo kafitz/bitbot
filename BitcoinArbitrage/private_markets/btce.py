@@ -57,35 +57,33 @@ class PrivateBTCe(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params, extra_headers=None):
-        params["nonce"] = self._create_nonce()
         encoded_params = urllib.urlencode(params)
         ahmac = hmac.new(self.secret, digestmod=hashlib.sha512)
         ahmac.update(encoded_params)
         sign = ahmac.hexdigest()
         headers = {
             'Key': self.key,
-            'Sign': sign,
-            'Content-type': 'application/x-www-form-urlencoded',
+            'Sign': sign
         }
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
         conn = httplib.HTTPSConnection("btc-e.com")
-        print encoded_params
         conn.request("POST", "/tapi", encoded_params, headers)
         response = conn.getresponse()
-        conn.close()
         print response.read()
         if response.status == 200:
             jsonstr = response.read()
+            conn.close()
             return json.loads(jsonstr)
+        conn.close()
         return None
 
     def trade(self, amount, ttype, price=None):
-        if price:
-            price = self._to_int_price(price, self.currency)
-        amount = self._to_int_amount(amount)
+        # if price:
+        #     price = self._to_int_price(price, self.currency)
+        # amount = self._to_int_amount(amount)
 
         self.buy_url["url"] = self._change_currency_url(self.buy_url["url"], self.currency)
 
@@ -107,7 +105,7 @@ class PrivateBTCe(Market):
         return self.trade(amount, "ask", price)
 
     def get_info(self):
-        params = {"method": "getInfo"}
+        params = {"method": "getInfo", "nonce": self._create_nonce()}
         response = self._send_request(self.info_url, params)
         print response
         if response:
