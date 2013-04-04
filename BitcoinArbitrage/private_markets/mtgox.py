@@ -72,7 +72,6 @@ class PrivateMtGox(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-
         req = urllib2.Request(url, urllib.urlencode(params), headers)
         try:
             response = urllib2.urlopen(req)
@@ -173,7 +172,6 @@ class PrivateMtGox(Market):
         elif 'error' in response:
             self.error = str(response['error'])
             self.orders_list = ['error']
-            print self.error
             return 1
             
     def get_txs(self):
@@ -193,16 +191,15 @@ class PrivateMtGox(Market):
         return None
 
     def withdraw(self, amount, destination, fee=None):
-        params = [("amount", amount), ("destination", destination)]
+        params = [("amount_int", self._to_int_amount(amount)), ("address", str(destination))]
         if fee:
             params += ("fee", fee)
         response = self._send_request(self.withdraw_url, params)
         if response and 'error' not in response:
-            self.timestamp = self._format_time(response['timestamp'])
+            self.timestamp = str(datetime.datetime.now())
             return 1
         elif response and 'error' in response:
             self.error = unicode(response['error'])
-            print self.error
             return 1
         return None
 
@@ -216,4 +213,3 @@ class PrivateMtGox(Market):
 
 if __name__ == '__main__':
     mtgox = PrivateMtGox()
-    # mtgox.withdraw(0.00001, "1FbvTUCsuVi1cpYwX5TnNQyUQqb3LZo4xg")

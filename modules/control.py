@@ -296,7 +296,7 @@ def deal(bitbot, input):
         bitbot.say('deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + '  USD needed)')
     
     # Control the funds in the sell market 
-    usd2, btc2 = balance(bitbot, '.bal ' + sell_market)
+    usd2, btc2 = balance(bitbot, '.bal ' + sell_market, deal_request)
     if volume <= btc2:
         sell_check = True
         bitbot.say('deal > ' + sell_market + ' > enough BTC available for this deal (' + str(volume) + ' BTC needed)')
@@ -310,18 +310,18 @@ def deal(bitbot, input):
         
     bitbot.say('deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)') 
        
-    bitbot.say('deal > QUITTING: test mode')
-    return
+    #bitbot.say('deal > QUITTING: test mode')
+    #return
     
     bitbot.say('deal > .buy {} {} {}'.format(buy_market, volume, buy_price))
-    #buy(bitbot, '.buy {} {} {}'.format(buy_market, volume, buy_price))
+    buy(bitbot, '.buy {} {} {}'.format(buy_market, volume, buy_price))
     bitbot.say('deal > .sell {} {} {}'.format(sell_market, volume, sell_price))
-    #sell(bitbot, '.sell {} {} {}'.format(sell_market, volume, buy_price))
-    '''
+    sell(bitbot, '.sell {} {} {}'.format(sell_market, volume, sell_price))
+
     address = deposit(bitbot, '.dep ' + sell_market)
     bitbot.say('deal > .wdw {} {} {}'.format(buy_market, volume, address))
-    withdraw(bitbot, ' '.join(['.wdw', buy_market, str(0), address]))
-    '''
+    withdraw(bitbot, ' '.join(['.wdw', buy_market, volume, address]))
+
     
             
 deal.commands = ['deal']
