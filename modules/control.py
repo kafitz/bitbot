@@ -177,7 +177,7 @@ def sell(bitbot, input):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        bitbot.say('sell > invalid # of arguments specified: .sell exchange $USD_total $price_limit_per_btc')
+        bitbot.say('sell > invalid # of arguments specified: .sell exchange BTC_total $price_limit_per_btc')
         return
     market = parameters[0]
     total_usd = str(parameters[1])
@@ -256,24 +256,25 @@ def deal(bitbot, input):
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     
     if deals == []:
-        bitbot.say('no deals possible at this time')  
+        bitbot.say('deal > error: no deals possible at this time')  
         return
         
     deal_index = 1
     for deal in deals:
-        deal_output = str(deal_index) + ". " + str(deal["profit"]) + " | " + deal["buy_market"] +\
-            "  " + str(deal["buy_price"]) + " => " + str(deal["sell_price"]) + "  " + deal["sell_market"] + " | " +\
-            str(deal["percent_profit"])
+        deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
+            deal["profit"], deal['purchase_volume'], deal["buy_market"], deal["buy_price"], deal["sell_price"], deal["sell_market"], deal["percent_profit"], deal_index)
         bitbot.say(deal_output)
         deal_index += 1
-        
+    
+    # Proceed if a deal is specified 
     parameters = input.split(' ')[1:]
     if len(parameters) != 1:
-        bitbot.say('deal > specify the deal number')
-        return
-         
-    i = int(parameters[0]) - 1 
- 
+        bitbot.say('deal > error: specify deal number')
+        return 
+    else:       
+        i = int(parameters[0]) - 1 
+    
+    # Formatting variables
     buy_market = names[deals[i]['buy_market'][:-3].lower()]
     sell_market = names[deals[i]['sell_market'][:-3].lower()]
     
@@ -293,7 +294,7 @@ def deal(bitbot, input):
         bitbot.say('deal > ' + buy_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
     else:
         buy_check = False
-        bitbot.say('deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + '  USD needed)')
+        bitbot.say('deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + ' USD needed)')
     
     # Control the funds in the sell market 
     usd2, btc2 = balance(bitbot, '.bal ' + sell_market, deal_request)
@@ -303,26 +304,24 @@ def deal(bitbot, input):
     else:
         sell_check = False
         bitbot.say('deal > ' + sell_market + ' > error: not enough BTC available to sell (' + str(volume) + ' BTC needed)')
-    
+        
+    # Stop the deal if there are not enough funds
     if not buy_check or not sell_check:
         bitbot.say('deal > insufficient funds')
         return
-        
-    bitbot.say('deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)') 
-       
-    #bitbot.say('deal > QUITTING: test mode')
-    #return
+    else:    
+        bitbot.say('deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)') 
     
+    # Executing trade orders
     bitbot.say('deal > .buy {} {} {}'.format(buy_market, volume, buy_price))
     buy(bitbot, '.buy {} {} {}'.format(buy_market, volume, buy_price))
     bitbot.say('deal > .sell {} {} {}'.format(sell_market, volume, sell_price))
     sell(bitbot, '.sell {} {} {}'.format(sell_market, volume, sell_price))
 
+    # Execute BTC transfer from buy_market -> sell_market
     address = deposit(bitbot, '.dep ' + sell_market)
     bitbot.say('deal > .wdw {} {} {}'.format(buy_market, volume, address))
-    withdraw(bitbot, ' '.join(['.wdw', buy_market, volume, address]))
-
-    
+    withdraw(bitbot, ' '.join(['.wdw', buy_market, volume, address]))    
             
 deal.commands = ['deal']
 deal.name = 'deal'
