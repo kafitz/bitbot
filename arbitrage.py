@@ -1,6 +1,6 @@
 import public_markets
 import observers
-from BitcoinArbitrage import config
+import config
 import time
 import datetime
 import logging
@@ -201,6 +201,9 @@ class Arbitrer(object):
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         output_list.append(line_out)
+                        for observer in self.observers:
+                            pass
+
         for observer in self.observers:
             observer.end_opportunity_finder()
         return output_list
@@ -222,12 +225,13 @@ class Arbitrer(object):
             else:
                 for item in line_outs:
                     bitbot.msg(channel, item)
-                bitbot.msg(channel, '-----------------------------------------------------------------------------------------')                   
+                bitbot.msg(channel, '------------------------------------------------------------------------------------------')                   
             time.sleep(60)
             
     def get_arb(self,bitbot):
         level = logging.INFO
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
+        channel = config.deal_output
 
         self.depths, self.fees = self.update_depths()
         self.tickers()

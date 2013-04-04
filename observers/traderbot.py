@@ -3,18 +3,19 @@ import config
 import time
 from observer import Observer
 from private_markets import mtgox
-from private_markets import bitcoincentral
+from private_markets import bitfloor
+from private_markets import bitstamp
 
 
 class TraderBot(Observer):
     def __init__(self):
         self.mtgox = mtgox.PrivateMtGox()
-        self.btcentral = bitcoincentral.PrivateBitcoinCentral()
+        self.bitfloor = bitfloor.PrivateBitfloor()
+        self.bitstamp = bitstamp.PrivateBitstamp()
         self.clients = {
-            "MtGoxEUR": self.mtgox,
             "MtGoxUSD": self.mtgox,
-            "BitcoinCentralEUR": self.btcentral,
-            "BitcoinCentralUSD": self.btcentral
+            "BitfloorUSD": self.bitfloor,
+            "BitstampUSD": self.bitstamp
         }
         self.profit_thresh = 5  # in USD
         self.perc_thresh = 2  # in %

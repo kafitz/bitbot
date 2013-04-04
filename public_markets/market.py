@@ -1,6 +1,6 @@
 import time
 import urllib2
-from BitcoinArbitrage import config
+import config
 import logging
 
 

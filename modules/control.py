@@ -18,9 +18,9 @@ deal            ->  execute an arbitrage deal
 lag             ->  get lag from trade engine
 '''
 
-from BitcoinArbitrage import arbitrage          # arbitrage script
-from BitcoinArbitrage import config             # read the config file
-from BitcoinArbitrage import private_markets    # load private APIs
+import arbitrage          # arbitrage script
+import config             # read the config file
+import private_markets    # load private APIs
 from decimal import Decimal
 
 def start_arbitrage(bitbot, input):
@@ -38,7 +38,7 @@ def load(initials):
         market_name = config.private_markets[initials]
     except KeyError:
         return 1, 'exchange initials not found in config'     
-    exec('import BitcoinArbitrage.private_markets.' + market_name.lower())
+    exec('import private_markets.' + market_name.lower())
     market = eval('private_markets.' + market_name.lower() + '.Private' + market_name + '()')   
     return 0, market
 
