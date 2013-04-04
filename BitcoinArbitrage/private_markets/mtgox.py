@@ -95,7 +95,7 @@ class PrivateMtGox(Market):
         if price:
             params.append(('price_int', str(int_price)))
 
-        # response = self._send_request(self.buy_url, params)
+        response = self._send_request(self.buy_url, params)
         if response and 'error' not in response:
             self.price = str(price)
             self.id = str(response['return'])
