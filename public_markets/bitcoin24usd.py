@@ -11,9 +11,13 @@ class Bitcoin24USD(Market):
         self.fees = {'withdraw': 0, 'exchange_rate': 0}
 
     def update_depth(self):
-        res = urllib2.urlopen('https://bitcoin-24.com/api/USD/orderbook.json')
-        depth = json.loads(res.read())
-        self.depth = self.format_depth(depth)
+        try:
+            res = urllib2.urlopen('https://bitcoin-24.com/api/USD/orderbook.json')
+            jsonstr = res.read()
+            depth = json.loads(jsonstr)
+            self.depth = self.format_depth(depth)
+        except Exception:
+            logging.warn("Can't parse json:" + jsonstr)
 
     def sort_and_format(self, l, reverse=False):
         l.sort(key=lambda x: float(x[0]), reverse=reverse)
