@@ -138,9 +138,10 @@ class Arbitrer(object):
             return
         buy_total = round(purchase_volume * weighted_buyprice, 1)
         
-        for observer in self.observers:
-            observer.opportunity(profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, 
-                                weighted_sellprice, kbid, percent_profit, config.max_amount)
+        # for observer in self.observers:
+        #     observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid, percent_profit, weighted_buyprice,
+        #                         weighted_sellprice, available_volume, config.max_amount)
+        
         # Line to return to IRC
         line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
             profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
