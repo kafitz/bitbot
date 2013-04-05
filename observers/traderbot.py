@@ -17,9 +17,9 @@ class TraderBot(Observer):
             "BitfloorUSD": self.bitfloor,
             "BitstampUSD": self.bitstamp
         }
-        self.profit_thresh = 5  # in USD
-        self.perc_thresh = 2  # in %
-        self.trade_wait = 120  # in seconds
+        self.profit_thresh = config.profit_thresh   # in USD
+        self.perc_thresh = 2                        # in %
+        self.trade_wait = 120                       # in seconds
         self.last_trade = 0
         self.potential_trades = []
 
@@ -42,7 +42,8 @@ class TraderBot(Observer):
         for kclient in self.clients:
             self.clients[kclient].get_info()
 
-    def opportunity(self, profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit, purchase_cap):
+    def opportunity(self, profit, purchase_volume, available_volume, buy_total, kask, 
+                    weighted_buyprice, weighted_sellprice, kbid, percent_profit, purchase_cap):
         if profit < self.profit_thresh or perc < self.perc_thresh:
             return
         if kask not in self.clients:

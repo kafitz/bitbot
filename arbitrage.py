@@ -136,11 +136,12 @@ class Arbitrer(object):
         
         if percent_profit < float(config.perc_thresh):
             return
+        buy_total = round(purchase_volume * weighted_buyprice, 1)
+        
         for observer in self.observers:
             observer.opportunity(profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, 
                                 weighted_sellprice, kbid, percent_profit, config.max_amount)
         # Line to return to IRC
-        buy_total = round(purchase_volume * weighted_buyprice, 1)
         line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
             profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
         deal = {'profit': profit, 'purchase_volume': purchase_volume, 'buy_market': kask, 'buy_price': weighted_buyprice, 'sell_market': kbid, \
