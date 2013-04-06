@@ -122,8 +122,6 @@ class TraderBot(Observer):
             time.sleep(5)
 
 
-        # Watch buy market for volume to be filled to order
-
     def execute_trade(self, bitbot, profit, volume, kask, kbid, weighted_buyprice, weighted_sellprice):
         channel = config.deal_output
         self.last_trade = time.time()

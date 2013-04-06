@@ -131,15 +131,6 @@ class Arbitrer(object):
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
         profit, purchase_volume, percent_profit, buyprice, sellprice, weighted_buyprice,\
             weighted_sellprice, available_volume = self.arbitrage_depth_opportunity(kask, kbid)
-        # print "======="
-        # print "profit: " + str(profit)
-        # print "purchase_volume: " + str(purchase_volume)
-        # print "percent_profit: " + str(percent_profit)
-        # print "buyprice: " + str(buyprice)
-        # print "sellprice: " + str(sellprice)
-        # print "weighted_buyprice: " + str(weighted_buyprice)
-        # print "weighted_sellprice: " + str(weighted_sellprice)
-        # print "available_volume: " + str(available_volume)
         if purchase_volume == 0 or buyprice == 0:
             return
         
