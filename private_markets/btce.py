@@ -1,5 +1,6 @@
 from market import Market
 import time
+import datetime
 import base64
 import hmac
 import urllib
@@ -13,13 +14,8 @@ from decimal import Decimal
 
 
 class PrivateBTCe(Market):
-    ticker_url = {"method": "GET", "url": ""}
-    buy_url = {"method": "POST", "url": ""}
-    sell_url = {"method": "POST", "url": ""}
-    order_url = {"method": "POST", "url": ""}
-    open_orders_url = {"method": "POST", "url": ""}
-    info_url = {"method": "POST", "url": "https://btc-e.com/tapi"}
-    withdraw_url = {"method": "POST", "url": ""}
+    url_base = "btc-e.com"
+    url_suffix = "/tapi"
 
     def __init__(self):
         super(Market, self).__init__()
@@ -33,32 +29,10 @@ class PrivateBTCe(Market):
     def _create_nonce(self):
         return int(time.time())
 
-    def _change_currency_url(self, url, currency):
-        return re.sub(r'BTC\w{3}', r'BTC' + currency, url)
+    def _format_time(self,timestamp):
+        return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
-    def _to_int_price(self, price, currency):
-        ret_price = None
-        if currency in ["USD", "EUR", "GBP", "PLN", "CAD", "AUD", "CHF", "CNY",
-                        "NZD", "RUB", "DKK", "HKD", "SGD", "THB"]:
-            ret_price = Decimal(price)
-            ret_price = int(price * 100000)
-        elif currency in ["JPY", "SEK"]:
-            ret_price = Decimal(price)
-            ret_price = int(price * 1000)
-        return ret_price
-
-    def _to_int_amount(self, amount):
-        amount = Decimal(amount)
-        return int(amount * 100000000)
-
-    def _from_int_amount(self, amount):
-        return Decimal(amount) / Decimal(100000000.)
-
-    def _from_int_price(self, amount):
-        # FIXME: should take JPY and SEK into account
-        return Decimal(amount) / Decimal(100000.)
-
-    def _send_request(self, url, params, extra_headers=None):
+    def _send_request(self, params, extra_headers=None):
         params["nonce"] = self._create_nonce()
         encoded_params = urllib.urlencode(params)
         ahmac = hmac.new(self.secret, digestmod=hashlib.sha512)
@@ -73,8 +47,8 @@ class PrivateBTCe(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        conn = httplib.HTTPSConnection("btc-e.com")
-        conn.request("POST", "/tapi", encoded_params, headers)
+        conn = httplib.HTTPSConnection(self.url_base)
+        conn.request("POST", self.url_suffix, encoded_params, headers)
         response = conn.getresponse()
         if response.status == 200:
             jsonstr = response.read()
@@ -83,32 +57,43 @@ class PrivateBTCe(Market):
         conn.close()
         return None
 
-    def trade(self, amount, ttype, price=None):
-        # if price:
-        #     price = self._to_int_price(price, self.currency)
-        # amount = self._to_int_amount(amount)
+    def trade(self, amount, ttype, price):
+        params = {"method": "Trade", "amount": amount, "type": ttype, "rate": price, "pair": "btc_usd"}
+        response = self._send_request(params)
+        print response
+        if response and response["success"] == 1:
+            ret = response["return"]
+            for key in ret.keys():
+                self.id = key
+                self.timestamp = self._format_time(key['timestamp'])
+                self.amount = key['amount']
+                return 1
+        elif 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0
 
-        self.buy_url["url"] = self._change_currency_url(self.buy_url["url"], self.currency)
+    def buy(self, amount, price):
+        return self.trade(amount, "buy", price)
 
-        params = [("amount_int", str(amount)),
-                  ("type", ttype)]
-        if price:
-            params.append(("price_int", str(price)))
+    def sell(self, amount, price):
+        return self.trade(amount, "sell", price)
 
-        response = self._send_request(self.buy_url, params)
-        if response and "result" in response and response["result"] == "success":
-            return response["return"]
-        return None
-
-    def buy(self, amount, price=None):
-        return self.trade(amount, "bid", price)
-
-    def sell(self, amount, price=None):
-        return self.trade(amount, "ask", price)
+    def cancel(self, order_id):
+        params = {"method": "CancelOrder"}
+        response = self._send_request(params)
+        if response and 'error' not in response:
+            self.cancelled_id = response['order_id']
+            self.cancelled_time = self._format_time(time.time())
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0 
 
     def get_info(self):
         params = {"method": "getInfo"}
-        response = self._send_request(self.info_url, params)
+        response = self._send_request(params)
         if response and 'error' not in response:
             funds = response['return']['funds']
             self.btc_balance = float(funds['btc'])
@@ -122,16 +107,33 @@ class PrivateBTCe(Market):
             return 1
         return None
 
-    def get_orders(self):
-        pass
+    def get_orders(self, from_id=None, end_id=None):
+        params = {"method": "OrderList"}
+        if from_id:
+            params["from_id"] = from_id
+        if end_id:
+            params["end_id"]
+        response = self._send_request(params)
+        self.orders_list = []
+        if response and 'error' not in response:
+            print response
+            return 1
+        elif 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return None
         
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
-        response = self._send_request(self.withdraw_url, params)
+        response = self._send_request(params)
         if response:
             print response
             return 1
         return None
+
+    def get_txs(self):
+        self.error = 'txs for this API has not yet been implemented'
+        return 1
         
 
     def __str__(self):

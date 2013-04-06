@@ -54,10 +54,10 @@ class PrivateBitfloor(Market):
             return jsonstr
         return 0
 
-    def trade(self, product_id, size, side, price=None):
+    def trade(self, product_id, amount, side, price=None):
         params = [('nonce', self._create_nonce()),
                   ('product_id', product_id),
-                  ('size', str(size)),
+                  ('size', str(amount)),
                   ('side', side)]
         if price:
             params.append(('price', str(price)))
@@ -76,14 +76,12 @@ class PrivateBitfloor(Market):
     def buy(self, amount, price):
         product_id = 1  # indicates exchanges as BTCUSD
         side = 0 # indicates buy order
-        size = amount
-        return self.trade(product_id, size, side, price)
+        return self.trade(product_id, amount, side, price)
 
     def sell(self, amount, price):
         product_id = 1
         side = 1 # indicates sell order
-        size = amount
-        return self.trade(product_id, size, side, price)
+        return self.trade(product_id, amount, side, price)
 
     def get_info(self):
         params = [('nonce', self._create_nonce())]
