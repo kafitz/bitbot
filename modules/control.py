@@ -214,8 +214,7 @@ def deposit(bitbot, input):
             bitbot.say('dep > ' + market + ' > ' + market_obj)
             return 1
         if market_obj.error == '':
-            bitbot.say('dep > ' + market + ' > address: ' + market_obj.address)
-            bitbot.say('dep > ' + market + ' > https://blockchain.info/address/' + market_obj.address)
+            bitbot.say('dep > ' + market + ' > address: ' + 'https://blockchain.info/address/' + market_obj.address + ' ' + market_obj.address)
             return market_obj.address
         else:
             bitbot.say('dep > ' + market + ' > error: ' + market_obj.error) 

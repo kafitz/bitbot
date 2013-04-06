@@ -2,6 +2,7 @@ import logging
 import config
 import time
 import datetime
+from decimal import Decimal
 from observer import Observer
 from private_markets import mtgox
 from private_markets import bitfloor
@@ -23,6 +24,7 @@ class TraderBot(Observer):
         self.perc_thresh = 1                        # in %
         self.trade_wait = 120                       # in seconds
         self.last_trade = 0
+        self.timeout = 300                          # in seconds (for watch_balances)
         self.potential_trades = []
 
     def begin_opportunity_finder(self, depths):
@@ -84,14 +86,55 @@ class TraderBot(Observer):
 
         self.potential_trades.append([profit, volume, kask, kbid, weighted_buyprice, weighted_sellprice])
 
-    def watch_balances(self):
-        pass
+    def watch_balances(self, bitbot, channel, buymarket, sellmarket, volume):
+        buymarket_btc = self.clients[buymarket].btc_balance
+        sellmarket_btc = self.clients[sellmarket].btc_balance
+        end_btc =  buymarket_btc + Decimal(volume)
+        buy_wallet_btc = 0
+        runtime = 0
+        print "Buy market balance:"
+        while buy_wallet_btc != end_btc:
+            if runtime == self.timeout:
+                break
+            self.clients[buymarket].get_info()
+            buy_wallet_btc = self.clients[buymarket].btc_balance
+            print buymarket + " BTC: " + str(buy_wallet_btc)
+            time.sleep(5)
+            runtime += 5
+        end_btc = sellmarket + btc
+        self.clients[sellmarket].deposit()
+        deposit_addr = self.client[sellmarket].address
+        bitbot.msg(channel, "Transferring " + str(volume) + " to " + deposit_addr + ". http://https://blockchain.info/address/" + deposit_addr)
+        self.clients[buymarket].wdw(volume, deposit_addr)
+        sell_wallet_btc = 0
+        runtime = 0
+        print "Sell market balance:"
+        while sell_wallet_btc != end_btc or runtime == self.timeout:
+            if runtime == self.timeout:
+                break
+            self.client[sellmarket].get_info()
+            sell_wallet_btc = self.clients[sellmarket].btc_balance
+            print sellmarket + " BTC: " + str(sell_wallet_btc)
+            time.sleep(5)
+            runtime += 5
+
+
+
+        # Watch buy market for volume to be filled to order
 
     def execute_trade(self, bitbot, profit, volume, kask, kbid, weighted_buyprice, weighted_sellprice):
+        channel = config.deal_output
         self.last_trade = time.time()
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + kask + \
             " for $" + str(weighted_buyprice) + ", sold at " + kbid + " for $" + str(weighted_sellprice) + ". Profit of $" + str(profit)
-        bitbot.msg(config.deal_output, irc_output)
+        bitbot.msg(channel, irc_output)
         # self.clients[kask].buy(volume)
         # self.clients[kbid].sell(volume)
+        try:
+            self.watch_balances(bitbot, channel, kask, kbid, volume)
+            irc_output = str(timestamp) + " deal between " + kask + " and " + kbid + " succeeded."
+            bitbot.msg(channel, irc_output)
+        except:
+            irc_output = "Error: Check wallets for deal at " + str(timestamp) + " between " + kask + " and " + kbid + "."
+        #     bitbot.msg(channel, irc_output)
