@@ -68,7 +68,10 @@ class TraderBot(Observer):
         # Changed this to make the max_amount specified in config as also the minimum to execute a trade to keep things
         # simpler for now
         if min_volume < config.max_amount:
-            logging.warn("Insufficient balances to execute trade.")
+            error_output = "Insufficient balances to execute trade: " + kask +\
+                " USD balance: " + str(self.clients[kask].usd_balance) + ", " +\
+                kbid + " BTC balance: " + str(self.clients[kbid].btc_balance)
+            logging.warn(error_output)
             # return
 
         volume = purchase_volume
@@ -129,8 +132,8 @@ class TraderBot(Observer):
         irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + kask + \
             " for $" + str(weighted_buyprice) + ", sold at " + kbid + " for $" + str(weighted_sellprice) + ". Profit of $" + str(profit)
         bitbot.msg(channel, irc_output)
-        # self.clients[kask].buy(volume)
-        # self.clients[kbid].sell(volume)
+        # self.clients[kask].buy(volume, weighted_buyprice)
+        # self.clients[kbid].sell(volume, weighted_buyprice)
         try:
             self.watch_balances(bitbot, channel, kask, kbid, volume)
             irc_output = str(timestamp) + " deal between " + kask + " and " + kbid + " succeeded."
