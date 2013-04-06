@@ -135,6 +135,9 @@ class PrivateBTCe(Market):
         self.error = 'txs for this API has not yet been implemented'
         return 1
         
+    def lag(self):
+        self.error = 'not available from this API'
+        return 1
 
     def __str__(self):
         return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance})
