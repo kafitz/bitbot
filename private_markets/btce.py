@@ -135,7 +135,7 @@ class PrivateBTCe(Market):
         self.error = 'txs for this API has not yet been implemented'
         return 1
         
-    def lag(self):
+    def get_lag(self):
         self.error = 'not available from this API'
         return 1
 
