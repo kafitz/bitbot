@@ -1,6 +1,7 @@
 import logging
 import config
 import time
+import datetime
 from observer import Observer
 from private_markets import mtgox
 from private_markets import bitfloor
@@ -9,6 +10,7 @@ from modules import control
 
 class TraderBot(Observer):
     def __init__(self):
+        print "TraderBot loaded!"
         self.mtgox = mtgox.PrivateMtGox()
         self.bitfloor = bitfloor.PrivateBitfloor()
         self.bitstamp = bitstamp.PrivateBitstamp()
@@ -18,7 +20,7 @@ class TraderBot(Observer):
             "BitstampUSD": self.bitstamp
         }
         self.profit_thresh = config.profit_thresh   # in USD
-        self.perc_thresh = 2                        # in %
+        self.perc_thresh = 1                        # in %
         self.trade_wait = 120                       # in seconds
         self.last_trade = 0
         self.potential_trades = []
@@ -26,12 +28,14 @@ class TraderBot(Observer):
     def begin_opportunity_finder(self, depths):
         self.potential_trades = []
 
-    def end_opportunity_finder(self):
+    def end_opportunity_finder(self, bitbot):
         if not self.potential_trades:
             return
+        # Sorts arbs list lowest profit to highest, then reverses to get the most profitable
         self.potential_trades.sort(key=lambda x: x[0])
-        # Execute only the best (more profitable)
-        self.execute_trade(*self.potential_trades[0][1:])
+        self.potential_trades.reverse()
+        # Execute only the best arb opportunity
+        self.execute_trade(bitbot, *self.potential_trades[0])   # * expands list to variables as called for by function
 
     def get_min_tradeable_volume(self, buyprice, usd_bal, btc_bal):
         min1 = float(usd_bal) / ((1 + config.balance_margin) * buyprice)
@@ -44,27 +48,33 @@ class TraderBot(Observer):
 
     def opportunity(self, profit, purchase_volume, buyprice, kask, sellprice, kbid, percent_profit, weighted_buyprice,
                                 weighted_sellprice, available_volume, purchase_cap):
-        if profit < self.profit_thresh or perc < self.perc_thresh:
-            return
+        # if profit < self.profit_thresh or perc < self.perc_thresh:
+        #     return
         if kask not in self.clients:
             logging.warn("Can't automate this trade, client not available: %s" % (kask))
             return
         if kbid not in self.clients:
             logging.warn("Can't automate this trade, client not available: %s" % (kbid))
             return
-        volume = min(config.max_tx_volume, volume)
 
         # Update client balance
         self.update_balance()
-
         # maximum volume transaction with current balances
-        max_volume = self.get_min_tradeable_volume(buyprice, self.clients[kask].usd_balance,
+        min_volume = self.get_min_tradeable_volume(weighted_buyprice, self.clients[kask].usd_balance,
                                                    self.clients[kbid].btc_balance)
-        volume = min(volume, max_volume, config.max_tx_volume)
+        # Maxme had this to control for making small trades if possible (I assume figuring the fees by hand beforehand)
+        # Changed this to make the max_amount specified in config as also the minimum to execute a trade to keep things
+        # simpler for now
+        if min_volume < config.max_amount:
+            logging.warn("Insufficient balances to execute trade.")
+            # return
 
-        if volume < config.min_tx_volume:
-            logging.warn("Can't automate this trade, minimum volume transaction not reached %f/%f"
-                         % (volume, config.min_tx_volume))
+        volume = purchase_volume
+        print volume
+        
+        if profit < config.profit_thresh:
+            logging.warn("Can't automate this trade, minimum percent profit not reached %f/%f"
+                         % (percent_profit, config.profit_thresh))
             return
 
         current_time = time.time()
@@ -78,7 +88,11 @@ class TraderBot(Observer):
     def watch_balances(self):
         pass
 
-    def execute_trade(self, volume, kask, kbid, weighted_buyprice, weighted_sellprice):
+    def execute_trade(self, bitbot, profit, volume, kask, kbid, weighted_buyprice, weighted_sellprice):
         self.last_trade = time.time()
-        self.clients[kask].buy(volume)
-        self.clients[kbid].sell(volume)
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + kask + \
+            " for $" + str(weighted_buyprice) + ", sold at " + kbid + " for $" + str(weighted_sellprice) + ". Profit of $" + str(profit)
+        bitbot.msg(config.deal_output, irc_output)
+        # self.clients[kask].buy(volume)
+        # self.clients[kbid].sell(volume)

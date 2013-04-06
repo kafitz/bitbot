@@ -131,6 +131,15 @@ class Arbitrer(object):
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
         profit, purchase_volume, percent_profit, buyprice, sellprice, weighted_buyprice,\
             weighted_sellprice, available_volume = self.arbitrage_depth_opportunity(kask, kbid)
+        # print "======="
+        # print "profit: " + str(profit)
+        # print "purchase_volume: " + str(purchase_volume)
+        # print "percent_profit: " + str(percent_profit)
+        # print "buyprice: " + str(buyprice)
+        # print "sellprice: " + str(sellprice)
+        # print "weighted_buyprice: " + str(weighted_buyprice)
+        # print "weighted_sellprice: " + str(weighted_sellprice)
+        # print "available_volume: " + str(available_volume)
         if purchase_volume == 0 or buyprice == 0:
             return
         
@@ -138,9 +147,9 @@ class Arbitrer(object):
             return
         buy_total = round(purchase_volume * weighted_buyprice, 1)
         
-        # for observer in self.observers:
-        #     observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid, percent_profit, weighted_buyprice,
-        #                         weighted_sellprice, available_volume, config.max_amount)
+        for observer in self.observers:
+            observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid, percent_profit, weighted_buyprice,
+                                weighted_sellprice, available_volume, config.max_amount)
         
         # Line to return to IRC
         line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
@@ -179,11 +188,12 @@ class Arbitrer(object):
                     self.depths[market] = depths[market]
             self.tick()
 
-    def tick(self):
+    def tick(self, bitbot, channel):
+        irc_sent = False # control for sending page break line if available deals have been found
+
         for observer in self.observers:
             observer.begin_opportunity_finder(self.depths)
 
-        output_list = []
         for kmarket1 in self.depths:
             for kmarket2 in self.depths:
                 if kmarket1 == kmarket2:  # same market
@@ -195,11 +205,14 @@ class Arbitrer(object):
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
-                        output_list.append(line_out)
+                        bitbot.msg(channel, line_out)
+                        irc_sent = True
+        if irc_sent:
+            bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
         for observer in self.observers:
-            observer.end_opportunity_finder()
-        return output_list
+            observer.end_opportunity_finder(bitbot)
+        return
 
 
     def loop(self, bitbot):
@@ -210,15 +223,7 @@ class Arbitrer(object):
         while True:
             self.depths, self.fees = self.update_depths()
             self.tickers()
-            line_outs = self.tick()
-            line_outs = filter(None, line_outs)
-            if line_outs == []:
-                # bitbot.msg(channel, 'arb > no opportunities found')
-                pass
-            else:
-                for item in line_outs:
-                    bitbot.msg(channel, item)
-                bitbot.msg(channel, '------------------------------------------------------------------------------------------')                   
+            self.tick(bitbot, channel)
             time.sleep(60)
             
     def get_arb(self,bitbot):

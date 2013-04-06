@@ -1,16 +1,16 @@
 ##### Arbitrage output
-arbitrage_output = "#merlin-spam"
-deal_output = "#merlin"
+arbitrage_output = "#botbottest"
+deal_output = "#botbottest"
 
 # watch the following markets
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
-markets = ["bitfloorUSD", "MtGoxUSD", "BitstampUSD"]
+markets = ["BitfloorUSD", "MtGoxUSD", "BitstampUSD"]
 # private_markets = {"bflr": "Bitfloor", "mtgx": "MtGox", "bstp": "Bitstamp", "bctl": "BitcoinCentral"}
 private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor"}
 
 # observers if any
 # ["Logger", "TraderBot", "TraderBotSim", "HistoryDumper", "Emailer", "Database"]
-observers = ["Logger", "Database"]
+observers = ["Logger", "Database", "TraderBot"]
 
 
 #### Trader Bot Config
@@ -33,8 +33,8 @@ btce_secret = "863ac534d2f6a7c6de5b968ce3ee61aa5f83fd9a9ba4e184b6847f11e60704ad"
 
 # SafeGuards
 max_amount = 0.43  # in BTC
-balance_margin = 0.05  # 5%
-profit_thresh = 1  # in USD
+balance_margin = 0.00  # 0%
+profit_thresh = 0.01  # in %
 perc_thresh = 0.1  # in %
 
 #### Emailer Observer Config

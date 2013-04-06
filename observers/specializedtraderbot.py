@@ -42,7 +42,7 @@ class SpecializedTraderBot(Observer):
         for kclient in self.clients:
             self.clients[kclient].get_info()
 
-    def opportunity(self, profit, volume, buyprice, kask, sellprice, kbid, perc, weighted_buyprice,
+    def opportunity(self,bitbot, profit, volume, buyprice, kask, sellprice, kbid, perc, weighted_buyprice,
                     weighted_sellprice, available_volume, purchase_cap):
         if kask not in self.clients:
             logging.warn("Can't automate this trade, client not available: %s" % (kask))
