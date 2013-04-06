@@ -3,6 +3,7 @@ import time
 import base64
 import hmac
 import urllib
+import urllib2
 import httplib
 import hashlib
 import sys
@@ -26,6 +27,7 @@ class PrivateBTCe(Market):
         self.secret = self.config.btce_secret
         self.currency = "USD"
         self.initials = "btce"
+        self.error = ""
         #self.get_info()
 
     def _create_nonce(self):
@@ -57,13 +59,15 @@ class PrivateBTCe(Market):
         return Decimal(amount) / Decimal(100000.)
 
     def _send_request(self, url, params, extra_headers=None):
+        params["nonce"] = self._create_nonce()
         encoded_params = urllib.urlencode(params)
         ahmac = hmac.new(self.secret, digestmod=hashlib.sha512)
         ahmac.update(encoded_params)
         sign = ahmac.hexdigest()
         headers = {
             'Key': self.key,
-            'Sign': sign
+            'Sign': sign,
+            'Content-type': 'application/x-www-form-urlencoded'
         }
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
@@ -72,7 +76,6 @@ class PrivateBTCe(Market):
         conn = httplib.HTTPSConnection("btc-e.com")
         conn.request("POST", "/tapi", encoded_params, headers)
         response = conn.getresponse()
-        print response.read()
         if response.status == 200:
             jsonstr = response.read()
             conn.close()
@@ -87,8 +90,7 @@ class PrivateBTCe(Market):
 
         self.buy_url["url"] = self._change_currency_url(self.buy_url["url"], self.currency)
 
-        params = [("nonce", self._create_nonce()),
-                  ("amount_int", str(amount)),
+        params = [("amount_int", str(amount)),
                   ("type", ttype)]
         if price:
             params.append(("price_int", str(price)))
@@ -105,15 +107,18 @@ class PrivateBTCe(Market):
         return self.trade(amount, "ask", price)
 
     def get_info(self):
-        params = {"method": "getInfo", "nonce": self._create_nonce()}
+        params = {"method": "getInfo"}
         response = self._send_request(self.info_url, params)
-        print response
-        if response:
-            for wallet in response:
-                if str(wallet['currency']) == 'BTC':
-                    self.btc_balance = float(wallet['amount'])
-                elif str(wallet['currency']) == 'USD':
-                    self.usd_balance = float(wallet['amount'])
+        if response and 'error' not in response:
+            funds = response['return']['funds']
+            self.btc_balance = float(funds['btc'])
+            self.usd_balance = float(funds['usd'])
+            fee_res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/fee')
+            fee_json = json.loads(fee_res.read())
+            self.fee = float(fee_json['trade'])
+            return 1
+        elif 'error' in response:
+            self.error = str(response['error'])
             return 1
         return None
 
@@ -136,5 +141,5 @@ class PrivateBTCe(Market):
 if __name__ == "__main__":
     btce = PrivateBTCe()
     btce.get_info()
-    print btce
+    # print btce
     #bitfloor.withdraw(0,"1E774iqGeTrr7GUP1L6jpwDsWg1pERQhNo")
