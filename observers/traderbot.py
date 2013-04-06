@@ -24,7 +24,7 @@ class TraderBot(Observer):
         self.perc_thresh = 1                        # in %
         self.trade_wait = 120                       # in seconds
         self.last_trade = 0
-        self.timeout = 300                          # in seconds (for watch_balances)
+        self.timeout = 300                          # in seconds (for buying wait time before error alert)
         self.potential_trades = []
 
     def begin_opportunity_finder(self, depths):
@@ -99,8 +99,9 @@ class TraderBot(Observer):
             self.clients[buymarket].get_info()
             buy_wallet_btc = self.clients[buymarket].btc_balance
             print buymarket + " BTC: " + str(buy_wallet_btc)
-            time.sleep(5)
+            self.last_trade = time.time()
             runtime += 5
+            time.sleep(5)
         end_btc = sellmarket + btc
         self.clients[sellmarket].deposit()
         deposit_addr = self.client[sellmarket].address
@@ -108,16 +109,17 @@ class TraderBot(Observer):
         self.clients[buymarket].wdw(volume, deposit_addr)
         sell_wallet_btc = 0
         runtime = 0
+        sell_timeout = 3600 # Wait one hour
         print "Sell market balance:"
-        while sell_wallet_btc != end_btc or runtime == self.timeout:
-            if runtime == self.timeout:
+        while sell_wallet_btc != end_btc:
+            while runtime != sell_timeout:
                 break
             self.client[sellmarket].get_info()
             sell_wallet_btc = self.clients[sellmarket].btc_balance
             print sellmarket + " BTC: " + str(sell_wallet_btc)
-            time.sleep(5)
+            self.last_trade = time.time()
             runtime += 5
-
+            time.sleep(5)
 
 
         # Watch buy market for volume to be filled to order
