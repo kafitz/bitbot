@@ -70,7 +70,6 @@ class TraderBot(Observer):
             # return
 
         volume = purchase_volume
-        print volume
         
         if profit < config.profit_thresh:
             logging.warn("Can't automate this trade, minimum percent profit not reached %f/%f"

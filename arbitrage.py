@@ -205,8 +205,9 @@ class Arbitrer(object):
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
-                        bitbot.msg(channel, line_out)
-                        irc_sent = True
+                        if line_out is not None:
+                            bitbot.msg(channel, line_out)
+                            irc_sent = True
         if irc_sent:
             bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
@@ -233,9 +234,7 @@ class Arbitrer(object):
 
         self.depths, self.fees = self.update_depths()
         self.tickers()
-        line_outs = self.tick()
-        line_outs = filter(None, line_outs)
-
+        self.tick()
         return self.deals
 
 
