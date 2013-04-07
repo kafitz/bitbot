@@ -1,6 +1,6 @@
 ##### Arbitrage output
-arbitrage_output = "#merlin-spam"
-deal_output = "#merlin-test"
+arbitrage_output = "#botbottest"
+deal_output = "#botbottest"
 
 # watch the following markets
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
@@ -30,6 +30,9 @@ bitfloor_passphrase = 'dP7Wmoa*G8WAIU2S'
 
 btce_key = "G9N9IB1J-RKQA0K45-B1CLR6IT-4A1QQYLX-WJG9OXD5"
 btce_secret = "9ae4b00b25b9d7e285dcfac11caf6924da029e858bad4b5b06c210405a3dd587"
+
+bitcoin24_user = "crooton"
+bitcoin24_key = "CXftzt6uzwYXuh5eZbRrKCJwRqGxUR37"
 
 # SafeGuards
 max_amount = 0.43  # in BTC
