@@ -344,5 +344,31 @@ def deal(bitbot, input):
 deal.commands = ['deal']
 deal.name = 'deal'
 
+def stats(bitbot, input):
+    import sqlite3
+    db = 'opportunties_database.db'
+    conn = sqlite3.connect(db) 
+    cursor = conn.cursor()  
+    l = []
+    markets = ['mtgoxusd','bitstampusd','bitfloorusd']
+    for bm in markets:
+        for sm in markets:
+            d = {}
+            d['buy market'] = bm
+            d['sell market'] = sm
+            cursor.execute("SELECT COUNT(*),AVG(profit), AVG(ratio), MAX(profit), MAX(ratio) FROM deals WHERE lower(sell_market)=? AND lower(buy_market)=?",[sm,bm])
+            d['deals'], d['avg profit'], d['avg ratio'], d['max profit'], d['max ratio']  = cursor.fetchone()
+            l.append(d)
+    bitbot.say('{0:11} => {1:11} | {2:4} | {3:5} | {4:5} | {5:5} | {6:5}'\
+           .format('buy market','sell market','#','avg $', 'max $', 'avg %', 'max %'))
+    for d in l:
+        if d['deals'] != 0:
+            bitbot.say('{0:11} => {1:11} | {2:4} | {3:.3f} | {4:.3f} | {5:.3f} | {6:.3f}'\
+                   .format(d['buy market'],d['sell market'],d['deals'],d['avg profit'],d['max profit'],d['avg ratio'],d['max ratio']))
+    return
+    
+stats.commands = ['stats']
+stats.name = 'stats'
+
 if __name__ == '__main__':
     print __doc__.strip()
