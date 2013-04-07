@@ -66,7 +66,7 @@ class PrivateBitfloor(Market):
             self.price = str(price)
             self.id = str(response['order_id'])
             self.timestamp = self._format_time(response['timestamp'])
-            self.amount = str(size)
+            self.amount = str(amount)
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
