@@ -13,7 +13,7 @@ class Database(Observer):
                     buy_market text, buy_price float,
                     sell_market text, sell_price float, ratio float) 
                     """)
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         deal = (timestamp, profit, volume, kask, buyprice, kbid, sellprice, perc)
         cursor.execute("INSERT INTO deals VALUES (?,?,?,?,?,?,?,?)", deal)
         conn.commit()
