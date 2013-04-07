@@ -155,7 +155,7 @@ class PrivateMtGox(Market):
                 if order['type'] == 'bid':
                     o['type'] = 'buy'
                 o['timestamp'] = self._format_time(order['date'])
-                o['price'] = order['price']['display_short']
+                o['price'] = str(order['price']['display_short']) + ' USD/BTC'
                 o['amount'] = order['amount']['display_short']
                 o['id'] = order['oid']
                 self.orders_list.append(o)

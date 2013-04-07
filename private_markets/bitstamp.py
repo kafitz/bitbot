@@ -122,7 +122,7 @@ class PrivateBitstamp(Market):
                 elif order['type'] == 1:
                     o['type'] = 'sell'
                 o['timestamp'] = str(order['datetime'])
-                o['price'] = str(order['price']) + ' USD/BTC'
+                o['price'] = '$' + str(order['price']) + ' USD/BTC'
                 o['amount'] = str(round(float(order['amount']),1)) + ' BTC'
                 o['id'] = str(order['id'])
                 self.orders_list.append(o)
