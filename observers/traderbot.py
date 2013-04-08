@@ -148,7 +148,7 @@ class TraderBot(Observer):
         # self.clients[kask].buy(volume, weighted_buyprice)
         # self.clients[kbid].sell(volume, weighted_buyprice)
         try:
-            # self.watch_balances(bitbot, channel, kask, kbid, volume)
+            self.watch_balances(bitbot, channel, kask, kbid, volume)
             irc_output = str(timestamp) + " deal between " + kask + " and " + kbid + " succeeded."
             bitbot.msg(channel, irc_output)
         except:
