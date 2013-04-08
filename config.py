@@ -27,6 +27,9 @@ bitcoincentral_password = 'wmitAY5h*3%NHvX0'
 bitstamp_user = '27368'
 bitstamp_password = '1TOsEZms3yaRxNoH'
 
+campbx_user = 'theMilkman'
+campbx_password = '9GjPkJpHr0rSmtZf'
+
 bitfloor_key = 'e27dcdb8-8388-4227-bfc0-ca641c3bc797'
 bitfloor_secret = 'puEtkb4qab/68Tx6o1wnsKuypQClg9P4a1OrjSlbjpzmn+l9/HslL2lzY1Z4SU3CMbRyuBlaDRaLeAl5b/HAug=='
 bitfloor_passphrase = 'dP7Wmoa*G8WAIU2S'
