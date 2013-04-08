@@ -154,11 +154,12 @@ class PrivateBitstamp(Market):
                   ('id', order_id),
                   ('type', order_type)]
         response = self._send_request(self.cancel_url, params)
-        if response and 'error' not in response:
+        
+        if response:
             self.cancelled_id = order_id
             self.cancelled_time = str(datetime.datetime.now()).split('.')[0]
             return 1
-        elif response and 'error' in response:
+        elif response:
             self.error = str(response['error'])
             return 1
         return 0
