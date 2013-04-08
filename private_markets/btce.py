@@ -106,10 +106,11 @@ class PrivateBTCe(Market):
             except: # otherwise pass last known fee
                 self.fee = 0.2
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-        return None
+        else:
+            self.error = str('No response from btc-e.')
 
     def get_orders(self, from_id=None, end_id=None):
         params = {"method": "OrderList"}
