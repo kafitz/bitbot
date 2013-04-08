@@ -13,7 +13,7 @@ private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor", "btc
 
 # observers if any
 # ["Logger", "TraderBot", "TraderBotSim", "HistoryDumper", "Emailer", "Database"]
-observers = ["Logger", "Database", "TraderBot"]
+observers = ["Logger", "Database"]
 
 
 #### Trader Bot Config
