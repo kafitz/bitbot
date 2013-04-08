@@ -83,10 +83,10 @@ class TraderBot(Observer):
 
         volume = purchase_volume
 
-        self.clients[kask].last_opportunity = time.time()
-        # Create a list of exchange objects sorted by last available trade (most recent --> least recent)
-        self.priority_list.sort(key=lambda x: x.last_opportunity, reverse=True)
-        print self.priority_list
+        # self.clients[kask].last_opportunity = time.time()
+        # # Create a list of exchange objects sorted by last available trade (most recent --> least recent)
+        # self.priority_list.sort(key=lambda x: x.last_opportunity, reverse=True)
+        # print self.priority_list
 
 
         if profit < config.profit_thresh:

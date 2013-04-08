@@ -222,6 +222,7 @@ class Arbitrer(object):
         self.depths, self.fees = self.update_depths()
         self.tickers()
         self.tick(bitbot, channel)
+        self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         return self.deals
 
 
