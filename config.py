@@ -1,12 +1,12 @@
 ##### Arbitrage output
-arbitrage_output = "#botbottest"
+arbitrage_output = "#merlin-test"
 deal_output = "#botbottest"
 
 # watch the following markets
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
-markets = ["BitfloorUSD", "MtGoxUSD", "BitstampUSD"]
+markets = ["BitfloorUSD", "MtGoxUSD", "BitstampUSD", "CampBXUSD"]
 # private_markets = {"bflr": "Bitfloor", "mtgx": "MtGox", "bstp": "Bitstamp", "bctl": "BitcoinCentral"}
-private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor", "btce": "BTCe", "bc24": "Bitcoin24"}
+private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor"}
 
 # buy_markets = {"bflr": "Bitfloor", "btce": "BTCe", "bc24": "Bitcoin24"}
 # sell_markets = {"bstp": "Bitstamp", "mtgx": "MtGox"}
