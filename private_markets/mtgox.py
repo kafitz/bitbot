@@ -28,6 +28,7 @@ class PrivateMtGox(Market):
         self.secret = self.config.mtgox_secret
         self.currency = 'USD'
         self.error = ''
+        self.deposit()
 
     def _create_nonce(self):
         return int(time.time() * 1000000)
@@ -125,7 +126,9 @@ class PrivateMtGox(Market):
         return 0
 
     def get_txs(self):
-        params = [('nonce', self._create_nonce()),('currency', self.currency)]
+        txs_period = 5
+        date_start = datetime.datetime.now() - datetime.timedelta(days=txs_period)
+        params = [('nonce', self._create_nonce()),('currency', self.currency), ('date_start', date_start)]
         response = self._send_request(self.tx_url, params)
         self.tx_list = []
         if response['result'] == 'success':
@@ -232,3 +235,4 @@ class PrivateMtGox(Market):
         
 if __name__ == '__main__':
     mtgox = PrivateMtGox()
+    mtgox.get_txs()

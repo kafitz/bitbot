@@ -24,7 +24,7 @@ class PrivateBTCe(Market):
         self.currency = "USD"
         self.initials = "btce"
         self.error = ""
-        #self.get_info()
+        self.deposit()
 
     def _create_nonce(self):
         return int(time.time())

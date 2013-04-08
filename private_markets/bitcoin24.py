@@ -24,7 +24,7 @@ class PrivateBitcoin24(Market):
         self.currency = "USD"
         self.initials = "bc24"
         self.error = ""
-        #self.get_info()
+        self.deposit()
 
     def _create_nonce(self):
         return int(time.time())
@@ -34,7 +34,6 @@ class PrivateBitcoin24(Market):
 
     def _send_request(self, params, extra_headers=None):
         params.update({'user': self.user, 'key': self.key})
-        print params
         encoded_params = urllib.urlencode(params)
         headers = {
             'Content-type': 'application/x-www-form-urlencoded'
@@ -126,13 +125,39 @@ class PrivateBitcoin24(Market):
     def withdraw(self, amount, destination):
         params = {"api": "withdraw_btc", "amount": amount, "address": destination}
         response = self._send_request(params)
-        if response:
-            print response
+        if response and 'trans' in response:
+            self.timestamp = self._format_time(time.time())
+            return 1
+        elif 'error' in response:
+            self.error = response['message']
             return 1
         return None
 
     def get_txs(self):
-        self.error = 'txs for this API has not yet been implemented'
+        params = {'api': 'trades_json'}
+        response = self._send_request(params)
+        self.tx_list = []
+        for trans in response:
+            tx = {}
+            tx['type'] = trans[u'type']
+            tx['timestamp'] = self._format_time(trans[u'date'])
+            if tx['type'] == 'buy':
+                ttype = 'bought'
+            elif tx['type'] == 'sell':
+                ttype = 'sold'
+            tx_description = "BTC " + ttype + ": [tid:" + str(trans[u'tid']) + "] " + str(trans[u'amount']) +\
+                " BTC at $" + str(trans['price'])
+            tx['desc'] = tx_description
+            self.tx_list.append(tx)
+        if len(self.tx_list) == 0:
+            self.error = 'no recent transactions found'
+            return 1
+        return 0
+
+    def deposit(self):
+        params = {"api": "get_addr"}
+        response = self._send_request(params)
+        self.address = response["address"]
         return 1
         
     def get_lag(self):
@@ -145,5 +170,5 @@ class PrivateBitcoin24(Market):
 
 if __name__ == "__main__":
     bitcoin24 = PrivateBitcoin24()
-    # print btce
-    #bitfloor.withdraw(0,"1E774iqGeTrr7GUP1L6jpwDsWg1pERQhNo")
+    bitcoin24.get_txs()
+    print bitcoin24.tx_list
