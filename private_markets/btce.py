@@ -142,6 +142,10 @@ class PrivateBTCe(Market):
         self.error = 'not available from this API'
         return 1
 
+    def deposit(self):
+        self.address = '1Knte8LA9RFEFVMfrk46SPgjN5gt562nWc'
+        return 1
+
     def __str__(self):
         return str({"btc_balance": self.btc_balance, "usd_balance": self.usd_balance})
 
