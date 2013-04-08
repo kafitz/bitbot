@@ -143,7 +143,6 @@ class Arbitrer(object):
                                 weighted_sellprice, available_volume, config.max_amount)
         
         # Line to return to IRC
-        self.line_output = None
         self.line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
             profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
         deal = {'profit': profit, 'purchase_volume': purchase_volume, 'buy_market': kask, 'buy_price': weighted_buyprice, 'sell_market': kbid, \
@@ -193,6 +192,7 @@ class Arbitrer(object):
                 # print 'Is ' + kmarket1 + ' at ' + str(market1['asks'][0]['price']) + ' less than ' + kmarket2 + ' at ' + str(market2['bids'][0]['price']) + '?'
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
+                        self.line_output = None
                         self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         if self.line_output and not deal_call:
                             bitbot.msg(channel, self.line_output)

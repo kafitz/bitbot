@@ -1,5 +1,5 @@
 ##### Arbitrage output
-arbitrage_output = "#merlin-test"
+arbitrage_output = "#botbottest"
 deal_output = "#botbottest"
 
 # watch the following markets
