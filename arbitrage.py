@@ -180,8 +180,6 @@ class Arbitrer(object):
             self.tick()
 
     def tick(self, bitbot, channel):
-        irc_sent = False # control for sending page break line if available deals have been found
-
         for observer in self.observers:
             observer.begin_opportunity_finder(self.depths)
 
@@ -196,11 +194,8 @@ class Arbitrer(object):
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
-                        if line_out is not None:
-                            bitbot.msg(channel, line_out)
-                            irc_sent = True
-        if irc_sent:
-            bitbot.msg(channel, '------------------------------------------------------------------------------------------')
+                        bitbot.msg(channel, line_out)
+        bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
         for observer in self.observers:
             observer.end_opportunity_finder(bitbot)
