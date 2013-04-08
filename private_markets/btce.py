@@ -98,9 +98,12 @@ class PrivateBTCe(Market):
             funds = response['return']['funds']
             self.btc_balance = float(funds['btc'])
             self.usd_balance = float(funds['usd'])
-            fee_res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/fee')
-            fee_json = json.loads(fee_res.read())
-            self.fee = float(fee_json['trade'])
+            try: # try to set fee dynamically from API
+                fee_res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/fee')
+                fee_json = json.loads(fee_res.read())
+                self.fee = float(fee_json['trade'])
+            except: # otherwise pass last known fee
+                self.fee = 0.2
             return 1
         elif 'error' in response:
             self.error = str(response['error'])
