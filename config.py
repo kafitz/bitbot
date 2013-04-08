@@ -6,7 +6,7 @@ deal_output = "#botbottest"
 # markets = ["bitfloorUSD", "MtGoxUSD", "BtceUSD", "BitstampUSD", "CampBXUSD", "Bitcoin24USD", "VircurexUSD"]
 markets = ["BitfloorUSD", "MtGoxUSD", "BitstampUSD"]
 # private_markets = {"bflr": "Bitfloor", "mtgx": "MtGox", "bstp": "Bitstamp", "bctl": "BitcoinCentral"}
-private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor", "btce": "BTCe"}
+private_markets = {"bstp": "Bitstamp", "mtgx": "MtGox", "bflr": "Bitfloor", "btce": "BTCe", "bc24": "Bitcoin24"}
 
 # observers if any
 # ["Logger", "TraderBot", "TraderBotSim", "HistoryDumper", "Emailer", "Database"]

@@ -33,8 +33,8 @@ class PrivateBitcoin24(Market):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
     def _send_request(self, params, extra_headers=None):
-        params['user'] = self.user
-        params['key'] = self.key
+        params.update({'user': self.user, 'key': self.key})
+        print params
         encoded_params = urllib.urlencode(params)
         headers = {
             'Content-type': 'application/x-www-form-urlencoded'
@@ -53,37 +53,36 @@ class PrivateBitcoin24(Market):
         conn.close()
         return None
 
-    def trade(self, amount, ttype, price):
-        params = {"method": "Trade", "amount": amount, "type": ttype, "rate": price, "pair": "btc_usd"}
+    def trade(self, params):
         response = self._send_request(params)
         print response
-        if response and response["success"] == 1:
-            ret = response["return"]
-            for key in ret.keys():
-                self.id = key
-                self.timestamp = self._format_time(key['timestamp'])
-                self.amount = key['amount']
-                return 1
+        if response and 'error' not in response:
+            self.id = response['id']
+            self.timestamp = self._format_time(reponse['date'])
+            self.amount = response['amount']
+            return 1
         elif 'error' in response:
-            self.error = str(response['error'])
+            self.error = str(response['message'])
             return 1
         return 0
 
     def buy(self, amount, price):
-        return self.trade(amount, "buy", price)
+        params = {'api': 'buy_btc', "amount": str(amount), "price": str(price), "cur": "USD"}
+        return self.trade(params)
 
     def sell(self, amount, price):
-        return self.trade(amount, "sell", price)
+        params = {'api': 'sell_btc', "amount": str(amount), "price": str(price), "cur": "USD"}
+        return self.trade(params)
 
     def cancel(self, order_id):
-        params = {"method": "CancelOrder"}
+        params = {"api": "cancel_order", "id": order_id}
         response = self._send_request(params)
-        if response and 'error' not in response:
-            self.cancelled_id = response['order_id']
+        if response and 'True' in response:
+            self.cancelled_id = order_id
             self.cancelled_time = self._format_time(time.time())
             return 1
         elif response and 'error' in response:
-            self.error = str(response['error'])
+            self.error = str(response['message'])
             return 1
         return 0 
 
@@ -103,23 +102,29 @@ class PrivateBitcoin24(Market):
         return None
 
     def get_orders(self, from_id=None, end_id=None):
-        params = {"method": "OrderList"}
-        if from_id:
-            params["from_id"] = from_id
-        if end_id:
-            params["end_id"]
+        params = {"api": "open_orders"}
         response = self._send_request(params)
         self.orders_list = []
         if response and 'error' not in response:
-            print response
+            for order in response:
+                o = {}
+                if order['type'] == 1:
+                    o['type'] = 'buy'
+                elif order['type'] == 2:
+                    o['type'] = 'sell'
+                o['timestamp'] = self._format_time(order['date'])
+                o['price'] = order['price']
+                o['amount'] = order['amount']
+                o['id'] = order['id']
+                self.orders_list.append(o)
             return 1
         elif 'error' in response:
-            self.error = str(response['error'])
+            self.error = str(response['message'])
             return 1
         return None
         
     def withdraw(self, amount, destination):
-        params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
+        params = {"api": "withdraw_btc", "amount": amount, "address": destination}
         response = self._send_request(params)
         if response:
             print response
@@ -140,6 +145,5 @@ class PrivateBitcoin24(Market):
 
 if __name__ == "__main__":
     bitcoin24 = PrivateBitcoin24()
-    bitcoin24.get_info()
     # print btce
     #bitfloor.withdraw(0,"1E774iqGeTrr7GUP1L6jpwDsWg1pERQhNo")
