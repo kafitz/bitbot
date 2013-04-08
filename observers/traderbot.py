@@ -79,7 +79,7 @@ class TraderBot(Observer):
                 " USD balance: " + str(self.clients[kask].usd_balance) + ", " +\
                 kbid + " BTC balance: " + str(self.clients[kbid].btc_balance)
             logging.warn(error_output)
-            return
+            # return
 
         volume = purchase_volume
 
