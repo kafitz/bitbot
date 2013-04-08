@@ -194,9 +194,7 @@ class Arbitrer(object):
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
-                        try:
-                            bitbot.msg(channel, line_out)
-                        except: pass # do nothing if line_out == None
+                        bitbot.msg(channel, line_out)
         bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
         for observer in self.observers:
