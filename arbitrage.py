@@ -179,7 +179,7 @@ class Arbitrer(object):
                     self.depths[market] = depths[market]
             self.tick()
 
-    def tick(self, bitbot, channel):
+    def tick(self, bitbot, channel, deal_call=False):
         for observer in self.observers:
             observer.begin_opportunity_finder(self.depths)
 
@@ -194,9 +194,10 @@ class Arbitrer(object):
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_out = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
-                        if line_out:
+                        if line_out and deal_call == False:
                             bitbot.msg(channel, line_out)
-        bitbot.msg(channel, '------------------------------------------------------------------------------------------')
+        if deal_call == False:
+            bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
         for observer in self.observers:
             observer.end_opportunity_finder(bitbot)
@@ -207,21 +208,23 @@ class Arbitrer(object):
         level = logging.INFO
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
         channel = config.arbitrage_output
+        deal_call = False
 
         while True:
             self.depths, self.fees = self.update_depths()
             self.tickers()
-            self.tick(bitbot, channel)
+            self.tick(bitbot, channel, deal_call)
             time.sleep(60)
             
     def get_arb(self, bitbot):
         level = logging.INFO
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=level)
         channel = config.deal_output
+        deal_call = True
 
         self.depths, self.fees = self.update_depths()
         self.tickers()
-        self.tick(bitbot, channel)
+        self.tick(bitbot, channel, True)
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         return self.deals
 
