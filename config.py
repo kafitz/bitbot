@@ -1,6 +1,6 @@
 ##### Arbitrage output
 arbitrage_output = '#merlin-spam'
-deal_output = '#botbottest'
+deal_output = '#deals'
 
 # watch the following markets
 # markets = ['bitfloorUSD', 'MtGoxUSD', 'BtceUSD', 'BitstampUSD', 'CampBXUSD', 'Bitcoin24USD', 'VircurexUSD']
