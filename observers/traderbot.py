@@ -37,7 +37,7 @@ class TraderBot(Observer):
     def begin_opportunity_finder(self, depths):
         self.potential_trades = []
 
-    def end_opportunity_finder(self, bitbot):
+    def end_opportunity_finder(self, bitbot, deals):
         if not self.potential_trades:
             return
         # Sorts arbs list lowest profit to highest, then reverses to get the most profitable

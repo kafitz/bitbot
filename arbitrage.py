@@ -200,7 +200,7 @@ class Arbitrer(object):
             bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
         for observer in self.observers:
-            observer.end_opportunity_finder(bitbot)
+            observer.end_opportunity_finder(bitbot, self.deals)
         return
 
 

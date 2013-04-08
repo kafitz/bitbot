@@ -7,7 +7,7 @@ class Observer(object):
     def begin_opportunity_finder(self, depths):
         pass
 
-    def end_opportunity_finder(self, bitbot):
+    def end_opportunity_finder(self, bitbot, deals):
         pass
 
     ## abstract

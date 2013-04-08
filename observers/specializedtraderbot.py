@@ -26,7 +26,7 @@ class SpecializedTraderBot(Observer):
     def begin_opportunity_finder(self, depths):
         self.potential_trades = []
 
-    def end_opportunity_finder(self):
+    def end_opportunity_finder(self, bitbot, deals):
         if not self.potential_trades:
             return
         self.potential_trades.sort(key=lambda x: x[0])
