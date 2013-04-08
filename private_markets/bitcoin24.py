@@ -24,6 +24,7 @@ class PrivateBitcoin24(Market):
         self.currency = "USD"
         self.initials = "bc24"
         self.error = ""
+        self.last_opportunity = None
         self.deposit()
 
     def _create_nonce(self):
@@ -87,20 +88,24 @@ class PrivateBitcoin24(Market):
 
     def get_info(self):
         params = {"api": "get_balance"}
-        response = self._send_request(params)
-        if response and 'error' not in response:
-            self.btc_balance = float(response['btc_available'])
-            self.usd_balance = float(response['usd'])
-            self.fee = 0
+        try:
+            response = self._send_request(params)
+            if response and 'error' not in response:
+                self.btc_balance = float(response['btc_available'])
+                self.usd_balance = float(response['usd'])
+                self.fee = 0
+                return 1
+            elif 'error' in response:
+                self.error = str(response['error'])
+                return 1
+        except:
+            self.error = "request to bc24 timed out"
             return 1
-        elif 'error' in response:
-            self.error = str(response['error'])
-            return 1
-        return None
 
-    def get_orders(self, from_id=None, end_id=None):
+    def get_orders(self):
         params = {"api": "open_orders"}
         response = self._send_request(params)
+        print response
         self.orders_list = []
         if response and 'error' not in response:
             for order in response:
@@ -154,8 +159,11 @@ class PrivateBitcoin24(Market):
 
     def deposit(self):
         params = {"api": "get_addr"}
-        response = self._send_request(params)
-        self.address = response["address"]
+        try:
+            response = self._send_request(params)
+            self.address = response["address"]
+        except:
+            self.address = 'request timed out'
         return 1
         
     def get_lag(self):

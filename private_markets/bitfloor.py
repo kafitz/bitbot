@@ -26,6 +26,7 @@ class PrivateBitfloor(Market):
         self.passphrase = self.config.bitfloor_passphrase
         self.currency = 'USD'
         self.error = ''
+        self.last_opportunity = None
         self.deposit()
 
     def _create_nonce(self):

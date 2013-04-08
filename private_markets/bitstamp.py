@@ -22,6 +22,7 @@ class PrivateBitstamp(Market):
         self.password = self.config.bitstamp_password
         self.currency = 'USD'
         self.error = ''
+        self.last_opportunity = None
         self.deposit()
 
     def _format_time(self,timestamp):

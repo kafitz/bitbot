@@ -28,6 +28,7 @@ class PrivateMtGox(Market):
         self.secret = self.config.mtgox_secret
         self.currency = 'USD'
         self.error = ''
+        self.last_opportunity = None
         self.deposit()
 
     def _create_nonce(self):

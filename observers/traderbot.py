@@ -7,6 +7,8 @@ from observer import Observer
 from private_markets import mtgox
 from private_markets import bitfloor
 from private_markets import bitstamp
+from private_markets import btce
+from private_markets import bitcoin24
 from modules import control
 
 class TraderBot(Observer):
@@ -15,10 +17,14 @@ class TraderBot(Observer):
         self.mtgox = mtgox.PrivateMtGox()
         self.bitfloor = bitfloor.PrivateBitfloor()
         self.bitstamp = bitstamp.PrivateBitstamp()
+        self.btce = btce.PrivateBTCe()
+        self.bitcoin24 = bitcoin24.PrivateBitcoin24()
         self.clients = {
             "MtGoxUSD": self.mtgox,
             "BitfloorUSD": self.bitfloor,
-            "BitstampUSD": self.bitstamp
+            "BitstampUSD": self.bitstamp,
+            "BtceUSD": self.btce,
+            "Bitcoin24USD": self.bitcoin24
         }
         self.profit_thresh = config.profit_thresh   # in USD
         self.perc_thresh = 1                        # in %
@@ -26,6 +32,7 @@ class TraderBot(Observer):
         self.last_trade = 0
         self.timeout = 300                          # in seconds (for buying wait time before error alert)
         self.potential_trades = []
+        self.priority_list = [value for key, value in self.clients.items()]
 
     def begin_opportunity_finder(self, depths):
         self.potential_trades = []
@@ -72,10 +79,16 @@ class TraderBot(Observer):
                 " USD balance: " + str(self.clients[kask].usd_balance) + ", " +\
                 kbid + " BTC balance: " + str(self.clients[kbid].btc_balance)
             logging.warn(error_output)
-            return
+            # return
 
         volume = purchase_volume
-        
+
+        self.clients[kask].last_opportunity = time.time()
+        # Create a list of exchange objects sorted by last available trade (most recent --> least recent)
+        self.priority_list.sort(key=lambda x: x.last_opportunity, reverse=True)
+        print self.priority_list
+
+
         if profit < config.profit_thresh:
             logging.warn("Can't automate this trade, minimum percent profit not reached %f/%f"
                          % (percent_profit, config.profit_thresh))
