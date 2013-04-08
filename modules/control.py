@@ -23,20 +23,17 @@ import config             # read the config file
 import private_markets    # load private APIs
 from decimal import Decimal
 
-arb_running = False
 
 def start_arbitrage(bitbot, input):
-    global arb_running
-    if arb_running is True:
+    if bitbot.variables.get('arb') is True:
         bitbot.say('arb > already running')
     else:
-        arb_running = True
+        bitbot.variables['arb'] = True
         bitbot.say('arb > starting up...')
         arbitrer = arbitrage.Arbitrer()
         while True:
             arbitrer.loop(bitbot)
-        arb_running = False
-        bitbot.say('arb > quitting...')
+        bitbot.variables['arb'] = False
     return
         
 start_arbitrage.commands = ['arb','arbitrage']
