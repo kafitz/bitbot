@@ -89,7 +89,7 @@ class TraderBot(Observer):
             self.execute_trade(bitbot, deals, best_deal_index)
         # test 1
         if buy_mkt not in self.clients:
-            output = "Attempt {0}: can't automate this trade, client not available: {1}" % (trade_attempt, buy_mkt)
+            output = "Attempt {0}: can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
             logging.warn(output)
             self.irc(bitbot, output)
             # If market not available, try with next best deal
@@ -98,7 +98,7 @@ class TraderBot(Observer):
             return
         # test 2
         if sell_mkt not in self.clients:
-            output = "Attempt {0}: can't automate this trade, client not available: {1}" % (trade_attempt, sell_mkt)
+            output = "Attempt {0}: can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
             logging.warn(output)
             self.irc(bitbot, output)
             best_deal_index += 1
@@ -124,7 +124,7 @@ class TraderBot(Observer):
             return
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
-            output = "Attempt {0}: can't automate this trade, last trade occured {1} seconds ago" % (trade_attempt, (current_time - self.last_trade))
+            output = "Attempt {0}: can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
             logging.warn(output)
             self.irc(bitbot, output)
             return
