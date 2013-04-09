@@ -33,7 +33,7 @@ class TraderBot(Observer):
         self.potential_trades = []
         self.priority_list = [value for key, value in self.clients.items()]
 
-    def self.irc(bitbot, message):
+    def irc(bitbot, message):
         channel = config.deal_output
         bitbot.msg(channel, message)
 
