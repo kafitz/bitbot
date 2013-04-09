@@ -116,11 +116,11 @@ class TraderBot(Observer):
         trade_amount = self.get_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
                                            self.clients[sell_mkt].btc_balance)
         if trade_amount < config.trade_amount:
-            error_output = "Attempt " + str(trade_attempt) + ": insufficient balance to execute trade: " + buy_mkt +\
+            output = "Attempt " + str(trade_attempt) + ": insufficient balance to execute trade: " + buy_mkt +\
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
                 sell_mkt + " BTC balance: " + str(self.clients[sell_mkt].btc_balance)
-            logging.warn(error_output)
-            self.irc(bitbot, error_output)
+            logging.warn(output)
+            self.irc(bitbot, output)
             return
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
@@ -133,52 +133,10 @@ class TraderBot(Observer):
         print "TraderBot - execute trade: ", str(end)
 
         # Execute deals function with first (best) deal and pass along same deals list
-        # control.deal(1, deals)
+        control.deal(1, deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
+        output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
             " for $" + str(buy_price) + ", sold at " + sell_mkt + " for $" + str(sell_price) + ". Profit of $" + str(profit)
-        self.irc(bitbot, irc_output)
-
-        try:
-            # self.watch_balances(bitbot, channel, buy_mkt, sell_mkt, volume)
-            irc_output = str(timestamp) + " deal between " + buy_mkt + " and " + sell_mkt + " succeeded."
-            self.irc(bitbot, irc_output)
-        except:
-            irc_output = "Error: Check wallets for deal at " + str(timestamp) + " between " + buy_mkt + " and " + sell_mkt + "."
-            # self.irc(bitbot, irc_output)
-    
-    def watch_balances(self, bitbot, channel, buymarket, sellmarket, volume):
-        buymarket_btc = self.clients[buymarket].btc_balance
-        sellmarket_btc = self.clients[sellmarket].btc_balance
-        end_btc =  buymarket_btc + Decimal(volume)
-        buy_wallet_btc = 0
-        runtime = 0
-        print "Buy market balance:"
-        while buy_wallet_btc != end_btc:
-            if runtime == self.timeout:
-                break
-            self.clients[buymarket].get_info()
-            buy_wallet_btc = self.clients[buymarket].btc_balance
-            print buymarket + " BTC: " + str(buy_wallet_btc)
-            self.last_trade = time.time()
-            runtime += 5
-            time.sleep(5)
-        end_btc = sellmarket + btc
-        self.clients[sellmarket].deposit()
-        deposit_addr = self.client[sellmarket].address
-        bitbot.msg(channel, "Transferring " + str(volume) + " to " + deposit_addr + ". http://https://blockchain.info/address/" + deposit_addr)
-        self.clients[buymarket].wdw(volume, deposit_addr)
-        sell_wallet_btc = 0
-        runtime = 0
-        sell_timeout = 3600 # Wait one hour
-        print "Sell market balance:"
-        while sell_wallet_btc != end_btc:
-            while runtime != sell_timeout:
-                break
-            self.client[sellmarket].get_info()
-            sell_wallet_btc = self.clients[sellmarket].btc_balance
-            print sellmarket + " BTC: " + str(sell_wallet_btc)
-            self.last_trade = time.time()
-            runtime += 5
-            time.sleep(5)
+        logging.info(output)
+        self.irc(bitbot, output)

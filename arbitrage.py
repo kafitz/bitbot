@@ -199,7 +199,7 @@ class Arbitrer(object):
                             bitbot.msg(channel, self.line_output)
                             message_sent = True
         if message_sent and not deal_call:
-            bitbot.msg(channel, '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+            bitbot.msg(channel, '-------------------------------------------------------------------------------------------')
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         for observer in self.observers:
