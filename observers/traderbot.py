@@ -35,73 +35,87 @@ class TraderBot(Observer):
         self.priority_list = [value for key, value in self.clients.items()]
 
     def begin_opportunity_finder(self, depths):
-        self.potential_trades = []
+        pass
 
-    def end_opportunity_finder(self, bitbot, deals):
-        if not self.potential_trades:
+    def end_opportunity_finder(self, bitbot, deals=None):
+        if not deals:
             return
         # Sorts arbs list lowest profit to highest, then reverses to get the most profitable
-        self.potential_trades.sort(key=lambda x: x[0])
-        self.potential_trades.reverse()
+        deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         # Execute only the best arb opportunity
-        self.execute_trade(bitbot, *self.potential_trades[0])   # * expands list to variables as called for by function
+        self.execute_trade(bitbot, deals)
 
     def get_min_tradeable_volume(self, buyprice, usd_bal, btc_bal):
         min1 = float(usd_bal) / ((1 + config.balance_margin) * buyprice)
         min2 = float(btc_bal) / (1 + config.balance_margin)
         return min(min1, min2)
 
-    def update_balance(self):
-        for kclient in self.clients:
-            self.clients[kclient].get_info()
+    def update_balance(self, buy_market, sell_market):
+        self.clients[buy_market].get_info()
+        self.clients[sell_market].get_info()
 
     def opportunity(self, profit, purchase_volume, buyprice, kask, sellprice, kbid, percent_profit, weighted_buyprice,
                                 weighted_sellprice, available_volume, purchase_cap):
-        # if profit < self.profit_thresh or perc < self.perc_thresh:
-        #     return
-        if kask not in self.clients:
-            logging.warn("Can't automate this trade, client not available: %s" % (kask))
+        pass
+
+
+    def execute_trade(self, bitbot, deals):
+        start = time.time()
+        # Set variables from first deal in sorted list
+        best_deal = deals[0]
+        profit = best_deal['profit']
+        volume = best_deal['purchase_volume']
+        buy_mkt = best_deal['buy_market']
+        sell_mkt = best_deal['sell_market']
+        buy_price = best_deal['buy_price']
+        sell_price = best_deal['sell_price']
+        percent_profit = best_deal['percent_profit']
+        channel = config.deal_output # set output irc channel
+
+        if buy_mkt not in self.clients:
+            logging.warn("Can't automate this trade, client not available: %s" % (buy_mkt))
             return
-        if kbid not in self.clients:
-            logging.warn("Can't automate this trade, client not available: %s" % (kbid))
+        if sell_mkt not in self.clients:
+            logging.warn("Can't automate this trade, client not available: %s" % (sell_mkt))
             return
-
-        # Update client balance
-        self.update_balance()
-        # maximum volume transaction with current balances
-        min_volume = self.get_min_tradeable_volume(weighted_buyprice, self.clients[kask].usd_balance,
-                                                   self.clients[kbid].btc_balance)
-        # Maxme had this to control for making small trades if possible (I assume figuring the fees by hand beforehand)
-        # Changed this to make the max_amount specified in config as also the minimum to execute a trade to keep things
-        # simpler for now
-        if min_volume < config.max_amount:
-            error_output = "Insufficient balances to execute trade: " + kask +\
-                " USD balance: " + str(self.clients[kask].usd_balance) + ", " +\
-                kbid + " BTC balance: " + str(self.clients[kbid].btc_balance)
-            logging.warn(error_output)
-            # return
-
-        volume = purchase_volume
-
-        # self.clients[kask].last_opportunity = time.time()
-        # # Create a list of exchange objects sorted by last available trade (most recent --> least recent)
-        # self.priority_list.sort(key=lambda x: x.last_opportunity, reverse=True)
-        # print self.priority_list
-
-
         if profit < config.profit_thresh:
             logging.warn("Can't automate this trade, minimum percent profit not reached %f/%f"
                          % (percent_profit, config.profit_thresh))
             return
-
+        self.update_balance(buy_mkt, sell_mkt)
+        min_volume = self.get_min_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
+                                           self.clients[sell_mkt].btc_balance)
+        if min_volume < config.max_amount:
+            error_output = "Insufficient balances to execute trade: " + buy_mkt +\
+                " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
+                sell_mkt + " BTC balance: " + str(self.clients[sell_mkt].btc_balance)
+            logging.warn(error_output)
+            # return
         current_time = time.time()
         if current_time - self.last_trade < self.trade_wait:
             logging.warn("Can't automate this trade, last trade occured %s seconds ago" % (
                 current_time - self.last_trade))
             return
 
-        self.potential_trades.append([profit, volume, kask, kbid, weighted_buyprice, weighted_sellprice])
+        end = time.time() - start
+        print "TraderBot - execute trade: ", str(end)
 
+        # Execute deals function with first (best) deal and pass along same deals list
+        # control.deal(1, deals)
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
+            " for $" + str(buy_price) + ", sold at " + sell_mkt + " for $" + str(sell_price) + ". Profit of $" + str(profit)
+        bitbot.msg(channel, irc_output)
+
+        try:
+            # self.watch_balances(bitbot, channel, buy_mkt, sell_mkt, volume)
+            irc_output = str(timestamp) + " deal between " + buy_mkt + " and " + sell_mkt + " succeeded."
+            bitbot.msg(channel, irc_output)
+        except:
+            irc_output = "Error: Check wallets for deal at " + str(timestamp) + " between " + buy_mkt + " and " + sell_mkt + "."
+        #     bitbot.msg(channel, irc_output)
+    
     def watch_balances(self, bitbot, channel, buymarket, sellmarket, volume):
         buymarket_btc = self.clients[buymarket].btc_balance
         sellmarket_btc = self.clients[sellmarket].btc_balance
@@ -136,21 +150,3 @@ class TraderBot(Observer):
             self.last_trade = time.time()
             runtime += 5
             time.sleep(5)
-
-
-    def execute_trade(self, bitbot, profit, volume, kask, kbid, weighted_buyprice, weighted_sellprice):
-        channel = config.deal_output
-        self.last_trade = time.time()
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + kask + \
-            " for $" + str(weighted_buyprice) + ", sold at " + kbid + " for $" + str(weighted_sellprice) + ". Profit of $" + str(profit)
-        bitbot.msg(channel, irc_output)
-        # self.clients[kask].buy(volume, weighted_buyprice)
-        # self.clients[kbid].sell(volume, weighted_buyprice)
-        try:
-            self.watch_balances(bitbot, channel, kask, kbid, volume)
-            irc_output = str(timestamp) + " deal between " + kask + " and " + kbid + " succeeded."
-            bitbot.msg(channel, irc_output)
-        except:
-            irc_output = "Error: Check wallets for deal at " + str(timestamp) + " between " + kask + " and " + kbid + "."
-        #     bitbot.msg(channel, irc_output)

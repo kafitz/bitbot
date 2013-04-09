@@ -30,10 +30,20 @@ def irc(bitbot, msg, output=True):
         print msg
 
 def start_arbitrage(bitbot, input):
-    irc(bitbot,'arb > starting up...')
-    arbitrer = arbitrage.Arbitrer()
-    while True:
-        arbitrer.loop(bitbot)
+    if bitbot.variables.get('arb') is True:
+        bitbot.say('arb > already running')
+    else:
+        bitbot.variables['arb'] = True
+        import time
+        start = time.time()
+        irc(bitbot,'arb > starting up...')
+        arbitrer = arbitrage.Arbitrer()
+        end = time.time() - start
+        print ".arb loaded: ", str(end)
+        while True:
+            arbitrer.loop(bitbot)
+        bitbot.say('Arbitrage quitting...')
+        bitbot.variables['arb'] = False
         
 start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
@@ -278,9 +288,11 @@ def lag(bitbot, input, output=True):
 lag.commands = ['lag']
 lag.name = 'lag'
 
-def deal(bitbot, input, output=True):
-    arbitrer = arbitrage.Arbitrer()
-    deals = arbitrer.get_arb(bitbot)
+def deal(bitbot, input, deals=None):
+    # Allow deals object to be passed in by outside function (e.g., TraderBot)
+    if not deals:
+        arbitrer = arbitrage.Arbitrer()
+        deals = arbitrer.get_arb(bitbot)
     #if no deal: deals = [{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.6566218314655998, 'buy_market': 'MtGoxUSD', 'percent_profit': 1.1427280663296235, 'buy_price': 133.63, 'sell_price': 136.5189404651163},{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.2855649263999993, 'buy_market': 'MtGoxUSD', 'percent_profit': 0.4956042046893483, 'buy_price': 133.99896, 'sell_price': 136.02}]
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     
