@@ -27,8 +27,7 @@ class TraderBot(Observer):
             "Bitcoin24USD": self.bitcoin24
         }
         self.profit_thresh = config.profit_thresh   # in USD
-        self.perc_thresh = 1                        # in %
-        self.trade_wait = 120                       # in seconds
+        self.perc_thresh = config.perc_thresh                        # in %
         self.last_trade = 0
         self.timeout = 300                          # in seconds (for buying wait time before error alert)
         self.potential_trades = []
@@ -83,16 +82,18 @@ class TraderBot(Observer):
                          % (percent_profit, config.profit_thresh))
             return
         self.update_balance(buy_mkt, sell_mkt)
-        min_volume = self.get_min_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
+        # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
+        # whichever is lowest
+        trade_amount = self.get_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
                                            self.clients[sell_mkt].btc_balance)
-        if min_volume < config.max_amount:
-            error_output = "Insufficient balances to execute trade: " + buy_mkt +\
+        if trade_amount < config.trade_amount:
+            error_output = "Insufficient balance to execute trade: " + buy_mkt +\
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
                 sell_mkt + " BTC balance: " + str(self.clients[sell_mkt].btc_balance)
             logging.warn(error_output)
             # return
         current_time = time.time()
-        if current_time - self.last_trade < self.trade_wait:
+        if current_time - self.last_trade < config.trade_wait:
             logging.warn("Can't automate this trade, last trade occured %s seconds ago" % (
                 current_time - self.last_trade))
             return
