@@ -46,7 +46,7 @@ class Arbitrer(object):
         
         if float(self.depths[kask]['asks'][i]['price']) == 0:
             return 0, 0, 0, 0, 0
-        max_amount = min(max_amount_buy, max_amount_sell, config.max_amount)
+        max_amount = min(max_amount_buy, max_amount_sell, config.trade_amount)
         buy_total = 0
         w_buyprice = 0
         total_available_volume = 0
@@ -140,7 +140,7 @@ class Arbitrer(object):
         
         for observer in self.observers:
             observer.opportunity(profit, purchase_volume, buyprice, kask, sellprice, kbid, percent_profit, weighted_buyprice,
-                                weighted_sellprice, available_volume, config.max_amount)
+                                weighted_sellprice, available_volume, config.trade_amount)
         
         # Line to return to IRC
         self.line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
