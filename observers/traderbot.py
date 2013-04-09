@@ -32,6 +32,9 @@ class TraderBot(Observer):
         self.timeout = 300                          # in seconds (for buying wait time before error alert)
         self.potential_trades = []
         self.priority_list = [value for key, value in self.clients.items()]
+    def irc(bitbot, message):
+        channel = config.deal_output
+        bitbot.msg(channel, message)
 
     def begin_opportunity_finder(self, depths):
         pass
@@ -73,13 +76,17 @@ class TraderBot(Observer):
 
         if buy_mkt not in self.clients:
             logging.warn("Can't automate this trade, client not available: %s" % (buy_mkt))
+            irc("Can't automate this trade, client not available: %s" % (buy_mkt))
             return
         if sell_mkt not in self.clients:
             logging.warn("Can't automate this trade, client not available: %s" % (sell_mkt))
+            irc("Can't automate this trade, client not available: %s" % (sell_mkt))
             return
         if profit < config.profit_thresh:
             logging.warn("Can't automate this trade, minimum percent profit not reached %f/%f"
                          % (percent_profit, config.profit_thresh))
+            irc("Can't automate this trade, minimum percent profit not reached %f/%f"
+                % (percent_profit, config.profit_thresh))
             return
         self.update_balance(buy_mkt, sell_mkt)
         # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
@@ -91,10 +98,13 @@ class TraderBot(Observer):
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
                 sell_mkt + " BTC balance: " + str(self.clients[sell_mkt].btc_balance)
             logging.warn(error_output)
-            # return
+            irc(error_output)
+            return
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
             logging.warn("Can't automate this trade, last trade occured %s seconds ago" % (
+                current_time - self.last_trade))
+            irc("Can't automate this trade, last trade occured %s seconds ago" % (
                 current_time - self.last_trade))
             return
 
@@ -107,15 +117,15 @@ class TraderBot(Observer):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         irc_output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
             " for $" + str(buy_price) + ", sold at " + sell_mkt + " for $" + str(sell_price) + ". Profit of $" + str(profit)
-        bitbot.msg(channel, irc_output)
+        irc(irc_output)
 
         try:
             # self.watch_balances(bitbot, channel, buy_mkt, sell_mkt, volume)
             irc_output = str(timestamp) + " deal between " + buy_mkt + " and " + sell_mkt + " succeeded."
-            bitbot.msg(channel, irc_output)
+            irc(irc_output)
         except:
             irc_output = "Error: Check wallets for deal at " + str(timestamp) + " between " + buy_mkt + " and " + sell_mkt + "."
-        #     bitbot.msg(channel, irc_output)
+            # irc(irc_output)
     
     def watch_balances(self, bitbot, channel, buymarket, sellmarket, volume):
         buymarket_btc = self.clients[buymarket].btc_balance
