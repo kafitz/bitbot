@@ -25,7 +25,6 @@ class PrivateBitcoin24(Market):
         self.initials = "bc24"
         self.error = ""
         self.last_opportunity = None
-        self.deposit()
 
     def _create_nonce(self):
         return int(time.time())

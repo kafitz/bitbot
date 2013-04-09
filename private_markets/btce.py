@@ -25,7 +25,6 @@ class PrivateBTCe(Market):
         self.initials = "btce"
         self.error = ""
         self.last_opportunity = None
-        self.deposit()
 
     def _create_nonce(self):
         return int(time.time())

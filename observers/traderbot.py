@@ -1,6 +1,6 @@
+import time
 import logging
 import config
-import time
 import datetime
 from decimal import Decimal
 from observer import Observer

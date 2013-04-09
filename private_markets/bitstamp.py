@@ -23,7 +23,6 @@ class PrivateBitstamp(Market):
         self.currency = 'USD'
         self.error = ''
         self.last_opportunity = None
-        self.deposit()
 
     def _format_time(self,timestamp):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
