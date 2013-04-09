@@ -94,7 +94,7 @@ class TraderBot(Observer):
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-        if profit < config.profit_thresh:
+        if percent_profit < config.profit_thresh:
             output = "Attempt %d: can't automate this trade, minimum percent profit not reached %f/%f" % (trade_attempt, percent_profit, config.profit_thresh)
             logging.warn(output)
             self.irc(bitbot, output)
