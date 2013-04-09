@@ -39,11 +39,10 @@ class PrivateBitstamp(Market):
         req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         try:
             response = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
-            return json.loads(e.read())
-        else:
             jsonstr = json.loads(response.read())
             return jsonstr
+        except urllib2.HTTPError, e:
+            return e
         return 0
 
     def trade(self, url, amount, price):
