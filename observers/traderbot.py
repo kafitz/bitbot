@@ -48,7 +48,7 @@ class TraderBot(Observer):
         # Execute only the best arb opportunity
         self.execute_trade(bitbot, deals)
 
-    def get_min_tradeable_volume(self, buyprice, usd_bal, btc_bal):
+    def get_tradeable_volume(self, buyprice, usd_bal, btc_bal):
         min1 = float(usd_bal) / ((1 + config.balance_margin) * buyprice)
         min2 = float(btc_bal) / (1 + config.balance_margin)
         return min(min1, min2)
