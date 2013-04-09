@@ -196,9 +196,10 @@ class Arbitrer(object):
                         self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         if self.line_output and not deal_call:
                             bitbot.msg(channel, self.line_output)
-        if not deal_call:
+        if self.line_output and not deal_call:
             bitbot.msg(channel, '------------------------------------------------------------------------------------------')
 
+        self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         for observer in self.observers:
             observer.end_opportunity_finder(bitbot, self.deals)
         return
@@ -211,9 +212,19 @@ class Arbitrer(object):
         deal_call = False
 
         while True:
+            self.deals = []
+            start = time.time()
             self.depths, self.fees = self.update_depths()
+            end = time.time() - start
+            print "TraderBot - updating depths: ", str(end)
+
             self.tickers()
+
+            start = time.time()
             self.tick(bitbot, channel, deal_call)
+            end = time.time() - start
+            print "TraderBot - tick: ", str(end)
+
             time.sleep(60)
             
     def get_arb(self, bitbot):
