@@ -65,9 +65,11 @@ class TraderBot(Observer):
     def execute_trade(self, bitbot, deals, best_deal_index=0):
         start = time.time()
         # Set variables from first deal in sorted list
-        if best_deal_index <= len(deals):
+        if best_deal_index < len(deals):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
+        else:
+            return
         profit = best_deal['profit']
         volume = best_deal['purchase_volume']
         buy_mkt = best_deal['buy_market']
