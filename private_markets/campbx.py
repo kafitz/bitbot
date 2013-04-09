@@ -32,7 +32,6 @@ class PrivateCampBX(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
         req = urllib2.Request(url['url'], urllib.urlencode(params))
-        print params
         try:
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
@@ -49,7 +48,6 @@ class PrivateCampBX(Market):
                   'TradeMode' : str(trademode),
                   'Price': price}
         response = self._send_request(self.trade_url, params)
-        print response
         if response and 'Error' not in response:
             self.price = str(response['price'])
             self.id = str(response['id'])
@@ -70,7 +68,6 @@ class PrivateCampBX(Market):
     def get_info(self):
         params = {'user': self.user, 'pass': self.password}
         response = self._send_request(self.info_url, params)
-        print response
         if response and 'Error' not in response:
             self.usd_balance = float(response['Total USD'])
             self.btc_balance = float(response['Total BTC'])
@@ -89,7 +86,6 @@ class PrivateCampBX(Market):
         params = {'user': self.user, 'pass': self.password}
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
-        print response
         if response and response['Sell'][0]['Info'] == 'No open Sell Orders' and response['Buy'][0]['Info'] == 'No open Buy Orders':
             self.error = 'no open orders listed'
             return 1

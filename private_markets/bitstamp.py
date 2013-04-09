@@ -170,10 +170,10 @@ class PrivateBitstamp(Market):
                   'amount': str(amount), 
                   'address': str(address)}
         response = self._send_request(self.withdraw_url, params)
-        if response and 'error' not in response:
+        if response:
             self.timestamp = str(datetime.datetime.now())
             return 1
-        elif response and 'error' in response:
+        elif response:
             self.error = str(response['error'])
             return 1
         return 0

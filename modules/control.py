@@ -71,7 +71,7 @@ def balance(bitbot, input, output=True):
             usd = float(market_obj.usd_balance)
             btc = float(market_obj.btc_balance)
             irc(bitbot,'bal > ' + market + ' > USD: {0:7} | BTC: {1:7} | Fee: {2}' \
-                .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)))
+                .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)),output)
             if not output:
                 return usd, btc
         else:
@@ -316,7 +316,7 @@ def deal(bitbot, input, output=True):
     percent_profit = round(float(deals[i]['percent_profit']),2)
             
     # Control the amount of USD in the buy market
-    usd1, btc1 = balance(bitbot, '.bal ' + buy_market)
+    usd1, btc1 = balance(bitbot, '.bal ' + buy_market,False)
     if buy_volume <= usd1:
         buy_check = True
         irc(bitbot,'deal > ' + buy_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
@@ -325,7 +325,7 @@ def deal(bitbot, input, output=True):
         irc(bitbot,'deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + ' USD needed)')
     
     # Control the funds in the sell market 
-    usd2, btc2 = balance(bitbot, '.bal ' + sell_market)
+    usd2, btc2 = balance(bitbot, '.bal ' + sell_market,False)
     if volume <= btc2:
         sell_check = True
         irc(bitbot,'deal > ' + sell_market + ' > enough BTC available for this deal (' + str(volume) + ' BTC needed)')
