@@ -34,12 +34,8 @@ def start_arbitrage(bitbot, input):
         bitbot.say('arb > already running')
     else:
         bitbot.variables['arb'] = True
-        import time
-        start = time.time()
         irc(bitbot,'arb > starting up...')
         arbitrer = arbitrage.Arbitrer()
-        end = time.time() - start
-        print ".arb loaded: ", str(end)
         while True:
             arbitrer.loop(bitbot)
         bitbot.say('Arbitrage quitting...')
