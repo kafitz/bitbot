@@ -39,7 +39,8 @@ class PrivateCampBX(Market):
                 jsonstr = json.loads(response.read())
                 return jsonstr
             except Exception, e:
-                return json.loads(e)
+                print e
+                return
         return 0
 
     def trade(self, amount, trademode, price):
