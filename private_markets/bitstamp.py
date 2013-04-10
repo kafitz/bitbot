@@ -39,7 +39,8 @@ class PrivateBitstamp(Market):
             response = requests.post(url['url'], data=params, headers=headers, timeout=3)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             print "Request timed out."
-            return 0
+            self.error = "request timed out"
+            return
         if response.status_code == 200:
             try:
                 jsonstr = json.loads(response.text)
@@ -197,4 +198,5 @@ class PrivateBitstamp(Market):
 if __name__ == '__main__':
     bitstamp = PrivateBitstamp()
     bitstamp.get_info()
+    # print bitstamp.usd_balance
     # print bitstamp.usd_balance

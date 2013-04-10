@@ -32,7 +32,8 @@ class PrivateCampBX(Market):
             response = requests.post(url['url'], data=params, timeout=3)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             print "Request timed out."
-            return 0        
+            self.error = "request timed out"
+            return
         if response.status_code == 200:
             try:
                 jsonstr = json.loads(response.read())

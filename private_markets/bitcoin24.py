@@ -42,7 +42,8 @@ class PrivateBitcoin24(Market):
             response = requests.post(self.url, data=params, headers=headers, timeout=3)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             print "Request timed out."
-            return None            
+            self.error = "request timed out"
+            return         
         if response.status_code == 200:
             try:
                 return json.loads(response.text)
