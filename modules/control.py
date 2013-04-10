@@ -64,7 +64,7 @@ def which(input,commands):
 
 def balance(bitbot, input, output=True):
     markets = which(input,balance.commands) 
-    irc(bitbot,'bal > Getting balance from ' + ', '.join(markets) + ':')  
+    irc(bitbot,'bal > Getting balance from ' + ', '.join(markets) + ':',output)  
     for market in markets:
         error, market_obj = load(market)        # load the correct market object
         if error == 0:                          # market was loaded without errors
@@ -77,7 +77,7 @@ def balance(bitbot, input, output=True):
             usd = float(market_obj.usd_balance)
             btc = float(market_obj.btc_balance)
             irc(bitbot,'bal > ' + market + ' > USD: {0:7} | BTC: {1:7} | Fee: {2}' \
-                .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)),output)
+                .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)))
             if not output:
                 return usd, btc
         else:
@@ -222,7 +222,7 @@ sell.name = 'sell'
 
 def deposit(bitbot, input, output=True):
     markets = which(input, deposit.commands) 
-    irc(bitbot,'dep > Getting deposit address from ' + ', '.join(markets) + ':')  
+    irc(bitbot,'dep > Getting deposit address from ' + ', '.join(markets) + ':',output)  
     for market in markets:
         error, market_obj = load(market)        # load the correct market object
         if error == 0:                          # market was loaded without errors
@@ -245,7 +245,7 @@ def withdraw(bitbot, input, output=True):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        irc(bitbot,'wdw > invalid # of arguments specified: .wdw exchange amount address')
+        irc(bitbot,'wdw > invalid # of arguments specified: .wdw exchange amount address',output)
         return
     market = parameters[0]
     amount = parameters[1]
@@ -355,9 +355,9 @@ def deal(bitbot, input, deals=None):
     sell(bitbot, '.sell {} {} {}'.format(sell_market, volume, sell_price))
 
     # Execute BTC transfer from buy_market -> sell_market
-    address = deposit(bitbot, '.dep ' + sell_market)
+    address = deposit(bitbot, '.dep ' + sell_market,False)
     irc(bitbot,'deal > .wdw {} {} {}'.format(buy_market, volume, address))
-    withdraw(bitbot, '.wdw {} {} {}'.format(buy_market, volume, address))    
+    withdraw(bitbot, '.wdw {} {} {}'.format(buy_market, volume, address),False)    
             
 deal.commands = ['deal']
 deal.name = 'deal'
