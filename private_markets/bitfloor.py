@@ -3,12 +3,12 @@ import time
 import datetime
 import base64
 import hmac
-import urllib
-import urllib2
 import hashlib
+import urllib
 import sys
 import json
 import re
+import requests
 from decimal import Decimal
 
 class PrivateBitfloor(Market):
@@ -45,14 +45,14 @@ class PrivateBitfloor(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
-        try:
-            response = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
-            return json.loads(e.read())
-        else:
-            jsonstr = json.loads(response.read())
+
+        response = requests.post(url['url'], data=params, headers=headers, timeout=3)
+        if response.status_code == 200:
+            jsonstr = json.loads(response.text)
             return jsonstr
+        elif response.status_code == 502:
+            print "Bitfloor 502"
+            return 0
         return 0
 
     def trade(self, product_id, amount, side, price=None):
@@ -62,7 +62,10 @@ class PrivateBitfloor(Market):
                   ('side', side)]
         if price:
             params.append(('price', str(price)))
-        response = self._send_request(self.trade_url, params)
+        try:
+            response = self._send_request(self.trade_url, params)
+        except requests.exceptions.Timeout:
+            return 0
         if response and 'error' not in response:
             self.price = str(price)
             self.id = str(response['order_id'])
@@ -86,7 +89,10 @@ class PrivateBitfloor(Market):
 
     def get_info(self):
         params = [('nonce', self._create_nonce())]
-        response = self._send_request(self.info_url, params)
+        try:
+            response = self._send_request(self.info_url, params)
+        except requests.exceptions.Timeout:
+            return 0
         if response and 'error' not in response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
@@ -106,7 +112,10 @@ class PrivateBitfloor(Market):
         
     def get_orders(self):
         params = [('nonce', self._create_nonce())]
-        response = self._send_request(self.open_orders_url, params)
+        try:
+            response = self._send_request(self.open_orders_url, params)
+        except requests.exceptions.Timeout:
+            return 0
         self.orders_list = []
         if len(response) == 0:
             self.error = 'no open orders listed'
@@ -140,7 +149,10 @@ class PrivateBitfloor(Market):
                 self.cancelled_amount = order_amount
                 
         params = [('nonce', self._create_nonce()),('order_id', order_id),('product_id', '1')]
-        response = self._send_request(self.cancel_url, params)
+        try:
+            response = self._send_request(self.cancel_url, params)
+        except requests.exceptions.Timeout:
+            return 0
         if response and 'error' not in response:
             self.cancelled_id = response['order_id']
             self.cancelled_time = self._format_time(response['timestamp'])
@@ -156,7 +168,10 @@ class PrivateBitfloor(Market):
                   ('method', 'bitcoin'),
                   ('amount', amount),
                   ('destination', destination)]
-        response = self._send_request(self.withdraw_url, params)
+        try:   
+            response = self._send_request(self.withdraw_url, params)
+        except requests.exceptions.Timeout:
+            return 0
         if response and 'error' not in response:
             self.timestamp = self._format_time(response['timestamp'])
             return 1
@@ -176,3 +191,5 @@ class PrivateBitfloor(Market):
         
 if __name__ == '__main__':
     bitfloor = PrivateBitfloor()
+    bitfloor.get_info()
+    print bitfloor.btc_balance

@@ -12,7 +12,7 @@ from decimal import Decimal
 
 
 class PrivateBitcoin24(Market):
-    url = "https//bitcoin-24.com/api/user_api.php"
+    url = "https://bitcoin-24.com/api/user_api.php"
 
     def __init__(self):
         super(Market, self).__init__()
@@ -38,17 +38,16 @@ class PrivateBitcoin24(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        response = requests.post(self.url, data=params, headers=headers)
-        if response.status == 200:
-            jsonstr = response.read()
-            conn.close()
-            return json.loads(jsonstr)
-        conn.close()
+        response = requests.post(self.url, data=params, headers=headers, timeout=3)
+        if response.status_code == 200:
+            return json.loads(response.text)
         return None
 
     def trade(self, params):
-        response = self._send_request(params)
-        print response
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout:
+            return 0
         if response and 'error' not in response:
             self.id = response['id']
             self.timestamp = self._format_time(reponse['date'])
@@ -69,7 +68,10 @@ class PrivateBitcoin24(Market):
 
     def cancel(self, order_id):
         params = {"api": "cancel_order", "id": order_id}
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout:
+            return 0
         if response and 'True' in response:
             self.cancelled_id = order_id
             self.cancelled_time = self._format_time(time.time())
@@ -91,14 +93,18 @@ class PrivateBitcoin24(Market):
             elif 'error' in response:
                 self.error = str(response['error'])
                 return 1
-        except:
+        except requests.exceptions.Timeout:
             self.error = "request to bc24 timed out"
             return 1
+        else:
+            print "Check bitcoin24 get_info()"
 
     def get_orders(self):
         params = {"api": "open_orders"}
-        response = self._send_request(params)
-        print response
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout:
+            return None
         self.orders_list = []
         if response and 'error' not in response:
             for order in response:
@@ -120,7 +126,10 @@ class PrivateBitcoin24(Market):
         
     def withdraw(self, amount, destination):
         params = {"api": "withdraw_btc", "amount": amount, "address": destination}
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout:
+            return None
         if response and 'trans' in response:
             self.timestamp = self._format_time(time.time())
             return 1
@@ -131,7 +140,10 @@ class PrivateBitcoin24(Market):
 
     def get_txs(self):
         params = {'api': 'trades_json'}
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout:
+            return 0
         self.tx_list = []
         for trans in response:
             tx = {}
@@ -155,7 +167,7 @@ class PrivateBitcoin24(Market):
         try:
             response = self._send_request(params)
             self.address = response["address"]
-        except:
+        except requests.exceptions.Timeout:
             self.address = 'request timed out'
         return 1
         
@@ -169,5 +181,5 @@ class PrivateBitcoin24(Market):
 
 if __name__ == "__main__":
     bitcoin24 = PrivateBitcoin24()
-    bitcoin24.get_txs()
-    print bitcoin24.tx_list
+    bitcoin24.get_info()
+    print bitcoin24.btc_balance
