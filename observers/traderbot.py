@@ -33,10 +33,6 @@ class TraderBot(Observer):
         self.potential_trades = []
         self.priority_list = [value for key, value in self.clients.items()]
 
-    def irc(self, bitbot, message):
-        channel = config.deal_output
-        bitbot.msg(channel, message)
-
     def begin_opportunity_finder(self, depths):
         # List of exchanges that will be ignored during a deal iteration if the exchange
         # is found not to have enough balance
@@ -91,7 +87,7 @@ class TraderBot(Observer):
         if buy_mkt not in self.clients:
             output = "Attempt {0}: can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
             logging.warn(output)
-            # self.irc(bitbot, output)
+            # bitbot.msg(channel, output)
             # If market not available, try with next best deal
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
@@ -100,7 +96,7 @@ class TraderBot(Observer):
         if sell_mkt not in self.clients:
             output = "Attempt {0}: can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
             logging.warn(output)
-            # self.irc(bitbot, output)
+            # bitbot.msg(channel, output)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
@@ -108,7 +104,7 @@ class TraderBot(Observer):
         if percent_profit < config.profit_thresh:
             output = "Attempt {0}: can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
-            self.irc(bitbot, output)
+            bitbot.msg(channel, output)
             return
         self.update_balance(buy_mkt, sell_mkt)
         # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
@@ -120,13 +116,13 @@ class TraderBot(Observer):
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
                 sell_mkt + " BTC balance: " + str(self.clients[sell_mkt].btc_balance)
             logging.warn(output)
-            self.irc(bitbot, output)
+            bitbot.msg(channel, output)
             return
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
             output = "Attempt {0}: can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
             logging.warn(output)
-            self.irc(bitbot, output)
+            bitbot.msg(channel, output)
             return
 
         end = time.time() - start
@@ -139,5 +135,5 @@ class TraderBot(Observer):
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
             " for $" + str(buy_price) + ", sold at " + sell_mkt + " for $" + str(sell_price) + ". Profit of $" + str(profit)
         logging.info(output)
-        self.irc(bitbot, output)
+        bitbot.msg(channel, output)
         bitbot.msg('#merlin', 'O Dear Leaders kafitz & baspt, a trade has been executed!')
