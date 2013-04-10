@@ -3,19 +3,16 @@ import time
 import datetime
 import base64
 import hmac
-import urllib
-import urllib2
-import httplib
 import hashlib
 import sys
 import json
 import re
+import requests
 from decimal import Decimal
 
 
 class PrivateBitcoin24(Market):
-    url_base = "bitcoin-24.com"
-    url_suffix = "/api/user_api.php"
+    url = "https//bitcoin-24.com/api/user_api.php"
 
     def __init__(self):
         super(Market, self).__init__()
@@ -34,7 +31,6 @@ class PrivateBitcoin24(Market):
 
     def _send_request(self, params, extra_headers=None):
         params.update({'user': self.user, 'key': self.key})
-        encoded_params = urllib.urlencode(params)
         headers = {
             'Content-type': 'application/x-www-form-urlencoded'
         }
@@ -42,9 +38,7 @@ class PrivateBitcoin24(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        conn = httplib.HTTPSConnection(self.url_base)
-        conn.request("POST", self.url_suffix, encoded_params, headers)
-        response = conn.getresponse()
+        response = requests.post(self.url, data=params, headers=headers)
         if response.status == 200:
             jsonstr = response.read()
             conn.close()
