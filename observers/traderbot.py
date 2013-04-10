@@ -133,7 +133,7 @@ class TraderBot(Observer):
         print "TraderBot - execute trade: ", str(end)
 
         # Execute deals function with first (best) deal and pass along same deals list
-        control.deal(1, deals)
+        control.deal(best_deal_index, deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
