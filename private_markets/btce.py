@@ -10,12 +10,12 @@ import hashlib
 import sys
 import json
 import re
+import requests
 from decimal import Decimal
 
 
 class PrivateBTCe(Market):
-    url_base = "btc-e.com"
-    url_suffix = "/tapi"
+    url = "https://btc-e.com/tapi"
 
     def __init__(self):
         super(Market, self).__init__()
@@ -34,9 +34,8 @@ class PrivateBTCe(Market):
 
     def _send_request(self, params, extra_headers=None):
         params["nonce"] = self._create_nonce()
-        encoded_params = urllib.urlencode(params)
         ahmac = hmac.new(self.secret, digestmod=hashlib.sha512)
-        ahmac.update(encoded_params)
+        ahmac.update(urllib.urlencode(params))
         sign = ahmac.hexdigest()
         headers = {
             'Key': self.key,
@@ -47,19 +46,21 @@ class PrivateBTCe(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        conn = httplib.HTTPSConnection(self.url_base)
-        conn.request("POST", self.url_suffix, encoded_params, headers)
-        response = conn.getresponse()
-        if response.status == 200:
-            jsonstr = response.read()
-            conn.close()
-            return json.loads(jsonstr)
-        conn.close()
+        response = requests.post(self.url, data=params, headers=headers, timeout=3)
+        if response.status_code == 200:
+            try:
+                return json.loads(response.text)
+            except Exception, e:
+                print e
+                return None
         return None
 
     def trade(self, amount, ttype, price):
         params = {"method": "Trade", "amount": amount, "type": ttype, "rate": price, "pair": "btc_usd"}
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
+            return 0
         print response
         if response and response["success"] == 1:
             ret = response["return"]
@@ -68,7 +69,7 @@ class PrivateBTCe(Market):
                 self.timestamp = self._format_time(key['timestamp'])
                 self.amount = key['amount']
                 return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return 0
@@ -81,7 +82,10 @@ class PrivateBTCe(Market):
 
     def cancel(self, order_id):
         params = {"method": "CancelOrder"}
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
+            return 0
         if response and 'error' not in response:
             self.cancelled_id = response['order_id']
             self.cancelled_time = self._format_time(time.time())
@@ -93,19 +97,22 @@ class PrivateBTCe(Market):
 
     def get_info(self):
         params = {"method": "getInfo"}
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
+            return None
         if response and 'error' not in response:
             funds = response['return']['funds']
             self.btc_balance = float(funds['btc'])
             self.usd_balance = float(funds['usd'])
             try: # try to set fee dynamically from API
-                fee_res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/fee')
-                fee_json = json.loads(fee_res.read())
+                fee_res = requests.get('https://btc-e.com/api/2/btc_usd/fee')
+                fee_json = json.loads(fee_res.text)
                 self.fee = float(fee_json['trade'])
             except: # otherwise pass last known fee
                 self.fee = 0.2
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return None
@@ -116,19 +123,25 @@ class PrivateBTCe(Market):
             params["from_id"] = from_id
         if end_id:
             params["end_id"]
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
+            return None
         self.orders_list = []
         if response and 'error' not in response:
             print response
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return None
         
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
-        response = self._send_request(params)
+        try:
+            response = self._send_request(params)
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
+            return None
         if response:
             print response
             return 1
@@ -153,5 +166,5 @@ class PrivateBTCe(Market):
 if __name__ == "__main__":
     btce = PrivateBTCe()
     btce.get_info()
-    # print btce
+    print btce.usd_balance
     #bitfloor.withdraw(0,"1E774iqGeTrr7GUP1L6jpwDsWg1pERQhNo")

@@ -40,13 +40,17 @@ class PrivateBitcoin24(Market):
 
         response = requests.post(self.url, data=params, headers=headers, timeout=3)
         if response.status_code == 200:
-            return json.loads(response.text)
+            try:
+                return json.loads(response.text)
+            except Exception, e:
+                print e
+                return None
         return None
 
     def trade(self, params):
         try:
             response = self._send_request(params)
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             return 0
         if response and 'error' not in response:
             self.id = response['id']
@@ -70,7 +74,7 @@ class PrivateBitcoin24(Market):
         params = {"api": "cancel_order", "id": order_id}
         try:
             response = self._send_request(params)
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             return 0
         if response and 'True' in response:
             self.cancelled_id = order_id
@@ -90,10 +94,10 @@ class PrivateBitcoin24(Market):
                 self.usd_balance = float(response['usd'])
                 self.fee = 0
                 return 1
-            elif 'error' in response:
+            elif response and 'error' in response:
                 self.error = str(response['error'])
                 return 1
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             self.error = "request to bc24 timed out"
             return 1
         else:
@@ -103,7 +107,7 @@ class PrivateBitcoin24(Market):
         params = {"api": "open_orders"}
         try:
             response = self._send_request(params)
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             return None
         self.orders_list = []
         if response and 'error' not in response:
@@ -119,7 +123,7 @@ class PrivateBitcoin24(Market):
                 o['id'] = order['id']
                 self.orders_list.append(o)
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = str(response['message'])
             return 1
         return None
@@ -128,12 +132,12 @@ class PrivateBitcoin24(Market):
         params = {"api": "withdraw_btc", "amount": amount, "address": destination}
         try:
             response = self._send_request(params)
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             return None
         if response and 'trans' in response:
             self.timestamp = self._format_time(time.time())
             return 1
-        elif 'error' in response:
+        elif response and 'error' in response:
             self.error = response['message']
             return 1
         return None
@@ -142,7 +146,7 @@ class PrivateBitcoin24(Market):
         params = {'api': 'trades_json'}
         try:
             response = self._send_request(params)
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             return 0
         self.tx_list = []
         for trans in response:
@@ -167,7 +171,7 @@ class PrivateBitcoin24(Market):
         try:
             response = self._send_request(params)
             self.address = response["address"]
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout or requests.exceptions.SLLError:
             self.address = 'request timed out'
         return 1
         
