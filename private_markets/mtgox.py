@@ -4,11 +4,10 @@ import datetime
 import base64
 import hmac
 import urllib
-import urllib2
 import hashlib
-import sys
 import json
 import re
+import requests
 from decimal import Decimal
 
 class PrivateMtGox(Market):
@@ -71,13 +70,13 @@ class PrivateMtGox(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-        req = urllib2.Request(url, urllib.urlencode(params), headers)
         try:
-            response = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
-            return {'error': str(e)}
-        else:
-            jsonstr = json.loads(response.read())
+            response = requests.post(url, data=params, headers=headers, timeout=3)
+        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+            print "Request timed out."
+            return 0
+        if response.status_code == 200:
+            jsonstr = json.loads(response.text)
             return jsonstr
         return 0
 
@@ -235,4 +234,5 @@ class PrivateMtGox(Market):
         
 if __name__ == '__main__':
     mtgox = PrivateMtGox()
-    mtgox.get_txs()
+    mtgox.get_info()
+    print mtgox.usd_balance

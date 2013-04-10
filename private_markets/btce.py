@@ -46,7 +46,11 @@ class PrivateBTCe(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        response = requests.post(self.url, data=params, headers=headers, timeout=3)
+        try:
+            response = requests.post(self.url, data=params, headers=headers, timeout=3)
+        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+            print "Request timed out."
+            return None
         if response.status_code == 200:
             try:
                 return json.loads(response.text)
@@ -57,11 +61,7 @@ class PrivateBTCe(Market):
 
     def trade(self, amount, ttype, price):
         params = {"method": "Trade", "amount": amount, "type": ttype, "rate": price, "pair": "btc_usd"}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return 0
-        print response
+        response = self._send_request(params)
         if response and response["success"] == 1:
             ret = response["return"]
             for key in ret.keys():
@@ -82,10 +82,7 @@ class PrivateBTCe(Market):
 
     def cancel(self, order_id):
         params = {"method": "CancelOrder"}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return 0
+        response = self._send_request(params)
         if response and 'error' not in response:
             self.cancelled_id = response['order_id']
             self.cancelled_time = self._format_time(time.time())
@@ -97,10 +94,7 @@ class PrivateBTCe(Market):
 
     def get_info(self):
         params = {"method": "getInfo"}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return None
+        response = self._send_request(params)
         if response and 'error' not in response:
             funds = response['return']['funds']
             self.btc_balance = float(funds['btc'])
@@ -123,10 +117,7 @@ class PrivateBTCe(Market):
             params["from_id"] = from_id
         if end_id:
             params["end_id"]
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return None
+        response = self._send_request(params)
         self.orders_list = []
         if response and 'error' not in response:
             print response
@@ -138,10 +129,7 @@ class PrivateBTCe(Market):
         
     def withdraw(self, amount, destination):
         params = [("currency", "BTC"), ("method", "bitcoin"), ("amount", amount), ("destination", destination)]
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return None
+        response = self._send_request(params)
         if response:
             print response
             return 1

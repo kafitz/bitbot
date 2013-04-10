@@ -38,7 +38,11 @@ class PrivateBitcoin24(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
 
-        response = requests.post(self.url, data=params, headers=headers, timeout=3)
+        try:
+            response = requests.post(self.url, data=params, headers=headers, timeout=3)
+        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+            print "Request timed out."
+            return None            
         if response.status_code == 200:
             try:
                 return json.loads(response.text)
@@ -48,10 +52,7 @@ class PrivateBitcoin24(Market):
         return None
 
     def trade(self, params):
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return 0
+        response = self._send_request(params)
         if response and 'error' not in response:
             self.id = response['id']
             self.timestamp = self._format_time(reponse['date'])
@@ -72,10 +73,7 @@ class PrivateBitcoin24(Market):
 
     def cancel(self, order_id):
         params = {"api": "cancel_order", "id": order_id}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return 0
+        response = self._send_request(params)
         if response and 'True' in response:
             self.cancelled_id = order_id
             self.cancelled_time = self._format_time(time.time())
@@ -87,28 +85,20 @@ class PrivateBitcoin24(Market):
 
     def get_info(self):
         params = {"api": "get_balance"}
-        try:
-            response = self._send_request(params)
-            if response and 'error' not in response:
-                self.btc_balance = float(response['btc_available'])
-                self.usd_balance = float(response['usd'])
-                self.fee = 0
-                return 1
-            elif response and 'error' in response:
-                self.error = str(response['error'])
-                return 1
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            self.error = "request to bc24 timed out"
+        response = self._send_request(params)
+        if response and 'error' not in response:
+            self.btc_balance = float(response['btc_available'])
+            self.usd_balance = float(response['usd'])
+            self.fee = 0
             return 1
-        else:
-            print "Check bitcoin24 get_info()"
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1
+        return 0
 
     def get_orders(self):
         params = {"api": "open_orders"}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return None
+        response = self._send_request(params)
         self.orders_list = []
         if response and 'error' not in response:
             for order in response:
@@ -130,10 +120,7 @@ class PrivateBitcoin24(Market):
         
     def withdraw(self, amount, destination):
         params = {"api": "withdraw_btc", "amount": amount, "address": destination}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return None
+        response = self._send_request(params)
         if response and 'trans' in response:
             self.timestamp = self._format_time(time.time())
             return 1
@@ -144,10 +131,7 @@ class PrivateBitcoin24(Market):
 
     def get_txs(self):
         params = {'api': 'trades_json'}
-        try:
-            response = self._send_request(params)
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            return 0
+        response = self._send_request(params)
         self.tx_list = []
         for trans in response:
             tx = {}
@@ -168,12 +152,11 @@ class PrivateBitcoin24(Market):
 
     def deposit(self):
         params = {"api": "get_addr"}
-        try:
-            response = self._send_request(params)
-            self.address = response["address"]
-        except requests.exceptions.Timeout or requests.exceptions.SLLError:
-            self.address = 'request timed out'
-        return 1
+        response = self._send_request(params)
+        if response and 'address' in response:
+            self.address = response['address']
+            return 1
+        return 0
         
     def get_lag(self):
         self.error = 'not available from this API'

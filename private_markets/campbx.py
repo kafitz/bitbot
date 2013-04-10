@@ -1,9 +1,8 @@
 from market import Market
 import datetime
-import urllib
-import urllib2
 import sys
 import json
+import requests
 from decimal import Decimal
 
 class PrivateCampBX(Market):
@@ -28,23 +27,22 @@ class PrivateCampBX(Market):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
     def _send_request(self, url, params, extra_headers=None):
-        if extra_headers is not None:
-            for k, v in extra_headers.iteritems():
-                headers[k] = v
-        req = urllib2.Request(url['url'], urllib.urlencode(params))
+        params.update({'user': self.user, 'pass': self.password})
         try:
-            response = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
-            return json.loads(e.read())
-        else:
-            jsonstr = json.loads(response.read())
-            return jsonstr
+            response = requests.post(url['url'], data=params, timeout=3)
+        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+            print "Request timed out."
+            return 0        
+        if response.status_code == 200:
+            try:
+                jsonstr = json.loads(response.read())
+                return jsonstr
+            except Exception, e:
+                return json.loads(e)
         return 0
 
     def trade(self, amount, trademode, price):
-        params = {'user': self.user,
-                  'pass': self.password,
-                  'Quantity': amount,
+        params = {'Quantity': amount,
                   'TradeMode' : str(trademode),
                   'Price': price}
         response = self._send_request(self.trade_url, params)
@@ -66,7 +64,7 @@ class PrivateCampBX(Market):
         return self.trade(amount, 'QuickSell', price)
 
     def get_info(self):
-        params = {'user': self.user, 'pass': self.password}
+        params = {}
         response = self._send_request(self.info_url, params)
         if response and 'Error' not in response:
             self.usd_balance = float(response['Total USD'])
@@ -83,7 +81,7 @@ class PrivateCampBX(Market):
         return 1
 
     def get_orders(self):
-        params = {'user': self.user, 'pass': self.password}
+        params = {}
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
         if response and response['Sell'][0]['Info'] == 'No open Sell Orders' and response['Buy'][0]['Info'] == 'No open Buy Orders':
@@ -142,9 +140,7 @@ class PrivateCampBX(Market):
         return 0
 
     def withdraw(self, amount, address):
-        params = {'user': self.user, 
-                  'pass': self.password, 
-                  'BTCAmt': str(amount), 
+        params = {'BTCAmt': str(amount), 
                   'BTCTo': str(address)}
         response = self._send_request(self.withdraw_url, params)
         if response and 'Error' not in response:
@@ -156,7 +152,7 @@ class PrivateCampBX(Market):
         return 0
 
     def deposit(self):
-        params = {'user': self.user, 'pass': self.password}
+        params = {}
         response = self._send_request(self.deposit_url, params)
         if response and 'Success' in response:
             self.address = response['Success']
@@ -172,3 +168,5 @@ class PrivateCampBX(Market):
 
 if __name__ == '__main__':
     CampBX = PrivateCampBX()
+    CampBX.get_info()
+    print CampBX.usd_balance

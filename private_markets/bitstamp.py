@@ -1,9 +1,8 @@
 from market import Market
 import datetime
-import urllib
-import urllib2
 import sys
 import json
+import requests
 
 class PrivateBitstamp(Market):
     name = 'Bitstamp'
@@ -36,13 +35,17 @@ class PrivateBitstamp(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-        req = urllib2.Request(url['url'], urllib.urlencode(params), headers)
         try:
-            response = urllib2.urlopen(req)
-            jsonstr = json.loads(response.read())
-            return jsonstr
-        except urllib2.HTTPError, e:
-            return e
+            response = requests.post(url['url'], data=params, headers=headers, timeout=3)
+        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+            print "Request timed out."
+            return 0
+        if response.status_code == 200:
+            try:
+                jsonstr = json.loads(response.text)
+                return jsonstr
+            except Exception, e:
+                return e
         return 0
 
     def trade(self, url, amount, price):
@@ -153,11 +156,11 @@ class PrivateBitstamp(Market):
                   ('type', order_type)]
         response = self._send_request(self.cancel_url, params)
         
-        if response:
+        if response and 'error' not in response:
             self.cancelled_id = order_id
             self.cancelled_time = str(datetime.datetime.now()).split('.')[0]
             return 1
-        elif response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return 0
@@ -168,10 +171,10 @@ class PrivateBitstamp(Market):
                   'amount': str(amount), 
                   'address': str(address)}
         response = self._send_request(self.withdraw_url, params)
-        if response:
+        if response and 'error' not in response:
             self.timestamp = str(datetime.datetime.now())
             return 1
-        elif response:
+        elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
         return 0
@@ -193,3 +196,5 @@ class PrivateBitstamp(Market):
 
 if __name__ == '__main__':
     bitstamp = PrivateBitstamp()
+    bitstamp.get_info()
+    # print bitstamp.usd_balance
