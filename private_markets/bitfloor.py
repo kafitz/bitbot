@@ -57,7 +57,8 @@ class PrivateBitfloor(Market):
             return jsonstr
         elif response.status_code == 502:
             print "Bitfloor 502"
-            return 0
+            self.error = "bitfloor: 502"
+            return
         return 0
 
     def trade(self, product_id, amount, side, price=None):
@@ -101,6 +102,8 @@ class PrivateBitfloor(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
+        self.btc_balance = None
+        self.usd_balance = None
         return 0
 
     def get_txs(self):

@@ -38,7 +38,7 @@ class PrivateBitstamp(Market):
         try:
             response = requests.post(url['url'], data=params, headers=headers, timeout=3)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
-            print "Request timed out."
+            # print "Request timed out."
             self.error = "request timed out"
             return
         if response.status_code == 200:
@@ -80,6 +80,8 @@ class PrivateBitstamp(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
+        self.usd_balance = None
+        self.btc_balance = None
         return 0
 
     def get_txs(self):
@@ -198,5 +200,9 @@ class PrivateBitstamp(Market):
 if __name__ == '__main__':
     bitstamp = PrivateBitstamp()
     bitstamp.get_info()
+    if bitstamp.error == '':
+        print bitstamp.usd_balance
+    else:
+        print bitstamp.error
     # print bitstamp.usd_balance
     # print bitstamp.usd_balance

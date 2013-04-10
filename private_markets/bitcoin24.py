@@ -95,6 +95,8 @@ class PrivateBitcoin24(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
+        self.btc_balance = None
+        self.usd_balance = None
         return 0
 
     def get_orders(self):

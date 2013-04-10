@@ -110,6 +110,8 @@ class PrivateBTCe(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
+        self.btc_balance = None
+        self.usd_balance = None
         return None
 
     def get_orders(self, from_id=None, end_id=None):

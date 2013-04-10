@@ -75,6 +75,8 @@ class PrivateCampBX(Market):
         elif response and 'Error' in response:
             self.error = str(response['Error'])
             return 1
+        self.btc_balance = None
+        self.usd_balance = None
         return 0
 
     def get_txs(self):
