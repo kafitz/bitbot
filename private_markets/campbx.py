@@ -36,7 +36,7 @@ class PrivateCampBX(Market):
             return
         if response.status_code == 200:
             try:
-                jsonstr = json.loads(response.read())
+                jsonstr = json.loads(response.text)
                 return jsonstr
             except Exception, e:
                 print e
