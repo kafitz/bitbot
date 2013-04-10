@@ -6,14 +6,14 @@ import requests
 
 class PrivateBitstamp(Market):
     name = 'Bitstamp'
-    buy_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/buy/'}
-    sell_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/sell/'}
-    open_orders_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/open_orders/'}
-    tx_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/user_transactions/'}
-    info_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/balance/'}
-    deposit_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/bitcoin_deposit_address/'}  
-    withdraw_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/bitcoin_withdrawal/'}
-    cancel_url = {'method': 'POST', 'url': 'https://www.bitstamp.net/api/cancel_order/'}  
+    buy_url = 'https://www.bitstamp.net/api/buy/'
+    sell_url = 'https://www.bitstamp.net/api/sell/'
+    open_orders_url = 'https://www.bitstamp.net/api/open_orders/'
+    tx_url = 'https://www.bitstamp.net/api/user_transactions/'
+    info_url = 'https://www.bitstamp.net/api/balance/'
+    deposit_url = 'https://www.bitstamp.net/api/bitcoin_deposit_address/'
+    withdraw_url = 'https://www.bitstamp.net/api/bitcoin_withdrawal/'
+    cancel_url = 'https://www.bitstamp.net/api/cancel_order/'
 
     def __init__(self):
         super(Market, self).__init__()
@@ -26,17 +26,9 @@ class PrivateBitstamp(Market):
     def _format_time(self,timestamp):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
-    def _send_request(self, url, params, extra_headers=None):
-        headers = {
-            'Content-type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
-            'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
-        }
-        if extra_headers is not None:
-            for k, v in extra_headers.iteritems():
-                headers[k] = v
+    def _send_request(self, url, params):
         try:
-            response = requests.post(url['url'], data=params, headers=headers, timeout=3)
+            response = requests.post(url, data=params, timeout=5)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             # print "Request timed out."
             self.error = "request timed out"
@@ -46,7 +38,11 @@ class PrivateBitstamp(Market):
                 jsonstr = json.loads(response.text)
                 return jsonstr
             except Exception, e:
-                return e
+                print e
+                return
+        elif response.status_code == 403:
+            self.error = "bitstamp 403"
+            return
         return 0
 
     def trade(self, url, amount, price):

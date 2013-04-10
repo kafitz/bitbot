@@ -47,7 +47,7 @@ class PrivateBitfloor(Market):
                 headers[k] = v
 
         try:
-            response = requests.post(url['url'], data=params, headers=headers, timeout=3)
+            response = requests.post(url['url'], data=params, headers=headers, timeout=5)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             print "Request timed out."
             self.error = "request timed out"

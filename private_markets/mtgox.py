@@ -71,7 +71,7 @@ class PrivateMtGox(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
         try:
-            response = requests.post(url, data=params, headers=headers, timeout=3)
+            response = requests.post(url, data=params, headers=headers, timeout=5)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             print "Request timed out."
             self.error = "request timed out"

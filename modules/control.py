@@ -74,6 +74,7 @@ def balance(bitbot, input, output=True):
             return 0
 
         if market_obj.error == '':
+            print market_obj.usd_balance
             usd = float(market_obj.usd_balance)
             btc = float(market_obj.btc_balance)
             irc(bitbot,'bal > ' + market + ' > USD: {0:7} | BTC: {1:7} | Fee: {2}' \
