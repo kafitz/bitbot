@@ -13,9 +13,13 @@ class BtceUSD(Market):
         self.fees = {'withdraw': 0.1, 'exchange_rate': 0.002}
 
     def update_depth(self):
-        res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/depth')
-        depth = json.loads(res.read())
-        self.depth = self.format_depth(depth)
+        try:
+            res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/depth')
+            depth = json.loads(res.read())
+            self.depth = self.format_depth(depth)
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BtceUSD - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         l.sort(key=lambda x: float(x[0]), reverse=reverse)

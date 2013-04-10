@@ -12,11 +12,15 @@ class BitstampEUR(Market):
         self.update_rate = 24 * 60 * 60 / 2500
 
     def update_depth(self):
-        res = urllib2.urlopen('https://www.bitstamp.net/api/eur_usd/')
-        self.eurusd = json.loads(res.read())
-        res = urllib2.urlopen('https://www.bitstamp.net/api/order_book/')
-        depth = json.loads(res.read())
-        self.depth = self.format_depth(depth)
+        try:
+            res = urllib2.urlopen('https://www.bitstamp.net/api/eur_usd/')
+            self.eurusd = json.loads(res.read())
+            res = urllib2.urlopen('https://www.bitstamp.net/api/order_book/')
+            depth = json.loads(res.read())
+            self.depth = self.format_depth(depth)
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitstampEUR - depth data fetch error.")
 
     def sort_and_format(self, l, reverse, rate):
         r = []

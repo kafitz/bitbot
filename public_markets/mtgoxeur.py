@@ -11,16 +11,14 @@ class MtGoxEUR(Market):
         self.depth = {'asks': [{'price': 0, 'amount': 0}], 'bids': [{'price': 0, 'amount': 0}]}
 
     def update_depth(self):
-        res = urllib2.urlopen('http://data.mtgox.com/api/1/BTCEUR/depth/fetch')
-        jsonstr = res.read()
         try:
+            res = urllib2.urlopen('http://data.mtgox.com/api/1/BTCEUR/depth/fetch')
+            jsonstr = res.read()
             data = json.loads(jsonstr)
-        except Exception:
-            logging.error("%s - Can't parse json: %s" % (self.name, jsonstr))
-        if data["result"] == "success":
             self.depth = self.format_depth(data["return"])
-        else:
-            logging.error("%s - fetched data error" % (self.name))
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitstampEUR - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         # sort list: for each dict in input list, get price key and sort by that

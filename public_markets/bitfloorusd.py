@@ -16,8 +16,9 @@ class BitfloorUSD(Market):
             jsonstr = res.read()
             depth = json.loads(jsonstr)
             self.depth = self.format_depth(depth)
-        except Exception:
-            logging.warn("Can't parse bitfloor response")
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitfloorUSD - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         # sort list: for each dict in input list, get price key and sort by that

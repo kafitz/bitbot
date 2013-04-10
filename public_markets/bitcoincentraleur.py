@@ -11,9 +11,13 @@ class BitcoinCentralEUR(Market):
         self.update_rate = 24 * 60 * 60 / 2500
 
     def update_depth(self):
-        res = urllib2.urlopen('https://bitcoin-central.net/api/v1/depth?currency=EUR')
-        depth = json.loads(res.read())
-        self.depth = self.format_depth(depth)
+        try:
+            res = urllib2.urlopen('https://bitcoin-central.net/api/v1/depth?currency=EUR')
+            depth = json.loads(res.read())
+            self.depth = self.format_depth(depth)
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitcoinCentralEUR - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         l.sort(key=lambda x: float(x['price']), reverse=reverse)

@@ -16,8 +16,9 @@ class Bitcoin24USD(Market):
             jsonstr = res.read()
             depth = json.loads(jsonstr)
             self.depth = self.format_depth(depth)
-        except Exception:
-            logging.warn("Can't parse json:" + jsonstr)
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("Bitcoin24USD - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         l.sort(key=lambda x: float(x[0]), reverse=reverse)

@@ -20,7 +20,8 @@ class CampBXUSD(Market):
             data = json.loads(jsonstr)
             self.depth = self.format_depth(data)
         except:
-            logging.error("%s - depth data fetch error." % (self.name,))
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("CampBXUSD - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         # Sort the list of prices/amount lists by price

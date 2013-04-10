@@ -10,6 +10,7 @@ class MtGoxUSD(Market):
         self.update_rate = 25
         self.depth = {'asks': [{'price': 0, 'amount': 0}], 'bids': [{'price': 0, 'amount': 0}]}
         self.fees = {'withdraw': 0, 'exchange_rate': 0.006}
+        self.depth = None
 
     def update_depth(self):
         data = {}
@@ -18,12 +19,10 @@ class MtGoxUSD(Market):
             res = urllib2.urlopen('http://data.mtgox.com/api/1/BTCUSD/depth/fetch')
             jsonstr = res.read()
             data = json.loads(jsonstr) 
-        except Exception:
-            pass # caught below
-        if data["result"] == "success":
             self.depth = self.format_depth(data["return"])
-        else:
-            logging.error("%s - depth data fetch error." % (self.name,))
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("MtGoxUSD - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         # sort list: for each dict in input list, get price key and sort by that

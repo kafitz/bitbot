@@ -9,9 +9,13 @@ class Bitcoin24EUR(Market):
         self.update_rate = 20
 
     def update_depth(self):
-        res = urllib2.urlopen('https://bitcoin-24.com/api/EUR/orderbook.json')
-        depth = json.loads(res.read())
-        self.depth = self.format_depth(depth)
+        try:
+            res = urllib2.urlopen('https://bitcoin-24.com/api/EUR/orderbook.json')
+            depth = json.loads(res.read())
+            self.depth = self.format_depth(depth)
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("Bitcoin24EUR - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         l.sort(key=lambda x: float(x[0]), reverse=reverse)

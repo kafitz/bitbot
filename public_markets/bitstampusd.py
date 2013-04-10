@@ -12,9 +12,13 @@ class BitstampUSD(Market):
         self.fees = {'withdraw': 0, 'exchange_rate': 0.005}
 
     def update_depth(self):
-        res = urllib2.urlopen('https://www.bitstamp.net/api/order_book/')
-        depth = json.loads(res.read())
-        self.depth = self.format_depth(depth)
+        try:
+            res = urllib2.urlopen('https://www.bitstamp.net/api/order_book/')
+            depth = json.loads(res.read())
+            self.depth = self.format_depth(depth)
+        except:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitstampUSD - depth data fetch error.")
 
     def sort_and_format(self, l, reverse):
         r = []
