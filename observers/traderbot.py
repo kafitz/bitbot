@@ -106,7 +106,7 @@ class TraderBot(Observer):
             return
         # test 3
         if percent_profit < config.profit_thresh:
-            output = "Attempt {0}: can't automate trade between {1} and {2}, minimum percent profit of {4:.2f} not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
+            output = "Attempt {0}: can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
             self.irc(bitbot, output)
             return
