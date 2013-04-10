@@ -116,8 +116,8 @@ class Arbitrer(object):
         # Account for transaction fees
         buying_fees = self.fees[kask]
         selling_fees = self.fees[kbid]
-        fee_adjusted_volume = (1 - float(buying_fees['exchange_rate'])) * best_volume # Volume2*adjusted volume; Volume1*original volume
-        sale_total = fee_adjusted_volume * best_w_sellprice 
+        # fee_adjusted_volume = (1 - float(buying_fees['exchange_rate'])) * best_volume # Volume2*adjusted volume; Volume1*original volume
+        sale_total = best_volume * best_w_sellprice 
         buy_total = best_volume * best_w_buyprice
         tx_fee_discount = 1 - float(selling_fees['exchange_rate'])
         # Fix divide by 0 error
@@ -125,7 +125,7 @@ class Arbitrer(object):
             return 0, 0, 0, 0, 0, 0, 0, 0
         percent_profit = ((sale_total * tx_fee_discount) / buy_total - 1) * 100
         fee_adjusted_profit = (sale_total * tx_fee_discount) - buy_total
-        return fee_adjusted_profit, fee_adjusted_volume, percent_profit, self.depths[kask]['asks'][best_selling_index]['price'],\
+        return fee_adjusted_profit, best_volume, percent_profit, self.depths[kask]['asks'][best_selling_index]['price'],\
             self.depths[kbid]['bids'][best_buying_index]['price'], best_w_buyprice, best_w_sellprice, round(available_volume,1)
 
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
