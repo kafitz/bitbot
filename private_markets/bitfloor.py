@@ -95,8 +95,10 @@ class PrivateBitfloor(Market):
         response = self._send_request(self.info_url, params)
         if response and 'error' not in response:
             for wallet in response:
-                self.btc_balance = float(wallet['amount'])
-                self.usd_balance = float(wallet['amount'])
+                if str(wallet['currency']) == 'BTC':
+                    self.btc_balance = float(wallet['amount'])
+                elif str(wallet['currency']) == 'USD':
+                    self.usd_balance = float(wallet['amount'])
                 self.fee = 0.10
             return 1
         elif response and 'error' in response:
