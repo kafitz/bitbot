@@ -104,7 +104,7 @@ class TraderBot(Observer):
         if percent_profit < config.profit_thresh:
             output = "Attempt {0}: can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
-            bitbot.msg(channel, output)
+            # bitbot.msg(channel, output)
             return
         self.update_balance(buy_mkt, sell_mkt)
         # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
