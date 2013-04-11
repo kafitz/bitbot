@@ -109,8 +109,14 @@ class TraderBot(Observer):
         self.update_balance(buy_mkt, sell_mkt)
         # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
         # whichever is lowest
-        trade_amount = self.get_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
+        try:
+            trade_amount = self.get_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
                                            self.clients[sell_mkt].btc_balance)
+        except TypeError:
+            # Couldnt update balance of buy or sell market so balance == None
+            best_deal_index += 1
+            self.execute_trade(bitbot, deals, best_deal_index)
+            return
         if trade_amount < config.trade_amount:
             output = "Attempt " + str(trade_attempt) + ": insufficient balance to execute trade: " + buy_mkt +\
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
