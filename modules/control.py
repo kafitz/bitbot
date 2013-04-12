@@ -289,7 +289,6 @@ def deal(bitbot, input, deals=None):
     if not deals:
         arbitrer = arbitrage.Arbitrer()
         deals = arbitrer.get_arb(bitbot)
-    #if no deal: deals = [{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.6566218314655998, 'buy_market': 'MtGoxUSD', 'percent_profit': 1.1427280663296235, 'buy_price': 133.63, 'sell_price': 136.5189404651163},{'sell_market': 'bitfloorUSD', 'purchase_volume': 0.42741999999999997, 'profit': 0.2855649263999993, 'buy_market': 'MtGoxUSD', 'percent_profit': 0.4956042046893483, 'buy_price': 133.99896, 'sell_price': 136.02}]
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     
     if deals == []:
@@ -361,36 +360,6 @@ def deal(bitbot, input, deals=None):
             
 deal.commands = ['deal']
 deal.name = 'deal'
-
-def stats(bitbot, input, output=True):
-    import sqlite3
-    import datetime
-    db = 'opportunties_database.db'
-    conn = sqlite3.connect(db) 
-    cursor = conn.cursor()  
-    l = []
-    markets = ['mtgoxusd','bitstampusd','bitfloorusd']
-    for bm in markets:
-        for sm in markets:
-            d = {}
-            d['buy market'], d['sell market'] = bm, sm
-            cursor.execute("SELECT COUNT(*),AVG(profit), AVG(ratio), MAX(profit), MAX(ratio), MAX(time) FROM deals WHERE lower(sell_market)=? AND lower(buy_market)=?",[sm,bm])
-            d['deals'], d['avg profit'], d['avg ratio'], d['max profit'], d['max ratio'], d['timestring']  = cursor.fetchone()
-            if d['timestring'] != None:
-                d['time'] = datetime.datetime.strptime(d['timestring'], "%Y-%m-%d %H:%M:%S")
-                d['timedelta'] =datetime.datetime.utcnow() - d['time']
-                d['timedeltastring'] = str(d['timedelta'].days) + ' days, ' + str(d['timedelta'].seconds/3600) + ' hours'
-            l.append(d)
-    irc(bitbot,'{0:11} => {1:11} | {2:4} | {3:5} | {4:5} | {5:5} | {6:5} | {7}'\
-           .format('buy market','sell market','#','avg $', 'max $', 'avg %', 'max %', 'happened for the last time'))
-    for d in l:
-        if d['deals'] != 0:
-            irc(bitbot,'{0:11} => {1:11} | {2:4} | {3:.3f} | {4:.3f} | {5:.3f} | {6:.3f} | {7} ago'\
-                   .format(d['buy market'],d['sell market'],d['deals'],d['avg profit'],d['max profit'],d['avg ratio'],d['max ratio'],d['timedeltastring']))
-    return
-    
-stats.commands = ['stats']
-stats.name = 'stats'
 
 if __name__ == '__main__':
     print __doc__.strip()
