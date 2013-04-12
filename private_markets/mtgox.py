@@ -12,14 +12,15 @@ from decimal import Decimal
 
 class PrivateMtGox(Market):
     name = 'MtGox'
-    trade_url = 'https://data.mtgox.com/api/1/BTCUSD/private/order/add'
-    open_orders_url = 'https://mtgox.com/api/1/generic/private/orders'
-    info_url = 'https://mtgox.com/api/1/generic/private/info'
-    tx_url = 'https://data.mtgox.com/api/1/generic/private/wallet/history'
-    withdraw_url = 'https://data.mtgox.com/api/1/generic/bitcoin/send_simple'
-    cancel_url = 'https://data.mtgox.com/api/0/cancelOrder.php'
-    deposit_url = 'https://data.mtgox.com/api/1/generic/bitcoin/address'
-    lag_url = 'https://data.mtgox.com/api/1/generic/order/lag'
+    base = 'https://data.mtgox.com/api/2/'
+    trade_url = 'BTCUSD/money/order/add'
+    open_orders_url = 'BTCUSD/money/orders'
+    info_url = 'BTCUSD/money/info'
+    tx_url = 'BTCUSD/money/wallet/history'
+    withdraw_url = 'BTCUSD/money/bitcoin/send_simple'
+    cancel_url = 'BTCUSD/money/order/cancel'
+    deposit_url = 'BTCUSD/money/bitcoin/address'
+    lag_url = 'BTCUSD/money/order/lag'
 
     def __init__(self):
         super(Market, self).__init__()
@@ -59,11 +60,12 @@ class PrivateMtGox(Market):
     def _format_time(self,timestamp):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
-    def _send_request(self, url, params, extra_headers=None):
+    def _send_request(self, path, params, extra_headers=None):
+        hash_data = path + chr(0) + urllib.urlencode(params)
         headers = {
             'Content-type': 'application/x-www-form-urlencoded',
             'Rest-Key': self.key,
-            'Rest-Sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), urllib.urlencode(params), hashlib.sha512).digest())),
+            'Rest-Sign': base64.b64encode(str(hmac.new(base64.b64decode(self.secret), hash_data, hashlib.sha512).digest())),
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
         }
@@ -71,7 +73,7 @@ class PrivateMtGox(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
         try:
-            response = requests.post(url, data=params, headers=headers, timeout=5)
+            response = requests.post(self.base + path, data=params, headers=headers, timeout=5)
         except (requests.exceptions.Timeout, requests.exceptions.SSLError):
             print "Request timed out."
             self.error = "request timed out"
@@ -97,7 +99,7 @@ class PrivateMtGox(Market):
         response = self._send_request(self.buy_url, params)
         if response and 'error' not in response:
             self.price = str(price)
-            self.id = str(response['return'])
+            self.id = str(response['data'])
             self.timestamp = str(datetime.datetime.now())
             self.amount = amount
             return 1
@@ -116,9 +118,9 @@ class PrivateMtGox(Market):
         params = [('nonce', self._create_nonce())]
         response = self._send_request(self.info_url, params)
         if response and 'result' in response and response['result'] == 'success':
-            self.btc_balance = self._from_int_amount(int(response['return']['Wallets']['BTC']['Balance']['value_int']))
-            self.usd_balance = self._from_int_price(int(response['return']['Wallets']['USD']['Balance']['value_int']))
-            self.fee = float(response['return']['Trade_Fee'])
+            self.btc_balance = self._from_int_amount(int(response['data']['Wallets']['BTC']['Balance']['value_int']))
+            self.usd_balance = self._from_int_price(int(response['data']['Wallets']['USD']['Balance']['value_int']))
+            self.fee = float(response['data']['Trade_Fee'])
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
@@ -134,7 +136,7 @@ class PrivateMtGox(Market):
         response = self._send_request(self.tx_url, params)
         self.tx_list = []
         if response['result'] == 'success':
-            for transaction in response['return']['result']:
+            for transaction in response['data']['result']:
                 tx = {}
                 tx['type'] = transaction['Type']
                 tx['timestamp'] = self._format_time(transaction['Date'])
@@ -149,11 +151,11 @@ class PrivateMtGox(Market):
         params = [('nonce', self._create_nonce())]
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
-        if response and 'error' not in response and len(response['return']) == 0:
+        if response and 'error' not in response and len(response['data']) == 0:
             self.error = 'no open orders listed'
             return 1
         elif response and 'error' not in response:
-            for order in response['return']:
+            for order in response['data']:
                 o = {}
                 if order['type'] == 'ask':
                     o['type'] = 'sell'
@@ -217,7 +219,7 @@ class PrivateMtGox(Market):
         params = [('nonce', self._create_nonce())]
         response = self._send_request(self.deposit_url, params)
         if response and 'error' not in response:
-            self.address = response['return']['addr']
+            self.address = response['data']['addr']
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
@@ -228,7 +230,7 @@ class PrivateMtGox(Market):
         params = []
         response = self._send_request(self.lag_url, params)
         if response and 'error' not in response:
-            self.lag = response['return']['lag_text']
+            self.lag = response['data']['lag_text']
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
@@ -237,5 +239,3 @@ class PrivateMtGox(Market):
         
 if __name__ == '__main__':
     mtgox = PrivateMtGox()
-    mtgox.get_info()
-    print mtgox.usd_balance
