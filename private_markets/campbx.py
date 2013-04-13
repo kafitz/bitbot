@@ -60,7 +60,7 @@ class PrivateCampBX(Market):
             if response['Success'] == 0:
                 self.price = price
                 self.amount = amount
-                self.id = 1234
+                self.id = str(1234)
                 self.timestamp = self._format_time(time.time())
                 return 1
             # Order not filled immediately
