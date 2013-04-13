@@ -152,25 +152,9 @@ class TraderBot(Observer):
         end = time.time() - start
         print "TraderBot - execute trade: ", str(end)
 
-        class CommandInput(unicode): 
-            def __new__(cls, channel):
-                s = unicode.__new__(cls, channel)
-                s.sender = channel
-                s.nick = bitbot.nick
-                s.event = 'PRIVMSG'
-                s.bytes = '.deal'
-                s.match = None
-                s.group = None
-                s.groups = None
-                s.args = (channel, str(best_deal_index), deals)
-                s.admin = False
-                s.owner = False
-                return s
-
-        bitbot_output = CommandInput(channel)
 
         # Execute deals function with first (best) deal and pass along same deals list
-        control.deal(bitbot, bitbot_output, deals)
+        control.deal(bitbot, str(best_deal_index), deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \

@@ -8,12 +8,13 @@ import json
 import threading
 
 class Arbitrer(object):
-    def __init__(self):
+    def __init__(self, suppress_observers=False):
         self.markets = []
         self.observers = []
         self.depths = {}
         self.init_markets(config.markets)
-        self.init_observers(config.observers)
+        if not suppress_observers:
+            self.init_observers(config.observers)
         self.deals = []
 
     def init_markets(self, markets):

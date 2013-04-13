@@ -309,14 +309,17 @@ def deal(bitbot, input, deals=None):
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:
         arbitrer = bitbot.variables.get('arbitrer')
-        if not arbitrer:
-            bitbot.say('Setting up single-use instance...')
-            arbitrer = arbitrage.Arbitrer()
+        if arbitrer: # .arb is running and .deal is called manually
+            arbitrer.deals = []     # Clear out old deals
             arbitrer.get_arb(bitbot)
             deals = arbitrer.deals
-    elif deals:
+        else: # .arb is not running and .deal is called manually
+            bitbot.say('Setting up single-use instance...')
+            arbitrer = arbitrage.Arbitrer(suppress_observers=True)
+            arbitrer.get_arb(bitbot)
+            deals = arbitrer.deals
+    elif deals: # .arb is running and .deal is called by traderbot
         arbitrer = bitbot.variables.get('arbitrer')
-        input.sender = config.deal_output
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
 
     if deals == []:
