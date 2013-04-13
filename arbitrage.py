@@ -227,7 +227,7 @@ class Arbitrer(object):
                     weighted_sellprice, kbid, percent_profit, vwidth=longest_available_volume_int,
                     bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=4)
                 bitbot.msg(channel, line)
-            bitbot.msg(channel, '-----------------------------------------------------------------------------------------------')
+            bitbot.msg(channel, '--------------------------------------------------------------------------------------------')
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         for observer in self.observers:
