@@ -121,29 +121,28 @@ class TraderBot(Observer):
         try:
             buy_tradeable_amt = float(self.clients[buy_mkt].usd_balance) / ((1 + config.balance_margin) * buy_price)
             sell_tradeable_amt = float(self.clients[sell_mkt].btc_balance) / (1 + config.balance_margin)
+            if buy_tradeable_amt < config.trade_amount:
+                output = "#{0} insufficient balance (${1} USD) to execute trade at {2}".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
+                self.ignore_exchange.append(buy_mkt)
+                self.failed_outputs.append(output)
+                logging.warn(output)
+                best_deal_index += 1
+                self.execute_trade(bitbot, deals, best_deal_index)
+                return
+            if sell_tradeable_amt < config.trade_amount:
+                output = "#{0} insufficient balance ({1} BTC) to execute trade at {2}".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
+                self.ignore_exchange.append(sell_mkt)
+                self.failed_outputs.append(output)
+                logging.warn(output)
+                best_deal_index += 1
+                self.execute_trade(bitbot, deals, best_deal_index)
+                return
         except TypeError:
             # Couldnt update balance of buy or sell market so balance == None
             output = "#{0} timeout while updating balances".format(trade_attempt)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-        if buy_tradeable_amt < config.trade_amount:
-            output = "#{0} insufficient balance (${1} USD) to execute trade at {2}".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
-            self.ignore_exchange.append(buy_mkt)
-            self.failed_outputs.append(output)
-            logging.warn(output)
-            best_deal_index += 1
-            self.execute_trade(bitbot, deals, best_deal_index)
-            return
-        if sell_tradeable_amt < config.trade_amount:
-            output = "#{0} insufficient balance ({1} BTC) to execute trade at {2}".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
-            self.ignore_exchange.append(sell_mkt)
-            self.failed_outputs.append(output)
-            logging.warn(output)
-            best_deal_index += 1
-            self.execute_trade(bitbot, deals, best_deal_index)
-            return
-
 
         # test 5 - trade wait time
         current_time = time.time()
