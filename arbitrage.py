@@ -142,11 +142,11 @@ class Arbitrer(object):
                                 weighted_sellprice, available_volume, config.trade_amount)
         
         # Line to return to IRC
-        self.line_output = '${0:.2f} | {1:.2f} of {2:.2f} BTC for ${3:.2f} | {4:11} ${5:.3f} => ${6:.3f} {7:11} | {8:.2f}%'.format(\
-            profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
+        line_tuple = (profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
         deal = {'profit': profit, 'purchase_volume': purchase_volume, 'buy_market': kask, 'buy_price': weighted_buyprice, 'sell_market': kbid, \
             'sell_price': weighted_sellprice, 'percent_profit': percent_profit}
         self.deals.append(deal) 
+        return line_tuple
 
     def update_depths(self):
         depths = {}
@@ -193,7 +193,8 @@ class Arbitrer(object):
         for observer in self.observers:
             observer.begin_opportunity_finder(self.depths)
 
-        message_sent = False
+        line_tuples = []
+        volumes = []
         for kmarket1 in self.depths:
             for kmarket2 in self.depths:
                 if kmarket1 == kmarket2:  # same market
@@ -204,12 +205,20 @@ class Arbitrer(object):
                 # print 'Is ' + kmarket1 + ' at ' + str(market1['asks'][0]['price']) + ' less than ' + kmarket2 + ' at ' + str(market2['bids'][0]['price']) + '?'
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
-                        self.line_output = None
-                        self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
-                        if self.line_output and not deal_call:
-                            bitbot.msg(channel, self.line_output)
-                            message_sent = True
-        if message_sent and not deal_call:
+                        line_tuple = None
+                        line_tuple = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
+                        if line_tuple:
+                            line_tuples.append(line_tuple)
+                            volumes.append(len(str(line_tuple[2]))) # create a list of the lengths of the volumes strings to add the proper amount of whitespace in output
+
+        longest_available_volume_int = max(volumes)
+        if not deal_call and line_tuples != []:
+            for line_tuple in line_tuples:
+                profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit = line_tuple
+                avl_vol_whitespace = ' ' * (longest_available_volume_int - len(str(available_volume)))
+                line = '${0:.2f} | {1:.2f} of {2}{3:.2f} BTC for ${4:.2f} | {5:11} ${6:.3f} => ${7:.3f} {8:11} | {9:.2f}%'.format(\
+                    profit, purchase_volume, avl_vol_whitespace, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
+                bitbot.msg(channel, line)
             bitbot.msg(channel, '-------------------------------------------------------------------------------------------')
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
