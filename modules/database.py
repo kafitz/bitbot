@@ -27,11 +27,11 @@ def dbstats(bitbot, input):
                 d['time'] = datetime.datetime.strptime(d['timestring'], "%Y-%m-%d %H:%M:%S")
                 d['timedelta'] =datetime.datetime.utcnow() - d['time']
                 if d['timedelta'].days != 0:
-                    d['timedeltastring'] = str(d['timedelta'].days) + ' days, ' + str(d['timedelta'].seconds/3600) + ' hours'
+                    d['timedeltastring'] = str(d['timedelta'].days) + ' days ago'
                 elif d['timedelta'].seconds/3600 != 0:
-                    d['timedeltastring'] = str(d['timedelta'].seconds/3600) + ' hours'
+                    d['timedeltastring'] = str(d['timedelta'].seconds/3600) + ' hours ago'
                 elif d['timedelta'].seconds/60 != 0:
-                    d['timedeltastring'] = str(d['timedelta'].seconds/60) + ' minutes'
+                    d['timedeltastring'] = str(d['timedelta'].seconds/60) + ' minutes ago'
                 else:
                     d['timedeltastring'] = 'just now'
                     print d['timedelta'].seconds
