@@ -49,6 +49,7 @@ def which(input,commands):
     else:
         markets = [ input.split(' ', 1)[1] ]
     return markets
+    
 def start_arbitrage(bitbot, input):
     if bitbot.variables.get('arb') is True:
         bitbot.say('arb > already running')
@@ -303,8 +304,8 @@ lag.commands = ['lag']
 lag.name = 'lag'
 
 def deal(bitbot, input, deals=None):
+    verify = {}
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
-
     if not deals:
         arbitrer = bitbot.variables.get('arbitrer')
         if not arbitrer:
@@ -318,26 +319,38 @@ def deal(bitbot, input, deals=None):
     if deals == []:
         irc(bitbot,'deal > error: no deals possible at this time')  
         return
-
+    
     deal_index = 1
     for deal in deals:
         deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
             deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
+        deal['index'] = deal_index
+        verify[deal_index] = [deal['buy_market'],deal['sell_market']]
         irc(bitbot,deal_output)
         deal_index += 1
     
     # Proceed if a deal is specified 
     parameters = input.split(' ')[1:]
     if len(parameters) != 1:
-        irc(bitbot,'deal > error: specify deal number')
+        irc(bitbot,'deal > usage: .deal #')
+        bitbot.variables['verify'] = verify # Save the deals in a bot variable
         return 
     else:       
         i = int(parameters[0]) - 1 
+        
+    verify = bitbot.variables['verify'] # Load the deals from a previous deal command
     
     # Formatting variables
+    if verify[i+1][0] != deals[i]['buy_market'] \
+        or verify[i+1][1] != deals[i]['sell_market']:
+        irc(bitbot,'deal > error: deal changed')
+        return
+    
+    irc(bitbot,'deal > verified')
     buy_market = names[deals[i]['buy_market'][:-3].lower()]
     sell_market = names[deals[i]['sell_market'][:-3].lower()]
     
+    return
     volume = round(float(deals[i]['purchase_volume']),3)
     buy_price = round(float(deals[i]['buy_price']),2)
     buy_volume = round(volume*buy_price,2)
