@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 from market import Market
 
@@ -10,9 +10,12 @@ class Bitcoin24EUR(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('https://bitcoin-24.com/api/EUR/orderbook.json')
-            depth = json.loads(res.read())
+            response = requests.get('https://bitcoin-24.com/api/EUR/orderbook.json', timeout=config.request_timeout)
+            depth = json.loads(response.text)
             self.depth = self.format_depth(depth)
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("Bitcoin24EUR - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("Bitcoin24EUR - depth data fetch error.")

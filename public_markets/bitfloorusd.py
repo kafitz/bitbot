@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 import logging
 from market import Market
@@ -12,11 +12,14 @@ class BitfloorUSD(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('https://api.bitfloor.com/book/L2/1')
-            jsonstr = res.read()
-            depth = json.loads(jsonstr)
+            response = requests.get('https://api.bitfloor.com/book/L2/1', timeout=self.request_timeout)
+            depth = json.loads(response.text)
             self.depth = self.format_depth(depth)
-        except:
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitfloorUSD - request timed out.")
+        except Exception, e:
+            print e
             self.depth = {'asks': [], 'bids': []}
             logging.error("BitfloorUSD - depth data fetch error.")
 

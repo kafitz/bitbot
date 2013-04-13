@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 import logging
 from market import Market
@@ -12,13 +12,15 @@ class MtGoxEUR(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('http://data.mtgox.com/api/1/BTCEUR/depth/fetch')
-            jsonstr = res.read()
-            data = json.loads(jsonstr)
+            response = requests.get('http://data.mtgox.com/api/1/BTCEUR/depth/fetch', timeout=self.request_timeout)
+            data = json.loads(response.text)
             self.depth = self.format_depth(data["return"])
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("MtGoxEUR - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
-            logging.error("BitstampEUR - depth data fetch error.")
+            logging.error("MtGoxEUR - depth data fetch error.")
 
     def sort_and_format(self, l, reverse=False):
         # sort list: for each dict in input list, get price key and sort by that

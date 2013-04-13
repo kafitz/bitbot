@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 import logging
 from market import Market
@@ -15,10 +15,12 @@ class CampBXUSD(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('http://campbx.com/api/xdepth.php')
-            jsonstr = res.read()
-            data = json.loads(jsonstr)
-            self.depth = self.format_depth(data)
+            response = requests.get('http://campbx.com/api/xdepth.php', timeout=self.request_timeout)
+            depth = json.loads(response.text)
+            self.depth = self.format_depth(depth)
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("CampBXUSD - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("CampBXUSD - depth data fetch error.")

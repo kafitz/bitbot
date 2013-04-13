@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 from market import Market
 
@@ -12,9 +12,12 @@ class BitcoinCentralEUR(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('https://bitcoin-central.net/api/v1/depth?currency=EUR')
-            depth = json.loads(res.read())
-            self.depth = self.format_depth(depth)
+            response = requests.get('https://bitcoin-central.net/api/v1/depth?currency=EUR', timeout=config.request_timeout)
+            depth = json.loads(response.text)
+            self.depth = self.format_depth(data)
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitcoinCentralEUR - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("BitcoinCentralEUR - depth data fetch error.")

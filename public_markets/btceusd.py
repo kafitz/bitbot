@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 from market import Market
 
@@ -14,9 +14,12 @@ class BtceUSD(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('https://btc-e.com/api/2/btc_usd/depth')
-            depth = json.loads(res.read())
+            response = requests.get('https://btc-e.com/api/2/btc_usd/depth', timeout=self.request_timeout)
+            depth = json.loads(response.text)
             self.depth = self.format_depth(depth)
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BtceUSD - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("BtceUSD - depth data fetch error.")

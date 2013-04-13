@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 import logging
 from market import Market
@@ -14,10 +14,12 @@ class VircurexUSD(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('https://vircurex.com/api/orderbook.json?base=BTC&alt=USD')
-            jsonstr = res.read()
-            data = json.loads(jsonstr)
+            response = requests.get('https://vircurex.com/api/orderbook.json?base=BTC&alt=USD', timeout=self.request_timeout)
+            data = json.loads(response.text)
             self.depth = self.format_depth(data)
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("VircurexUSD - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("VircurexUSD - depth data fetch error.")

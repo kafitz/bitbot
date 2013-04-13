@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 import sys
 from market import Market
@@ -13,11 +13,14 @@ class BitstampEUR(Market):
 
     def update_depth(self):
         try:
-            res = urllib2.urlopen('https://www.bitstamp.net/api/eur_usd/')
-            self.eurusd = json.loads(res.read())
-            res = urllib2.urlopen('https://www.bitstamp.net/api/order_book/')
-            depth = json.loads(res.read())
-            self.depth = self.format_depth(depth)
+            response = requests.get('https://www.bitstamp.net/api/eur_usd/', timeout=self.request_timeout)
+            self.eurusd = json.loads(response.text)
+            response = urllib2.urlopen('https://www.bitstamp.net/api/order_book/')
+            depth = json.loads(response.text)
+            self.depth = self.format_depth(response.text)
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("BitstampEUR - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("BitstampEUR - depth data fetch error.")

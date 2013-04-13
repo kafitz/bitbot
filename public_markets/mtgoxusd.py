@@ -1,4 +1,4 @@
-import urllib2
+import requests
 import json
 import logging
 from market import Market
@@ -16,10 +16,12 @@ class MtGoxUSD(Market):
         data = {}
         data["result"] = None
         try:
-            res = urllib2.urlopen('http://data.mtgox.com/api/1/BTCUSD/depth/fetch')
-            jsonstr = res.read()
-            data = json.loads(jsonstr) 
+            response = requests.get('http://data.mtgox.com/api/1/BTCUSD/depth/fetch', timeout=self.request_timeout)
+            data = json.loads(response.text) 
             self.depth = self.format_depth(data["return"])
+        except requests.exceptions.Timeout:
+            self.depth = {'asks': [], 'bids': []}
+            logging.error("MtGoxUSD - request timed out.")
         except:
             self.depth = {'asks': [], 'bids': []}
             logging.error("MtGoxUSD - depth data fetch error.")
