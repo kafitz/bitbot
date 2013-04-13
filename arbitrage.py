@@ -216,8 +216,8 @@ class Arbitrer(object):
                             sell_prices.append(len(str(round((line_tuple[6]), 3))))
                                                                     
         longest_available_volume_int = max(volumes) + 1
-        longest_buy_price_int = max(buy_prices) + 1
-        longest_sell_price_int = max(sell_prices) + 1
+        longest_buy_price_int = max(buy_prices)
+        longest_sell_price_int = max(sell_prices)
         if not deal_call and line_tuples != []:
             for line_tuple in line_tuples:
                 profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
@@ -225,7 +225,7 @@ class Arbitrer(object):
                 line = '${0:.2f} | {1:.2f} of {2:' '{vwidth}.2f} BTC for ${3:.2f} | {4:11} ${5:' '{bwidth}.3f} => ${6:' '{swidth}.3f} {7:11} | {8:' '{pwidth}.2f}%'.format(\
                     profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,
                     weighted_sellprice, kbid, percent_profit, vwidth=longest_available_volume_int,
-                    bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=5)
+                    bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=4)
                 bitbot.msg(channel, line)
             bitbot.msg(channel, '-----------------------------------------------------------------------------------------------')
 
