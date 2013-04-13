@@ -312,9 +312,10 @@ def deal(bitbot, input, deals=None):
             bitbot.say('Setting up single-use instance...')
             arbitrer = arbitrage.Arbitrer()
             arbitrer.get_arb(bitbot)
+            deals = arbitrer.deals
+    elif deals:
+        arbitrer = bitbot.variables.get('arbitrer')
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
-    
-    deals = arbitrer.deals
 
     if deals == []:
         irc(bitbot,'deal > error: no deals possible at this time')  
