@@ -157,23 +157,21 @@ class TraderBot(Observer):
             
         # Emulate input from IRC so bitbot.say continues to work in control.py
         class CommandInput(unicode):
-            def __new__(cls, channel, best_deal_index): 
-                s = unicode.__new__(cls, best_deal_index)
+            def __new__(cls, channel, deal_index): 
+                s = unicode.__new__(cls, deal_index)
                 s.sender = channel
                 s.nick = bitbot.nick
                 s.event = 'PRIVMSG'
-                s.bytes = '.deal ' + best_deal_index
+                s.bytes = deal_index
                 s.match = None
                 s.group = None
                 s.groups = None
-                s.args = (channel, best_deal_index)
+                s.args = (channel, deal_index)
                 s.admin = False
                 s.owner = False
                 return s
-        deal_index = ".deal " + str(best_deal_index)
+        deal_index = '.deal ' + str(best_deal_index + 1) # +1 to account for index handling in .deal function
         fake_irc_input = CommandInput(channel, deal_index)
-
-        print deals
 
         # Execute deals function with first (best) deal and pass along same deals list
         control.deal(bitbot, fake_irc_input, deals)
