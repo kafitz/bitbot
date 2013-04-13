@@ -291,7 +291,7 @@ def lag(bitbot, input, output=True):
     for market in markets:
         error, market_obj = load(market)                            # load the correct market object
         if error == 0:                                              # market was loaded without errors
-            market_obj.get_lag()                     # execute the relevant function          
+            market_obj.get_lag()                                    # execute the relevant function          
         elif error == 1:                                            # an error occured
             irc(bitbot,'lag > ' + market + ' > ' + market_obj)
             return 1
@@ -304,12 +304,16 @@ lag.commands = ['lag']
 lag.name = 'lag'
 
 def deal(bitbot, input, deals=None):
-    print input
     verify = {}
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:
         arbitrer = bitbot.variables.get('arbitrer')
+        deal_index = 1
         if arbitrer: # .arb is running and .deal is called manually
+            for deal in arbitrer.deals:
+                deal['index'] = deal_index
+                verify[deal_index] = [deal['buy_market'], deal['sell_market']]
+                deal_index += 1
             arbitrer.deals = []     # Clear out old deals
             arbitrer.get_arb(bitbot)
             deals = arbitrer.deals
@@ -318,6 +322,13 @@ def deal(bitbot, input, deals=None):
             arbitrer = arbitrage.Arbitrer(suppress_observers=True)
             arbitrer.get_arb(bitbot)
             deals = arbitrer.deals
+            for deal in deals:
+                deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
+                    deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
+                deal['index'] = deal_index
+                verify[deal_index] = [deal['buy_market'], deal['sell_market']]
+                irc(bitbot, deal_output)
+                deal_index += 1
     elif deals: # .arb is running and .deal is called by traderbot
         arbitrer = bitbot.variables.get('arbitrer')
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
@@ -325,15 +336,6 @@ def deal(bitbot, input, deals=None):
     if deals == []:
         irc(bitbot,'deal > error: no deals possible at this time')  
         return
-    
-    deal_index = 1
-    for deal in deals:
-        deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
-            deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
-        deal['index'] = deal_index
-        verify[deal_index] = [deal['buy_market'],deal['sell_market']]
-        irc(bitbot,deal_output)
-        deal_index += 1
     
     # Proceed if a deal is specified 
     parameters = input.split(' ')[1:]
@@ -343,14 +345,14 @@ def deal(bitbot, input, deals=None):
         return
     else:       
         i = int(parameters[0]) - 1 
-        
-    verify = bitbot.variables['verify'] # Load the deals from a previous deal command
     
     # Formatting variables
-    if verify[i+1][0] != deals[i]['buy_market'] \
-        or verify[i+1][1] != deals[i]['sell_market']:
-        irc(bitbot,'deal > error: deal changed')
-        return
+    verify = bitbot.variables.get('verify') # Load the deals from a previous deal command
+    if verify:
+        if verify[i+1][0] != deals[i]['buy_market'] \
+            or verify[i+1][1] != deals[i]['sell_market']:
+            irc(bitbot,'deal > error: deal changed')
+            return
     
     irc(bitbot,'deal > verified')
     buy_market = names[deals[i]['buy_market'][:-3].lower()]
