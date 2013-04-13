@@ -193,33 +193,41 @@ class Arbitrer(object):
         for observer in self.observers:
             observer.begin_opportunity_finder(self.depths)
 
+        # Lists for output string formatting
         line_tuples = []
         volumes = []
+        buy_prices = []
+        sell_prices = []
+
         for kmarket1 in self.depths:
             for kmarket2 in self.depths:
                 if kmarket1 == kmarket2:  # same market
                     continue
                 market1 = self.depths[kmarket1]
                 market2 = self.depths[kmarket2]
-                # spammy debug command for testing if there is no market liquidity
-                # print 'Is ' + kmarket1 + ' at ' + str(market1['asks'][0]['price']) + ' less than ' + kmarket2 + ' at ' + str(market2['bids'][0]['price']) + '?'
                 if len(market1['asks']) > 0 and len(market2['bids']) > 0:
                     if float(market1['asks'][0]['price']) < float(market2['bids'][0]['price']):
                         line_tuple = None
                         line_tuple = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         if line_tuple:
                             line_tuples.append(line_tuple)
-                            volumes.append(len(str(line_tuple[2]))) # create a list of the lengths of the volumes strings to add the proper amount of whitespace in output
-
-        longest_available_volume_int = max(volumes)
+                            volumes.append(len(str(line_tuple[2])))                 # create a list of the lengths of the volumes strings to
+                            buy_prices.append(len(str(round((line_tuple[6]), 3))))  # add the proper amount of whitespace in output
+                            sell_prices.append(len(str(round((line_tuple[6]), 3))))
+                                                                    
+        longest_available_volume_int = max(volumes) + 1
+        longest_buy_price_int = max(buy_prices) + 1
+        longest_sell_price_int = max(sell_prices) + 1
         if not deal_call and line_tuples != []:
             for line_tuple in line_tuples:
-                profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit = line_tuple
-                avl_vol_whitespace = ' ' * (longest_available_volume_int - len(str(available_volume)))
-                line = '${0:.2f} | {1:.2f} of {2}{3:.2f} BTC for ${4:.2f} | {5:11} ${6:.3f} => ${7:.3f} {8:11} | {9:.2f}%'.format(\
-                    profit, purchase_volume, avl_vol_whitespace, available_volume, buy_total, kask, weighted_buyprice, weighted_sellprice, kbid, percent_profit)
+                profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
+                    weighted_sellprice, kbid, percent_profit = line_tuple
+                line = '${0:.2f} | {1:.2f} of {2:' '{vwidth}.2f} BTC for ${3:.2f} | {4:11} ${5:' '{bwidth}.3f} => ${6:' '{swidth}.3f} {7:11} | {8:' '{pwidth}.2f}%'.format(\
+                    profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,
+                    weighted_sellprice, kbid, percent_profit, vwidth=longest_available_volume_int,
+                    bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=5)
                 bitbot.msg(channel, line)
-            bitbot.msg(channel, '-------------------------------------------------------------------------------------------')
+            bitbot.msg(channel, '-----------------------------------------------------------------------------------------------')
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         for observer in self.observers:
