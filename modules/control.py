@@ -20,6 +20,7 @@ lag             ->  get lag from trade engine
 
 import threading
 from decimal import Decimal
+from collections import OrderedDict
 import arbitrage          # arbitrage script
 import config             # read the config file
 import private_markets    # load private APIs
@@ -67,16 +68,15 @@ def which(input,commands):
 def balance(bitbot, input, output=True):
     markets = which(input, balance.commands) 
     irc(bitbot, 'bal > Getting balance from ' + ', '.join(markets) + ':', output)  
-    
     def update_info():
         market_obj.get_info()
 
     threads = []
-    market_instances = []
+    market_instances = OrderedDict()
     for market in markets:
         error, market_obj = load(market)                                # load the correct market object        
         if error == 0:                                                  # market was loaded without errors
-            market_instances.append(market_obj)
+            market_instances[market] = market_obj
             thread = threading.Thread(target=update_info)
             thread.start()
             threads.append(thread)
@@ -85,10 +85,15 @@ def balance(bitbot, input, output=True):
             return 0
     for thread in threads:
         thread.join()
-    for market_obj in market_instances:
+    for market, market_obj in market_instances.items():
+        try:
+            usd = market_obj.usd_balance
+            btc = market_obj.btc_balance
+        except AttributeError:
+            market.error = 'update failed'
         if market_obj.error == '':
-            usd = float(market_obj.usd_balance)
-            btc = float(market_obj.btc_balance)
+            usd = float(usd)
+            btc = float(btc)
             irc(bitbot,'bal > ' + market + ' > USD: {0:7} | BTC: {1:7} | Fee: {2}' \
                 .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)))
             if not output:
