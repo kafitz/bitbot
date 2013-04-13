@@ -1,4 +1,5 @@
 from market import Market
+import time
 import datetime
 import sys
 import json
@@ -53,12 +54,22 @@ class PrivateCampBX(Market):
                   'TradeMode' : str(trademode),
                   'Price': price}
         response = self._send_request(self.trade_url, params)
-        if response and 'Error' not in response:
-            self.price = str(response['price'])
-            self.id = str(response['id'])
-            self.timestamp = str(response['datetime'])
-            self.amount = str(response['amount'])
-            return 1
+        print response
+        if response and 'Success' in response:
+            # Market order filled
+            if response['Success'] == 0:
+                self.price = price
+                self.amount = amount
+                self.id = 1234
+                self.timestamp = self._format_time(time.time())
+                return 1
+            # Order not filled immediately
+            else:
+                self.price = price
+                self.amount = amount
+                self.id = response['Success']
+                self.timestamp = self._format_time(time.time())
+                return 1
         elif response and 'Error' in response:
             self.error = str(response['Error'])
             return 1
