@@ -64,7 +64,7 @@ class TraderBot(Observer):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
         else:
-            bitbot.msg(channel, 'No trade available: '+', '.join(self.failed_outputs))
+            bitbot.msg(channel, 'No trades available - '+', '.join(self.failed_outputs))
             return
         profit = best_deal['profit']
         volume = best_deal['purchase_volume']
@@ -78,39 +78,41 @@ class TraderBot(Observer):
         if buy_mkt in self.ignore_exchange or sell_mkt in self.ignore_exchange:
             # Already notified console & irc of failed balance check,
             # this just returns and tries again until another exchange is found
-            ignored_exchanges = []
             if buy_mkt in self.ignore_exchange:
-                ignored_exchanges.append(buy_mkt)
+                ignored_exchange = buy_mkt
             if sell_mkt in self.ignore_exchange:
-                ignored_exchanges.append(sell_mkt)
-            ignore_str = ', '.join(ignored_exchanges)
-            output = "#{0} deal skipped because exchanges ignored: {1}".format(trade_attempt, ignore_str)
+                ignored_exchange = sell_mkt
+            output = "#{0} deal skipped because {1} exchange ignored".format(trade_attempt, ignored_exchange)
             self.failed_outputs.append(output)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 1
         if buy_mkt not in self.clients:
-            output = "#{0} can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
+            output = "#{0} {1} client not available".format(trade_attempt, buy_mkt)
             logging.warn(output)
             self.failed_outputs.append(output)
+            self.ignore_exchange.append(buy_mkt)
             # If market not available, try with next best deal
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 2
         if sell_mkt not in self.clients:
-            output = "#{0} can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
+            output = "#{0} {1} client not available".format(trade_attempt, sell_mkt)
             logging.warn(output)
             self.failed_outputs.append(output)
+            self.ignore_exchange.append(sell_mkt)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 3
         if percent_profit < config.profit_thresh:
-            output = "#{0} can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
+            output = "#{0} minimum percent profit ({4:.2f}%) between {1} and {2} not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
             self.failed_outputs.append(output)
+            best_deal_index += 1
+            self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 4 - check account balances
         self.update_balance(buy_mkt, sell_mkt)
@@ -126,13 +128,11 @@ class TraderBot(Observer):
             return
         try:
             if buy_tradeable_amt < config.trade_amount:
-                output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
-                    " USD balance: " + str(self.clients[buy_mkt].usd_balance)
+                output = "#{0} insufficient balance (${1} USD) to execute trade at {2}".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
                 self.ignore_exchange.append(buy_mkt)
             elif sell_tradeable_amt < config.trade_amount:
-                output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
-                    " USD balance: " + str(self.clients[buy_mkt].usd_balance)
-                self.ignore_exchange.append(buy_mkt)
+                output = "#{0} insufficient balance ({1} BTC) to execute trade at {2}".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
+                self.ignore_exchange.append(sell_mkt)
             self.failed_outputs.append(output)
             logging.warn(output)
             best_deal_index += 1
@@ -141,11 +141,10 @@ class TraderBot(Observer):
         except:
             pass
 
-
         # test 5 - trade wait time
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
-            output = "#{0} can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
+            output = "#{0} last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
             logging.warn(output)
             bitbot.msg(channel, output)
             return
@@ -153,12 +152,30 @@ class TraderBot(Observer):
         end = time.time() - start
         print "TraderBot - execute trade: ", str(end)
 
+        class CommandInput(unicode): 
+            def __new__(cls, channel):
+                s = unicode.__new__(cls, channel)
+                s.sender = channel
+                s.nick = bitbot.nick
+                s.event = 'PRIVMSG'
+                s.bytes = '.deal'
+                s.match = None
+                s.group = None
+                s.groups = None
+                s.args = (channel, str(best_deal_index), deals)
+                s.admin = False
+                s.owner = False
+                return s
+
+        bitbot_output = CommandInput(channel)
+
         # Execute deals function with first (best) deal and pass along same deals list
-        control.deal(bitbot, best_deal_index, deals)
+        control.deal(bitbot, bitbot_output, deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
             " for $" + str(buy_price) + ", sold at " + sell_mkt + " for $" + str(sell_price) + ". Profit of $" + str(profit)
         logging.info(output)
         bitbot.msg(channel, output)
-        bitbot.msg('#merlin', 'O Dear Leaders kafitz & baspt, a trade has been executed!')
+        self.last_trade = time.time()
+        # bitbot.msg('#merlin', 'O Dear Leaders kafitz & baspt, a trade has been executed!')

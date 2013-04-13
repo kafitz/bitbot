@@ -304,6 +304,7 @@ lag.commands = ['lag']
 lag.name = 'lag'
 
 def deal(bitbot, input, deals=None):
+    print input
     verify = {}
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:
@@ -315,6 +316,7 @@ def deal(bitbot, input, deals=None):
             deals = arbitrer.deals
     elif deals:
         arbitrer = bitbot.variables.get('arbitrer')
+        input.sender = config.deal_output
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
 
     if deals == []:
@@ -335,7 +337,7 @@ def deal(bitbot, input, deals=None):
     if len(parameters) != 1:
         irc(bitbot,'deal > usage: .deal #')
         bitbot.variables['verify'] = verify # Save the deals in a bot variable
-        return 
+        return
     else:       
         i = int(parameters[0]) - 1 
         
