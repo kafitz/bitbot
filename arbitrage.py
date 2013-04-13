@@ -5,7 +5,7 @@ import time
 import datetime
 import logging
 import json
-
+import threading
 
 class Arbitrer(object):
     def __init__(self):
@@ -151,8 +151,20 @@ class Arbitrer(object):
     def update_depths(self):
         depths = {}
         fees = {}
-        for market in self.markets:
+        threads = []
+        def scrape(market):
+            start = time.time()
             depths[market.name] = market.get_depth()
+            update = str(time.time() - start)
+            print market.name + " update time: " + update
+
+        for market in self.markets:
+            thread = threading.Thread(target=scrape, args=(market,))
+            thread.start()
+            threads.append(thread)
+        for thread in threads:
+            thread.join()
+        for market in self.markets:
             fees[market.name] = market.fees
         return depths, fees
 
