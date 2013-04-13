@@ -35,7 +35,8 @@ def start_arbitrage(bitbot, input):
     else:
         bitbot.variables['arb'] = True
         irc(bitbot,'arb > starting up...')
-        arbitrer = arbitrage.Arbitrer()
+        bitbot.variables['arbitrer'] = arbitrage.Arbitrer()
+        arbitrer = bitbot.variables['arbitrer']
         while True:
             arbitrer.loop(bitbot)
         bitbot.say('Arbitrage quitting...')
@@ -287,7 +288,10 @@ lag.name = 'lag'
 def deal(bitbot, input, deals=None):
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:
-        arbitrer = arbitrage.Arbitrer()
+        arbitrer = bitbot.variables.get('arbitrer')
+        if not arbitrer:
+            bitbot.say('Setting up single-use instance...')
+            arbitrer = arbitrage.Arbitrer()   
         deals = arbitrer.get_arb(bitbot)
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     
