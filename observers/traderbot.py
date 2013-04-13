@@ -84,40 +84,33 @@ class TraderBot(Observer):
             if sell_mkt in self.ignore_exchange:
                 ignored_exchanges.append(sell_mkt)
             ignore_str = ', '.join(ignored_exchanges)
-            output = "#{0} - deal skipped because exchanges ignored: {1}".format(trade_attempt, ignore_str)
+            output = "#{0} deal skipped because exchanges ignored: {1}".format(trade_attempt, ignore_str)
             self.failed_outputs.append(output)
-            print output
-            print self.failed_outputs
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 1
         if buy_mkt not in self.clients:
-            output = "#{0}: can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
+            output = "#{0} can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
             logging.warn(output)
             self.failed_outputs.append(output)
-            print output
-            print self.failed_outputs
             # If market not available, try with next best deal
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 2
         if sell_mkt not in self.clients:
-            output = "#{0}: can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
+            output = "#{0} can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
             logging.warn(output)
             self.failed_outputs.append(output)
-            print output
-            print self.failed_outputs
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 3
         if percent_profit < config.profit_thresh:
-            output = "#{0}: can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
+            output = "#{0} can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
             self.failed_outputs.append(output)
-            print self.failed_outputs
             return
         # test 4 - check account balances
         self.update_balance(buy_mkt, sell_mkt)
@@ -132,11 +125,11 @@ class TraderBot(Observer):
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         if buy_tradeable_amt < config.trade_amount:
-            output = "#" + str(trade_attempt) + ": insufficient balance to execute trade at " + buy_mkt +\
+            output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance)
             self.ignore_exchange.append(buy_mkt)
         elif sell_tradeable_amt < config.trade_amount:
-            output = "#" + str(trade_attempt) + ": insufficient balance to execute trade at " + buy_mkt +\
+            output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
                 " USD balance: " + str(self.clients[buy_mkt].usd_balance)
             self.ignore_exchange.append(buy_mkt)
         self.failed_outputs.append(output)
@@ -148,7 +141,7 @@ class TraderBot(Observer):
         # test 5 - trade wait time
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
-            output = "#{0}: can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
+            output = "#{0} can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
             logging.warn(output)
             bitbot.msg(channel, output)
             return
