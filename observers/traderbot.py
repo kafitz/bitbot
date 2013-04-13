@@ -119,6 +119,9 @@ class TraderBot(Observer):
         # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
         # whichever is lowest
         try:
+            print self.clients[buy_mkt].usd_balance
+            print self.clients[sell_mkt].btc_balance
+            print config.trade_amount
             buy_tradeable_amt = float(self.clients[buy_mkt].usd_balance) / ((1 + config.balance_margin) * buy_price)
             sell_tradeable_amt = float(self.clients[sell_mkt].btc_balance) / (1 + config.balance_margin)
             if buy_tradeable_amt < config.trade_amount:
