@@ -215,10 +215,10 @@ class Arbitrer(object):
                             buy_prices.append(len(str(round((line_tuple[6]), 3))))  # add the proper amount of whitespace in output
                             sell_prices.append(len(str(round((line_tuple[6]), 3))))
                                                                     
-        longest_available_volume_int = max(volumes) + 1
-        longest_buy_price_int = max(buy_prices)
-        longest_sell_price_int = max(sell_prices)
         if not deal_call and line_tuples != []:
+            longest_available_volume_int = max(volumes) + 1
+            longest_buy_price_int = max(buy_prices)
+            longest_sell_price_int = max(sell_prices)
             for line_tuple in line_tuples:
                 profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
                     weighted_sellprice, kbid, percent_profit = line_tuple
