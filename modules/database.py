@@ -40,7 +40,7 @@ def dbstats(bitbot, input):
            .format('buy','sell','#','avg $', 'avg %', 'happened for the last time'))
     for d in l:
         if d['deals'] != 0:
-            bitbot.say('{0:8} => {1:8} | {2:4} | {3:6} | {4:6} | {5} ago'\
+            bitbot.say('{0:8} => {1:8} | {2:4} | {3:6} | {4:6} | {5}'\
                    .format(d['buy market'][:-3],d['sell market'][:-3],d['deals'],
                            str(round(d['avg profit'],3)),str(round(d['avg ratio'],3)),d['timedeltastring']))
     return
