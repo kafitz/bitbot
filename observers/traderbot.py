@@ -37,6 +37,7 @@ class TraderBot(Observer):
         # List of exchanges that will be ignored during a deal iteration if the exchange
         # is found not to have enough balance
         self.ignore_exchange = []
+        self.failed_outputs = []
 
     def end_opportunity_finder(self, bitbot, deals=None):
         if not deals:
@@ -45,11 +46,6 @@ class TraderBot(Observer):
         deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         # Execute only the best arb opportunity
         self.execute_trade(bitbot, deals)
-
-    def get_tradeable_volume(self, buyprice, usd_bal, btc_bal):
-        min1 = float(usd_bal) / ((1 + config.balance_margin) * buyprice)
-        min2 = float(btc_bal) / (1 + config.balance_margin)
-        return min(min1, min2)
 
     def update_balance(self, buy_market, sell_market):
         self.clients[buy_market].get_info()
@@ -61,12 +57,14 @@ class TraderBot(Observer):
 
 
     def execute_trade(self, bitbot, deals, best_deal_index=0):
+        channel = config.deal_output # set output irc channel
         start = time.time()
         # Set variables from first deal in sorted list
         if best_deal_index < len(deals):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
         else:
+            bitbot.msg(channel, 'No trade available: '+', '.join(self.failed_outputs))
             return
         profit = best_deal['profit']
         volume = best_deal['purchase_volume']
@@ -75,58 +73,82 @@ class TraderBot(Observer):
         buy_price = best_deal['buy_price']
         sell_price = best_deal['sell_price']
         percent_profit = best_deal['percent_profit']
-        channel = config.deal_output # set output irc channel
 
         # test 3b
         if buy_mkt in self.ignore_exchange or sell_mkt in self.ignore_exchange:
             # Already notified console & irc of failed balance check,
             # this just returns and tries again until another exchange is found
+            ignored_exchanges = []
+            if buy_mkt in self.ignore_exchange:
+                ignored_exchanges.append(buy_mkt)
+            if sell_mkt in self.ignore_exchange:
+                ignored_exchanges.append(sell_mkt)
+            ignore_str = ', '.join(ignored_exchanges)
+            output = "#{0} - deal skipped because exchanges ignored: {1}".format(trade_attempt, ignore_str)
+            self.failed_outputs.append(output)
+            print output
+            print self.failed_outputs
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
+            return
         # test 1
         if buy_mkt not in self.clients:
-            output = "Attempt {0}: can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
+            output = "#{0}: can't automate this trade, client not available: {1}".format(trade_attempt, buy_mkt)
             logging.warn(output)
-            # bitbot.msg(channel, output)
+            self.failed_outputs.append(output)
+            print output
+            print self.failed_outputs
             # If market not available, try with next best deal
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 2
         if sell_mkt not in self.clients:
-            output = "Attempt {0}: can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
+            output = "#{0}: can't automate this trade, client not available: {1}".format(trade_attempt, sell_mkt)
             logging.warn(output)
-            # bitbot.msg(channel, output)
+            self.failed_outputs.append(output)
+            print output
+            print self.failed_outputs
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 3
         if percent_profit < config.profit_thresh:
-            output = "Attempt {0}: can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
+            output = "#{0}: can't automate trade between {1} and {2}, minimum percent profit ({4:.2f}%) not reached: {3:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
-            # bitbot.msg(channel, output)
+            self.failed_outputs.append(output)
+            print self.failed_outputs
             return
+        # test 4 - check account balances
         self.update_balance(buy_mkt, sell_mkt)
         # Get the max amount of BTC the USD at buy_mkt can purchase or the amount of BTC at the sell_mkt,
         # whichever is lowest
         try:
-            trade_amount = self.get_tradeable_volume(buy_price, self.clients[buy_mkt].usd_balance,
-                                           self.clients[sell_mkt].btc_balance)
+            buy_tradeable_amt = float(self.clients[buy_mkt].usd_balance) / ((1 + config.balance_margin) * buy_price)
+            sell_tradeable_amt = float(self.clients[sell_mkt].btc_balance) / (1 + config.balance_margin)
         except TypeError:
             # Couldnt update balance of buy or sell market so balance == None
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-        if trade_amount < config.trade_amount:
-            output = "Attempt " + str(trade_attempt) + ": insufficient balance to execute trade: " + buy_mkt +\
-                " USD balance: " + str(self.clients[buy_mkt].usd_balance) + ", " +\
-                sell_mkt + " BTC balance: " + str(self.clients[sell_mkt].btc_balance)
-            logging.warn(output)
-            bitbot.msg(channel, output)
-            return
+        if buy_tradeable_amt < config.trade_amount:
+            output = "#" + str(trade_attempt) + ": insufficient balance to execute trade at " + buy_mkt +\
+                " USD balance: " + str(self.clients[buy_mkt].usd_balance)
+            self.ignore_exchange.append(buy_mkt)
+        elif sell_tradeable_amt < config.trade_amount:
+            output = "#" + str(trade_attempt) + ": insufficient balance to execute trade at " + buy_mkt +\
+                " USD balance: " + str(self.clients[buy_mkt].usd_balance)
+            self.ignore_exchange.append(buy_mkt)
+        self.failed_outputs.append(output)
+        logging.warn(output)
+        best_deal_index += 1
+        self.execute_trade(bitbot, deals, best_deal_index)
+        return
+
+        # test 5 - trade wait time
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
-            output = "Attempt {0}: can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
+            output = "#{0}: can't automate this trade, last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
             logging.warn(output)
             bitbot.msg(channel, output)
             return
