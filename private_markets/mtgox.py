@@ -60,7 +60,7 @@ class PrivateMtGox(Market):
     def _format_time(self,timestamp):
         return datetime.datetime.fromtimestamp(float(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
 
-    def _send_request(self, path, params, extra_headers=None):
+    def _send_request(self, path, params, verify=True, extra_headers=None):
         hash_data = path + chr(0) + urllib.urlencode(params)
         headers = {
             'Content-type': 'application/x-www-form-urlencoded',
@@ -73,7 +73,7 @@ class PrivateMtGox(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
         try:
-            response = requests.post(self.base + path, data=params, headers=headers, timeout=5)
+            response = requests.post(self.base + path, data=params, headers=headers, timeout=5, verify=verify)
         except requests.exceptions.Timeout:
             print "Request to " + self.name + " timed out."
             self.error = "request timed out"
@@ -239,12 +239,12 @@ class PrivateMtGox(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
-                # If response is none, attempt to find if its SSL related
+        # If response is none, attempt to find if its SSL related
         elif response is None:
             try:
                 verify_SSL = False
                 response = self._send_request(self.lag_url, params, verify_SSL)
-                self.error = "SSL mismatch, certificate may be insecure - " + response['return']['lag_text']
+                self.error = "SSL mismatch, certificate may be insecure - " + response['data']['lag_text']
                 return 1
             except:
                 pass
