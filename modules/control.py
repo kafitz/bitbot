@@ -313,12 +313,14 @@ def deal(bitbot, input, deals=None):
             arbitrer.get_arb(bitbot)
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     
-    if arbitrer.deals == []:
+    deals = arbitrer.deals
+
+    if deals == []:
         irc(bitbot,'deal > error: no deals possible at this time')  
         return
 
     deal_index = 1
-    for deal in arbitrer.deals:
+    for deal in deals:
         deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
             deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
         irc(bitbot,deal_output)
