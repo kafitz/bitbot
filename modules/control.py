@@ -350,7 +350,6 @@ def deal(bitbot, input, deals=None):
     buy_market = names[deals[i]['buy_market'][:-3].lower()]
     sell_market = names[deals[i]['sell_market'][:-3].lower()]
     
-    return
     volume = round(float(deals[i]['purchase_volume']),3)
     buy_price = round(float(deals[i]['buy_price']),2)
     buy_volume = round(volume*buy_price,2)
