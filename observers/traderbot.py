@@ -127,16 +127,6 @@ class TraderBot(Observer):
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-
-        print buy_tradeable_amt
-        print type(buy_tradeable_amt)
-        print sell_tradeable_amt
-        print type(sell_tradeable_amt)
-        print config.trade_amount
-        print type(config.trade_amount)
-        print buy_tradeable_amt < config.trade_amount
-        print sell_tradeable_amt < config.trade_amount
-
         if buy_tradeable_amt < config.trade_amount:
             output = "#{0} insufficient balance (${1} USD) to execute trade at {2}".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
             self.ignore_exchange.append(buy_mkt)
@@ -153,7 +143,6 @@ class TraderBot(Observer):
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-
 
         # test 5 - trade wait time
         current_time = time.time()
@@ -183,6 +172,8 @@ class TraderBot(Observer):
                 return s
         deal_index = ".deal " + str(best_deal_index)
         fake_irc_input = CommandInput(channel, deal_index)
+
+        print deals
 
         # Execute deals function with first (best) deal and pass along same deals list
         control.deal(bitbot, fake_irc_input, deals)
