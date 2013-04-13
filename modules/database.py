@@ -21,19 +21,28 @@ def dbstats(bitbot, input):
         for sm in markets:
             d = {}
             d['buy market'], d['sell market'] = bm, sm
-            cursor.execute("SELECT COUNT(*),AVG(profit), AVG(ratio), MAX(profit), MAX(ratio), MAX(time) FROM deals WHERE lower(sell_market)=? AND lower(buy_market)=?",[sm,bm])
-            d['deals'], d['avg profit'], d['avg ratio'], d['max profit'], d['max ratio'], d['timestring']  = cursor.fetchone()
+            cursor.execute("SELECT COUNT(*),AVG(profit), AVG(ratio), MAX(time) FROM deals WHERE lower(sell_market)=? AND lower(buy_market)=?",[sm,bm])
+            d['deals'], d['avg profit'], d['avg ratio'], d['timestring']  = cursor.fetchone()
             if d['timestring'] != None:
                 d['time'] = datetime.datetime.strptime(d['timestring'], "%Y-%m-%d %H:%M:%S")
                 d['timedelta'] =datetime.datetime.utcnow() - d['time']
-                d['timedeltastring'] = str(d['timedelta'].days) + ' days, ' + str(d['timedelta'].seconds/3600) + ' hours'
+                if d['timedelta'].days != 0:
+                    d['timedeltastring'] = str(d['timedelta'].days) + ' days, ' + str(d['timedelta'].seconds/3600) + ' hours'
+                elif d['timedelta'].seconds/3600 != 0:
+                    d['timedeltastring'] = str(d['timedelta'].seconds/3600) + ' hours'
+                elif d['timedelta'].seconds/60 != 0:
+                    d['timedeltastring'] = str(d['timedelta'].seconds/60) + ' minutes'
+                else:
+                    d['timedeltastring'] = 'just now'
+                    print d['timedelta'].seconds
             l.append(d)
-    bitbot.say('{0:11} => {1:11} | {2:4} | {3:5} | {4:5} | {5:5} | {6:5} | {7}'\
-           .format('buy market','sell market','#','avg $', 'max $', 'avg %', 'max %', 'happened for the last time'))
+    bitbot.say('{0:8} => {1:8} | {2:4} | {3:6} | {4:6} | {5}'\
+           .format('buy','sell','#','avg $', 'avg %', 'happened for the last time'))
     for d in l:
         if d['deals'] != 0:
-            bitbot.say('{0:11} => {1:11} | {2:4} | {3:.3f} | {4:.3f} | {5:.3f} | {6:.3f} | {7} ago'\
-                   .format(d['buy market'],d['sell market'],d['deals'],d['avg profit'],d['max profit'],d['avg ratio'],d['max ratio'],d['timedeltastring']))
+            bitbot.say('{0:8} => {1:8} | {2:4} | {3:6} | {4:6} | {5} ago'\
+                   .format(d['buy market'][:-3],d['sell market'][:-3],d['deals'],
+                           str(round(d['avg profit'],3)),str(round(d['avg ratio'],3)),d['timedeltastring']))
     return
     
 dbstats.commands = ['dbstats']
