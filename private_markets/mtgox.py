@@ -74,9 +74,13 @@ class PrivateMtGox(Market):
                 headers[k] = v
         try:
             response = requests.post(self.base + path, data=params, headers=headers, timeout=5)
-        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
-            print "Request timed out."
+        except requests.exceptions.Timeout:
+            print "Request to " + self.name + " timed out."
             self.error = "request timed out"
+            return
+        except requests.exceptions.SSLError:
+            print "SSL Error: check server certificate to " + self.name
+            self.error = "SSL certificate mismatch"
             return
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
@@ -235,6 +239,15 @@ class PrivateMtGox(Market):
         elif response and 'error' in response:
             self.error = str(response['error'])
             return 1
+                # If response is none, attempt to find if its SSL related
+        elif response is None:
+            try:
+                verify_SSL = False
+                response = self._send_request(self.lag_url, params, verify_SSL)
+                self.error = "SSL mismatch, certificate may be insecure - " + response['return']['lag_text']
+                return 1
+            except:
+                pass
         return 0
         
 if __name__ == '__main__':
