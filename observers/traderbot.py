@@ -124,19 +124,23 @@ class TraderBot(Observer):
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-        if buy_tradeable_amt < config.trade_amount:
-            output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
-                " USD balance: " + str(self.clients[buy_mkt].usd_balance)
-            self.ignore_exchange.append(buy_mkt)
-        elif sell_tradeable_amt < config.trade_amount:
-            output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
-                " USD balance: " + str(self.clients[buy_mkt].usd_balance)
-            self.ignore_exchange.append(buy_mkt)
-        self.failed_outputs.append(output)
-        logging.warn(output)
-        best_deal_index += 1
-        self.execute_trade(bitbot, deals, best_deal_index)
-        return
+        try:
+            if buy_tradeable_amt < config.trade_amount:
+                output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
+                    " USD balance: " + str(self.clients[buy_mkt].usd_balance)
+                self.ignore_exchange.append(buy_mkt)
+            elif sell_tradeable_amt < config.trade_amount:
+                output = "#" + str(trade_attempt) + " insufficient balance to execute trade at " + buy_mkt +\
+                    " USD balance: " + str(self.clients[buy_mkt].usd_balance)
+                self.ignore_exchange.append(buy_mkt)
+            self.failed_outputs.append(output)
+            logging.warn(output)
+            best_deal_index += 1
+            self.execute_trade(bitbot, deals, best_deal_index)
+            return
+        except:
+            pass
+
 
         # test 5 - trade wait time
         current_time = time.time()
@@ -150,7 +154,7 @@ class TraderBot(Observer):
         print "TraderBot - execute trade: ", str(end)
 
         # Execute deals function with first (best) deal and pass along same deals list
-        control.deal(best_deal_index, deals)
+        control.deal(bitbot, best_deal_index, deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
