@@ -18,10 +18,11 @@ deal            ->  execute an arbitrage deal
 lag             ->  get lag from trade engine
 '''
 
+import threading
+from decimal import Decimal
 import arbitrage          # arbitrage script
 import config             # read the config file
 import private_markets    # load private APIs
-from decimal import Decimal
 
 def irc(bitbot, msg, output=True):
     if output:
@@ -64,16 +65,27 @@ def which(input,commands):
     return markets
 
 def balance(bitbot, input, output=True):
-    markets = which(input,balance.commands) 
-    irc(bitbot,'bal > Getting balance from ' + ', '.join(markets) + ':',output)  
+    markets = which(input, balance.commands) 
+    irc(bitbot, 'bal > Getting balance from ' + ', '.join(markets) + ':', output)  
+    
+    def update_info():
+        market_obj.get_info()
+
+    threads = []
+    market_instances = []
     for market in markets:
-        error, market_obj = load(market)        # load the correct market object
-        if error == 0:                          # market was loaded without errors
-            market_obj.get_info()               # execute the relevant function
-        elif error == 1:                        # an error occured
+        error, market_obj = load(market)                                # load the correct market object        
+        if error == 0:                                                  # market was loaded without errors
+            market_instances.append(market_obj)
+            thread = threading.Thread(target=update_info)
+            thread.start()
+            threads.append(thread)
+        elif error == 1:                                                # an error occured
             irc(bitbot,'bal > ' + market + ' > ' + market_obj)
             return 0
-
+    for thread in threads:
+        thread.join()
+    for market_obj in market_instances:
         if market_obj.error == '':
             usd = float(market_obj.usd_balance)
             btc = float(market_obj.btc_balance)
