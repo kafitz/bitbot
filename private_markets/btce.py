@@ -133,7 +133,7 @@ class PrivateBTCe(Market):
             print response
             return 1
         elif response and 'error' in response:
-            self.error = str(response['error'])
+            self.error = 'no open orders listed'
             return 1
         return None
         

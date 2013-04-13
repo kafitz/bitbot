@@ -135,7 +135,7 @@ class PrivateMtGox(Market):
         return 0
 
     def get_txs(self):
-        txs_period = 5
+        txs_period = 1
         date_start = datetime.datetime.now() - datetime.timedelta(days=txs_period)
         params = [('nonce', self._create_nonce()),('currency', self.currency), ('date_start', date_start)]
         response = self._send_request(self.tx_url, params)
