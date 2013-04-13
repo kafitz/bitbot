@@ -112,6 +112,7 @@ class PrivateBTCe(Market):
             return 1
         self.btc_balance = None
         self.usd_balance = None
+        self.error = str(response)
         return None
 
     def get_orders(self, from_id=None, end_id=None):
