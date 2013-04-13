@@ -6,6 +6,7 @@ Kyle Fitzsimmons 2013, http://kylefitz.com/
 Bas Pennewaert 2013, bas@pennewaert.com
 
 '''
+
 import sqlite3
 import datetime
 import config

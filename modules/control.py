@@ -25,27 +25,12 @@ import arbitrage          # arbitrage script
 import config             # read the config file
 import private_markets    # load private APIs
 
+# output to IRC or terminal
 def irc(bitbot, msg, output=True):
     if output:
         bitbot.say(msg)
     else:
         print msg
-
-def start_arbitrage(bitbot, input):
-    if bitbot.variables.get('arb') is True:
-        bitbot.say('arb > already running')
-    else:
-        bitbot.variables['arb'] = True
-        irc(bitbot,'arb > starting up...')
-        bitbot.variables['arbitrer'] = arbitrage.Arbitrer()
-        arbitrer = bitbot.variables['arbitrer']
-        while True:
-            arbitrer.loop(bitbot)
-        bitbot.say('Arbitrage quitting...')
-        bitbot.variables['arb'] = False
-        
-start_arbitrage.commands = ['arb','arbitrage']
-start_arbitrage.name = 'start_arbitrage'
 
 # load the correct market, given its initials
 def load(initials):
@@ -64,6 +49,21 @@ def which(input,commands):
     else:
         markets = [ input.split(' ', 1)[1] ]
     return markets
+def start_arbitrage(bitbot, input):
+    if bitbot.variables.get('arb') is True:
+        bitbot.say('arb > already running')
+    else:
+        bitbot.variables['arb'] = True
+        irc(bitbot,'arb > starting up...')
+        bitbot.variables['arbitrer'] = arbitrage.Arbitrer()
+        arbitrer = bitbot.variables['arbitrer']
+        while True:
+            arbitrer.loop(bitbot)
+        bitbot.say('Arbitrage quitting...')
+        bitbot.variables['arb'] = False
+        
+start_arbitrage.commands = ['arb','arbitrage']
+start_arbitrage.name = 'start_arbitrage'
 
 def balance(bitbot, input, output=True):
     markets = which(input, balance.commands) 
