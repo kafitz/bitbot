@@ -123,23 +123,27 @@ class TraderBot(Observer):
             sell_tradeable_amt = float(self.clients[sell_mkt].btc_balance) / (1 + config.balance_margin)
         except TypeError:
             # Couldnt update balance of buy or sell market so balance == None
+            output = "#{0} timeout while updating balances".format(trade_attempt)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-        try:
-            if buy_tradeable_amt < config.trade_amount:
-                output = "#{0} insufficient balance (${1} USD) to execute trade at {2}".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
-                self.ignore_exchange.append(buy_mkt)
-            elif sell_tradeable_amt < config.trade_amount:
-                output = "#{0} insufficient balance ({1} BTC) to execute trade at {2}".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
-                self.ignore_exchange.append(sell_mkt)
+        if buy_tradeable_amt < config.trade_amount:
+            output = "#{0} insufficient balance (${1} USD) to execute trade at {2}".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
+            self.ignore_exchange.append(buy_mkt)
             self.failed_outputs.append(output)
             logging.warn(output)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
-        except:
-            pass
+        if sell_tradeable_amt < config.trade_amount:
+            output = "#{0} insufficient balance ({1} BTC) to execute trade at {2}".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
+            self.ignore_exchange.append(sell_mkt)
+            self.failed_outputs.append(output)
+            logging.warn(output)
+            best_deal_index += 1
+            self.execute_trade(bitbot, deals, best_deal_index)
+            return
+
 
         # test 5 - trade wait time
         current_time = time.time()
@@ -152,18 +156,16 @@ class TraderBot(Observer):
         end = time.time() - start
         print "TraderBot - execute trade: ", str(end)
             
-        class CommandInput(unicode): 
+        # Emulate input from IRC so bitbot.say continues to work in control.py
+        class CommandInput(unicode):
             def __new__(cls, channel, best_deal_index): 
                 s = unicode.__new__(cls, best_deal_index)
                 s.sender = channel
                 s.nick = bitbot.nick
                 s.event = 'PRIVMSG'
                 s.bytes = '.deal ' + best_deal_index
-                # s.match = match
                 s.match = None
-                # s.group = match.group
                 s.group = None
-                # s.groups = match.groups
                 s.groups = None
                 s.args = (channel, best_deal_index)
                 s.admin = False

@@ -220,14 +220,17 @@ class Arbitrer(object):
             longest_available_volume_int = max(volumes) + 1
             longest_buy_price_int = max(buy_prices)
             longest_sell_price_int = max(sell_prices)
+            line_tuples.sort(key=lambda x: x[8], reverse=True) # sort deals best --> worst
+            deal_index = 1
             for line_tuple in line_tuples:
                 profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
                     weighted_sellprice, kbid, percent_profit = line_tuple
-                line = '${0:.2f} | {1:.2f} of {2:' '{vwidth}.2f} BTC for ${3:.2f} | {4:11} ${5:' '{bwidth}.3f} => ${6:' '{swidth}.3f} {7:11} | {8:' '{pwidth}.2f}%'.format(\
+                line = '#{deal_index} ${0:.2f} | {1:.2f} of {2:' '{vwidth}.2f} BTC for ${3:.2f} | {4:11} ${5:' '{bwidth}.3f} => ${6:' '{swidth}.3f} {7:11} | {8:' '{pwidth}.2f}%'.format(\
                     profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,
-                    weighted_sellprice, kbid, percent_profit, vwidth=longest_available_volume_int,
+                    weighted_sellprice, kbid, percent_profit, deal_index=deal_index, vwidth=longest_available_volume_int,
                     bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=4)
                 bitbot.msg(channel, line)
+                deal_index += 1
             bitbot.msg(channel, '--------------------------------------------------------------------------------------------')
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
