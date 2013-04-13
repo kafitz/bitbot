@@ -30,9 +30,14 @@ class PrivateCampBX(Market):
         params.update({'user': self.user, 'pass': self.password})
         try:
             response = requests.post(url['url'], data=params, timeout=10)
-        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+        except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
+            return
+        except requests.exceptions.SSLError, e:
+            print e
+            print "SSL Error: check server certificate to " + self.name
+            self.error = "SSL certificate mismatch"
             return
         if response.status_code == 200:
             try:

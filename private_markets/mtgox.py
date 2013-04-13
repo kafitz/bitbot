@@ -78,7 +78,8 @@ class PrivateMtGox(Market):
             print "Request to " + self.name + " timed out."
             self.error = "request timed out"
             return
-        except requests.exceptions.SSLError:
+        except requests.exceptions.SSLError, e:
+            print e
             print "SSL Error: check server certificate to " + self.name
             self.error = "SSL certificate mismatch"
             return

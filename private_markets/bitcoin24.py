@@ -12,6 +12,7 @@ from decimal import Decimal
 
 
 class PrivateBitcoin24(Market):
+    name = "Bitcoin24"
     url = "https://bitcoin-24.com/api/user_api.php"
 
     def __init__(self):
@@ -40,10 +41,15 @@ class PrivateBitcoin24(Market):
 
         try:
             response = requests.post(self.url, data=params, headers=headers, timeout=5)
-        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+        except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
-            return         
+            return
+        except requests.exceptions.SSLError, e:
+            print e
+            print "SSL Error: check server certificate to " + self.name
+            self.error = "SSL certificate mismatch"
+            return
         if response.status_code == 200:
             try:
                 return json.loads(response.text)

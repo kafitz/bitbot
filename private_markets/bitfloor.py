@@ -48,9 +48,14 @@ class PrivateBitfloor(Market):
 
         try:
             response = requests.post(url['url'], data=params, headers=headers, timeout=5)
-        except (requests.exceptions.Timeout, requests.exceptions.SSLError):
+        except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
+            return
+        except requests.exceptions.SSLError, e:
+            print e
+            print "SSL Error: check server certificate to " + self.name
+            self.error = "SSL certificate mismatch"
             return
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
