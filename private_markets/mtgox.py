@@ -29,6 +29,7 @@ class PrivateMtGox(Market):
         self.currency = 'USD'
         self.error = ''
         self.last_opportunity = None
+        self.lag = None
 
     def _create_nonce(self):
         return int(time.time() * 1000000)
