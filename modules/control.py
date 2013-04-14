@@ -361,10 +361,13 @@ def deal(bitbot, input, deals=None):
     # Formatting variables
     verify = bitbot.variables.get('verify') # Load the deals from a previous deal command
     if verify:
-        if verify[i+1][0] != deals[i]['buy_market'] \
-            or verify[i+1][1] != deals[i]['sell_market']:
-            irc(bitbot,'deal > error: deal changed')
-            return
+        try:
+            if verify[i+1][0] != deals[i]['buy_market'] \
+                or verify[i+1][1] != deals[i]['sell_market']:
+                irc(bitbot,'deal > error: deal changed')
+                return
+        except IndexError:
+            irc(bitbot, 'deal > error: deal not in range')
     
     irc(bitbot,'deal > verified')
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])

@@ -55,7 +55,7 @@ class PrivateBitfloor(Market):
         except requests.exceptions.SSLError, e:
             print e
             print "SSL Error: check server certificate to " + self.name
-            self.error = "SSL certificate mismatch"
+            self.error = str(e)
             return
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
