@@ -25,7 +25,7 @@ import arbitrage          # arbitrage script
 import config             # read the config file
 import private_markets    # load private APIs
 
-# output to IRC or terminal
+# output to IRC(True) or Terminal(False)
 def irc(bitbot, msg, output=True):
     if output:
         bitbot.say(msg)

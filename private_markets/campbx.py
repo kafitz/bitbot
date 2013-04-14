@@ -104,25 +104,27 @@ class PrivateCampBX(Market):
         params = {}
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
-        if response and response['Sell'][0]['Info'] == 'No open Sell Orders' and response['Buy'][0]['Info'] == 'No open Buy Orders':
+
+        if response and 'Info' in response['Sell'][0].keys() and 'Info' in response['Buy'][0].keys():
             self.error = 'no open orders listed'
             return 1
-        if response and response['Sell'][0]['Info'] != 'No open Sell Orders':
+        if response and 'Info' not in response['Sell'][0].keys():
             for order in response['Sell']:
                 o = {}
-                o['type'] = 'sell'
-                o['timestamp'] = str(order['datetime'])
-                o['price'] = '$' + str(order['price']) + ' USD/BTC'
-                o['amount'] = str(round(float(order['amount']),1)) + ' BTC'
-                o['id'] = str(order['id'])
+                o['type'] = 'Sell'
+                o['timestamp'] = str(order['Order Entered'])
+                o['price'] = str(order['Price']) + ' USD/BTC'
+                o['amount'] = str(round(float(order['Quantity']),3)) + ' BTC'
+                o['id'] = str(order['Order ID'])
                 self.orders_list.append(o)
-        if response and response['Buy'][0]['Info'] != 'No open Buy Orders':   
+        if response and 'Info' not in response['Buy'][0].keys():  
+             for order in response['Buy']:
                 o = {}
-                o['type'] = 'buy'
-                o['timestamp'] = str(order['datetime'])
-                o['price'] = '$' + str(order['price']) + ' USD/BTC'
-                o['amount'] = str(round(float(order['amount']),1)) + ' BTC'
-                o['id'] = str(order['id'])
+                o['type'] = 'Buy'
+                o['timestamp'] = str(order['Order Entered'])
+                o['price'] = str(order['Price']) + ' USD/BTC'
+                o['amount'] = str(round(float(order['Quantity']),3)) + ' BTC'
+                o['id'] = str(order['Order ID'])
                 self.orders_list.append(o)             
         if response and 'Error' in response:
             self.error = str(response['Error'])
@@ -131,9 +133,6 @@ class PrivateCampBX(Market):
 
     def cancel(self, order_id):
         self.get_orders()
-        if len(self.orders_list) == 0:
-            self.error = 'no open orders listed'
-            return 1
         for order in self.orders_list:
             if order_id == order['id']:
                 order_type = order['type']
@@ -144,10 +143,8 @@ class PrivateCampBX(Market):
             self.error = 'order does not exist'
             return 1
 
-        params = [('user', self.user),
-                  ('pass', self.password),
-                  ('OrderID', order_id),
-                  ('Type', order_type)]
+        params = {'OrderID': order_id,
+                  'Type': order_type}
         response = self._send_request(self.cancel_url, params)
         
         if response:
