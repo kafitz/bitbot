@@ -234,8 +234,9 @@ class Arbitrer(object):
             bitbot.msg(channel, '--------------------------------------------------------------------------------------------')
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
-        for observer in self.observers:
-            observer.end_opportunity_finder(bitbot, self.deals)
+        if not deal_call:
+            for observer in self.observers:
+                observer.end_opportunity_finder(bitbot, self.deals)
         return
 
 
