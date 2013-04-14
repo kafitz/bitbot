@@ -312,7 +312,7 @@ def lag(bitbot, input, output=True):
 lag.commands = ['lag']
 lag.name = 'lag'
 
-def deal(bitbot, input, deals=None):
+def deal(bitbot, input, deals=None, manual_run=False):
     verify = {}
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:

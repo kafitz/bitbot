@@ -80,8 +80,8 @@ class PrivateBitfloor(Market):
             self.timestamp = self._format_time(response['timestamp'])
             self.amount = str(amount)
             return 1
-        elif response and 'error' in response:
-            self.error = str(response['error'])
+        elif response:
+            self.error = str(response)
             return 1
         return 0
 
