@@ -316,6 +316,7 @@ def deal(bitbot, input, deals=None):
     verify = {}
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:
+        manual_run = True
         arbitrer = bitbot.variables.get('arbitrer')
         deal_index = 1
         if arbitrer: # .arb is running and .deal is called manually
@@ -370,6 +371,7 @@ def deal(bitbot, input, deals=None):
             irc(bitbot, 'deal > error: deal not in range')
     
     irc(bitbot,'deal > verified')
+
     names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     buy_market = names[deals[i]['buy_market'][:-3].lower()]
     sell_market = names[deals[i]['sell_market'][:-3].lower()]
@@ -381,31 +383,33 @@ def deal(bitbot, input, deals=None):
     
     profit = round(float(deals[i]['profit']),2)
     percent_profit = round(float(deals[i]['percent_profit']),2)
-            
-    # Control the amount of USD in the buy market
-    usd1, btc1 = balance(bitbot, '.bal ' + buy_market,False)
-    if buy_volume <= usd1:
-        buy_check = True
-        irc(bitbot,'deal > ' + buy_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
-    else:
-        buy_check = False
-        irc(bitbot,'deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + ' USD needed)')
-    
-    # Control the funds in the sell market 
-    usd2, btc2 = balance(bitbot, '.bal ' + sell_market,False)
-    if volume <= btc2:
-        sell_check = True
-        irc(bitbot,'deal > ' + sell_market + ' > enough BTC available for this deal (' + str(volume) + ' BTC needed)')
-    else:
-        sell_check = False
-        irc(bitbot,'deal > ' + sell_market + ' > error: not enough BTC available to sell (' + str(volume) + ' BTC needed)')
+
+    # Check to see if deals was passed to function to determine origin of call (irc input or from traderbot)                
+    if manual_run:
+        # Control the amount of USD in the buy market
+        usd1, btc1 = balance(bitbot, '.bal ' + buy_market,False)
+        if buy_volume <= usd1:
+            buy_check = True
+            irc(bitbot,'deal > ' + buy_market + ' > enough USD available for this deal ('  + str(buy_volume) + ' USD needed)')
+        else:
+            buy_check = False
+            irc(bitbot,'deal > ' + buy_market + ' > error: not enough USD available to buy ('  + str(buy_volume) + ' USD needed)')
         
-    # Stop the deal if there are not enough funds
-    if not buy_check or not sell_check:
-        irc(bitbot,'deal > insufficient funds')
-        return
-    else:    
-        irc(bitbot,'deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)') 
+        # Control the funds in the sell market 
+        usd2, btc2 = balance(bitbot, '.bal ' + sell_market,False)
+        if volume <= btc2:
+            sell_check = True
+            irc(bitbot,'deal > ' + sell_market + ' > enough BTC available for this deal (' + str(volume) + ' BTC needed)')
+        else:
+            sell_check = False
+            irc(bitbot,'deal > ' + sell_market + ' > error: not enough BTC available to sell (' + str(volume) + ' BTC needed)')
+            
+        # Stop the deal if there are not enough funds
+        if not buy_check or not sell_check:
+            irc(bitbot,'deal > insufficient funds')
+            return
+        else:    
+            irc(bitbot,'deal > started, expected profit is $' + str(profit) + ' (' + str(percent_profit) + '%)') 
     
     # Executing trade orders
     irc(bitbot,'deal > .buy {} {} {}'.format(buy_market, volume, buy_price))
