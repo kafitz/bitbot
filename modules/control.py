@@ -325,6 +325,7 @@ def deal(bitbot, input, deals=None):
                     deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
                 deal['index'] = deal_index
                 verify[deal_index] = [deal['buy_market'], deal['sell_market']]
+                irc(bitbot, deal_output)
                 deal_index += 1
             arbitrer.deals = []     # Clear out old deals
             arbitrer.get_arb(bitbot)
