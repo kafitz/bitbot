@@ -6,7 +6,6 @@ from market import Market
 class Bitcoin24EUR(Market):
     def __init__(self):
         super(Bitcoin24EUR, self).__init__("EUR")
-        self.update_rate = 20
 
     def update_depth(self):
         try:

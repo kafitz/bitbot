@@ -8,7 +8,6 @@ class BtceUSD(Market):
         super(BtceUSD, self).__init__("USD")
         # bitcoin central maximum call / day = 5000
         # keep 2500 for other operations
-        self.update_rate = 60
         # {withdraw: amount bitcoins charged as network fee, exchange_rate: % for currency exchange}
         self.fees = {'withdraw': 0.1, 'exchange_rate': 0.002}
 

@@ -7,7 +7,6 @@ from market import Market
 class MtGoxUSD(Market):
     def __init__(self):
         super(MtGoxUSD, self).__init__("USD")
-        self.update_rate = 25
         self.depth = {'asks': [{'price': 0, 'amount': 0}], 'bids': [{'price': 0, 'amount': 0}]}
         self.fees = {'withdraw': 0, 'exchange_rate': 0.006}
         self.depth = None

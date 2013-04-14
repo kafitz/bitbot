@@ -6,7 +6,6 @@ from market import Market
 class BitfloorUSD(Market):
     def __init__(self):
         super(BitfloorUSD, self).__init__("USD")
-        self.update_rate = 25
         # {withdraw: amount bitcoins charged as network fee, exchange_rate: % for currency exchange}
         self.fees = {'withdraw': 0, 'exchange_rate': 0.004}
 

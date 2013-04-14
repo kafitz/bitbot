@@ -9,7 +9,6 @@ class BitstampEUR(Market):
         super(BitstampEUR, self).__init__("EUR")
         # bitcoin central maximum call / day = 5000
         # keep 2500 for other operations
-        self.update_rate = 24 * 60 * 60 / 2500
 
     def update_depth(self):
         try:

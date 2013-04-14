@@ -9,7 +9,7 @@ class Market(object):
         self.name = self.__class__.__name__
         self.currency = currency
         self.depth_updated = 0
-        self.update_rate = 60
+        self.update_rate = 10
         self.request_timeout = config.request_timeout
 
     def get_depth(self):

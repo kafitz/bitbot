@@ -6,7 +6,6 @@ from market import Market
 class IntersangoEUR(Market):
     def __init__(self):
         super(IntersangoEUR, self).__init__("EUR")
-        self.update_rate = 30
 
     def update_depth(self):
         response = requests.get('https://intersango.com//api/depth.php?currency_pair_id=2', timeout=self.request_timeout)

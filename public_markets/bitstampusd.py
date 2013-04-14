@@ -8,7 +8,6 @@ class BitstampUSD(Market):
         super(BitstampUSD, self).__init__("USD")
         # bitcoin central maximum call / day = 5000
         # keep 2500 for other operations
-        self.update_rate = 24 * 60 * 60 / 2500
         self.fees = {'withdraw': 0, 'exchange_rate': 0.005}
 
     def update_depth(self):

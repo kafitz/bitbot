@@ -7,7 +7,6 @@ class VircurexUSD(Market):
     '''Updates CampBX depth tables'''
     def __init__(self):
         super(VircurexUSD, self).__init__("USD")
-        self.update_rate = 25
         self.depth = {'asks': [{'price': 0, 'amount': 0}], 'bids': [{'price': 0, 'amount': 0}]}
         # {withdraw: amount bitcoins charged as network fee, exchange_rate: % for currency exchange}
         self.fees = {'withdraw': 0.01, 'exchange_rate': 0.005} # 5%
