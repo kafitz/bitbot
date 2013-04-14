@@ -184,7 +184,7 @@ class TraderBot(Observer):
         fake_irc_input = CommandInput(channel, deal_index)
 
         # Execute deals function with first (best) deal and pass along same deals list
-        # control.deal(bitbot, fake_irc_input, deals)
+        control.deal(bitbot, fake_irc_input, deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
@@ -192,4 +192,4 @@ class TraderBot(Observer):
         logging.info(output)
         bitbot.msg(channel, output)
         self.last_trade = time.time()
-        # bitbot.msg('#merlin', 'O Dear Leaders kafitz & baspt, a trade has been executed!')
+        bitbot.msg('#merlin', 'O Dear Leaders kafitz & baspt, a trade has been executed!')
