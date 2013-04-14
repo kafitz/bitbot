@@ -82,7 +82,7 @@ class TraderBot(Observer):
         # trade wait time
         current_time = time.time()
         if current_time - self.last_trade < config.trade_wait:
-            output = "too soon, last trade occured {1} seconds ago".format(current_time - self.last_trade)
+            output = "too soon, last trade occured {1} seconds ago".format((current_time - self.last_trade,))
             logging.warn(output)
             bitbot.msg(channel, output)
             return
