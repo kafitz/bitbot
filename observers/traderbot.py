@@ -9,6 +9,7 @@ from private_markets import bitfloor
 from private_markets import bitstamp
 from private_markets import btce
 from private_markets import bitcoin24
+from private_markets import campbx
 from modules import control
 
 class TraderBot(Observer):
@@ -19,12 +20,14 @@ class TraderBot(Observer):
         self.bitstamp = bitstamp.PrivateBitstamp()
         self.btce = btce.PrivateBTCe()
         self.bitcoin24 = bitcoin24.PrivateBitcoin24()
+        self.campbx = campbx.PrivateCampBX()
         self.clients = {
             "MtGoxUSD": self.mtgox,
             "BitfloorUSD": self.bitfloor,
             "BitstampUSD": self.bitstamp,
             "BtceUSD": self.btce,
-            "Bitcoin24USD": self.bitcoin24
+            "Bitcoin24USD": self.bitcoin24,
+            "CampBXUSD": self.campbx            
         }
         self.profit_thresh = config.profit_thresh   # in USD
         self.perc_thresh = config.perc_thresh                        # in %

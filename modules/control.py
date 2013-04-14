@@ -91,7 +91,7 @@ def balance(bitbot, input, output=True):
             usd = market_obj.usd_balance
             btc = market_obj.btc_balance
         except AttributeError:
-            market_obj.error = 'update failed'
+            market_obj.error = ' ' # space for no output and avoiding next test
         if market_obj.error == '':
             usd = float(usd)
             btc = float(btc)

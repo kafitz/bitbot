@@ -197,8 +197,8 @@ class Arbitrer(object):
         # Lists for output string formatting
         line_tuples = []
         volumes = []
-        buy_prices = []
-        sell_prices = []
+        buy_price_lengths = []
+        sell_prices_lengths = []
 
         for kmarket1 in self.depths:
             for kmarket2 in self.depths:
@@ -213,25 +213,27 @@ class Arbitrer(object):
                         if line_tuple:
                             line_tuples.append(line_tuple)
                             volumes.append(len(str(line_tuple[2])))                 # create a list of the lengths of the volumes strings to
-                            buy_prices.append(len(str(round((line_tuple[6]), 3))))  # add the proper amount of whitespace in output
-                            sell_prices.append(len(str(round((line_tuple[6]), 3))))
+                            buy_price_lengths.append(len(str(round((line_tuple[5]), 3))))  # add the proper amount of whitespace in output
+                            sell_prices_lengths.append(len(str(round((line_tuple[6]), 3))))
                                                                     
         if not deal_call and line_tuples != []:
             longest_available_volume_int = max(volumes) + 1
-            longest_buy_price_int = max(buy_prices)
-            longest_sell_price_int = max(sell_prices)
+            longest_buy_price_int = max(buy_price_lengths) + 2
+            longest_sell_price_int = max(sell_prices_lengths) + 1
             line_tuples.sort(key=lambda x: x[8], reverse=True) # sort deals best --> worst
             deal_index = 1
             for line_tuple in line_tuples:
                 profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
                     weighted_sellprice, kbid, percent_profit = line_tuple
-                line = '#{deal_index} ${0:.2f} | {1:.2f} of {2:' '{vwidth}.2f} BTC for ${3:.2f} | {4:11} ${5:' '{bwidth}.3f} => ${6:' '{swidth}.3f} {7:11} | {8:' '{pwidth}.2f}%'.format(\
+                weighted_buyprice = '${0:.3f}'.format(weighted_buyprice)
+                weighted_sellprice = '${0:.3f}'.format(weighted_sellprice)
+                line = '#{deal_index} ${0:.2f} | {1:.2f} of {2:>{vwidth}.2f} BTC for ${3:.2f} | {4:11} {5:>{bwidth}} => {6:>{swidth}} {7:11} | {8:>{pwidth}.2f}%'.format(\
                     profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,
                     weighted_sellprice, kbid, percent_profit, deal_index=deal_index, vwidth=longest_available_volume_int,
                     bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=4)
                 bitbot.msg(channel, line)
                 deal_index += 1
-            bitbot.msg(channel, '--------------------------------------------------------------------------------------------')
+            bitbot.msg(channel, '-' * len(line)) # '----' page break line_tuple'
 
         self.deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         if not deal_call:
