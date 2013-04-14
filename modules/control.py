@@ -285,21 +285,30 @@ withdraw.commands = ['withdraw','wdw']
 withdraw.name = 'withdraw'
 
 def lag(bitbot, input, output=True):
-    markets = which(input,lag.commands) 
-    irc(bitbot,'lag > Getting lag from ' + ', '.join(markets) + ':')  
-    
-    for market in markets:
-        error, market_obj = load(market)                            # load the correct market object
-        if error == 0:                                              # market was loaded without errors
-            market_obj.get_lag()                                    # execute the relevant function          
-        elif error == 1:                                            # an error occured
-            irc(bitbot,'lag > ' + market + ' > ' + market_obj)
-            return 1
-        if market_obj.error == '':
-            irc(bitbot,'lag > ' + market + ' > ' + market_obj.lag)
+    markets = which(input,lag.commands)
+    if output: 
+        irc(bitbot,'lag > Getting lag from ' + ', '.join(markets) + ':')  
+        
+        for market in markets:
+            error, market_obj = load(market)                            # load the correct market object
+            if error == 0:                                              # market was loaded without errors
+                market_obj.get_lag()                                    # execute the relevant function          
+            elif error == 1:                                            # an error occured
+                irc(bitbot,'lag > ' + market + ' > ' + market_obj)
+                return 1
+            if market_obj.error == '':
+                irc(bitbot,'lag > ' + market + ' > ' + unicode(round(market_obj.lag, 3)) + ' seconds')
+            else:
+                irc(bitbot,'lag > ' + market + ' > error: ' + str(market_obj.error))
+    else:
+        market = markets[0]
+        error, market_obj = load(market)
+        if error == 0:
+            market_obj.get_lag()
+            return market_obj.lag
         else:
-            irc(bitbot,'lag > ' + market + ' > error: ' + market_obj.error)
-            
+            return 'error fetching lag'
+
 lag.commands = ['lag']
 lag.name = 'lag'
 

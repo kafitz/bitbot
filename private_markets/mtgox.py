@@ -79,9 +79,8 @@ class PrivateMtGox(Market):
             self.error = "request timed out"
             return
         except requests.exceptions.SSLError, e:
-            print e
             print "SSL Error: check server certificate to " + self.name
-            self.error = "SSL certificate mismatch"
+            self.error = e
             return
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
@@ -235,7 +234,7 @@ class PrivateMtGox(Market):
         params = []
         response = self._send_request(self.lag_url, params)
         if response and 'error' not in response:
-            self.lag = response['data']['lag_text']
+            self.lag = response['data']['lag_secs']
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])

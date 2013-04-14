@@ -45,7 +45,12 @@ class TraderBot(Observer):
         # Sorts arbs list lowest profit to highest, then reverses to get the most profitable
         deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         # Execute only the best arb opportunity
-        self.execute_trade(bitbot, deals)
+        gox_lag = control.lag(bitbot, '.lag mtgx', output=False)
+        if gox_lag > 60:
+            bitbot.msg(config.deal_output, "MtGox lag of {}, too risky to trade")
+        else:
+            print "MtGox lag (seconds): " + str(gox_lag)
+            self.execute_trade(bitbot, deals)
 
     def update_balance(self, buy_market, sell_market):
         self.clients[buy_market].get_info()
@@ -174,7 +179,7 @@ class TraderBot(Observer):
         fake_irc_input = CommandInput(channel, deal_index)
 
         # Execute deals function with first (best) deal and pass along same deals list
-        control.deal(bitbot, fake_irc_input, deals)
+        # control.deal(bitbot, fake_irc_input, deals)
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         output =  "Deal executed at " + str(timestamp) + " -- Bought " + str(volume) + " BTC at " + buy_mkt + \
