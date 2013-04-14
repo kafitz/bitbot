@@ -79,6 +79,14 @@ class TraderBot(Observer):
         sell_price = best_deal['sell_price']
         percent_profit = best_deal['percent_profit']
 
+        # trade wait time
+        current_time = time.time()
+        if current_time - self.last_trade < config.trade_wait:
+            output = "too soon, last trade occured {1} seconds ago".format(current_time - self.last_trade)
+            logging.warn(output)
+            bitbot.msg(channel, output)
+            return
+
         # test 3b
         if buy_mkt in self.ignore_exchange or sell_mkt in self.ignore_exchange:
             # Already notified console & irc of failed balance check,
@@ -147,14 +155,6 @@ class TraderBot(Observer):
             logging.warn(output)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
-            return
-
-        # test 5 - trade wait time
-        current_time = time.time()
-        if current_time - self.last_trade < config.trade_wait:
-            output = "#{0} last trade occured {1} seconds ago".format(trade_attempt, (current_time - self.last_trade))
-            logging.warn(output)
-            bitbot.msg(channel, output)
             return
 
         end = time.time() - start
