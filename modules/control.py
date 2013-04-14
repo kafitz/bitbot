@@ -319,6 +319,8 @@ def deal(bitbot, input, deals=None):
         arbitrer = bitbot.variables.get('arbitrer')
         deal_index = 1
         if arbitrer: # .arb is running and .deal is called manually
+            arbitrer.deals = []     # Clear out old deals
+            arbitrer.get_arb(bitbot)
             for deal in arbitrer.deals:
                 deal['index'] = deal_index
                 deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
@@ -327,8 +329,6 @@ def deal(bitbot, input, deals=None):
                 verify[deal_index] = [deal['buy_market'], deal['sell_market']]
                 irc(bitbot, deal_output)
                 deal_index += 1
-            arbitrer.deals = []     # Clear out old deals
-            arbitrer.get_arb(bitbot)
             deals = arbitrer.deals
         else: # .arb is not running and .deal is called manually
             bitbot.say('Setting up single-use instance...')
