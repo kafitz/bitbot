@@ -222,9 +222,9 @@ class Arbitrer(object):
                             if len(str(line_tuple[2])) > longest_volume:
                                 longest_volume = len(str(round(line_tuple[2], 2)))
                             if len(str(round(line_tuple[5], 3))) > longest_buy_price:
-                                longest_buy_price = len(str(round((line_tuple[5]), 3)))
+                                longest_buy_price = len(str(round((line_tuple[5]), 3))) + 1
                             if len(str(round(line_tuple[6], 3))) > longest_sell_price:
-                                longest_sell_price = len(str(round((line_tuple[6]), 3)))
+                                longest_sell_price = len(str(round((line_tuple[6]), 3))) + 1
                                                
         print longest_buy_price                     
         if not deal_call and line_tuples != []:
