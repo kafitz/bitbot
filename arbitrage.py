@@ -196,9 +196,11 @@ class Arbitrer(object):
 
         # Lists for output string formatting
         line_tuples = []
-        volumes = []
-        buy_price_lengths = []
-        sell_prices_lengths = []
+        longest_buy_market = 0
+        longest_sell_market = 0
+        longest_volume = 0
+        longest_buy_price = 0
+        longest_sell_price = 0
 
         for kmarket1 in self.depths:
             for kmarket2 in self.depths:
@@ -212,25 +214,31 @@ class Arbitrer(object):
                         line_tuple = self.arbitrage_opportunity(kmarket1, market1['asks'][0], kmarket2, market2['bids'][0])
                         if line_tuple:
                             line_tuples.append(line_tuple)
-                            volumes.append(len(str(line_tuple[2])))                 # create a list of the lengths of the volumes strings to
-                            buy_price_lengths.append(len(str(round((line_tuple[5]), 3))))  # add the proper amount of whitespace in output
-                            sell_prices_lengths.append(len(str(round((line_tuple[6]), 3))))
+                            # Get longest lengths of line elements for string formatting
+                            if len(str(line_tuple[4])) > longest_buy_market:
+                                longest_buy_market = len(str(line_tuple[4]))
+                            if len(str(line_tuple[7])) > longest_sell_market:
+                                longest_sell_market = len(str(line_tuple[7]))
+                            if len(str(line_tuple[2])) > longest_volume:
+                                longest_volume = len(str(line_tuple[2])) + 1
+                            if len(str(round((line_tuple[5]), 3))) > longest_buy_price:
+                                longest_buy_price = len(str(round((line_tuple[5]), 3))) + 1
+                            if len(str(round((line_tuple[6]), 3))) > longest_sell_price:
+                                longest_buy_price = len(str(round((line_tuple[6]), 3))) + 1
                                                                     
         if not deal_call and line_tuples != []:
-            longest_available_volume_int = max(volumes) + 1
-            longest_buy_price_int = max(buy_price_lengths) + 2
-            longest_sell_price_int = max(sell_prices_lengths) + 1
             line_tuples.sort(key=lambda x: x[8], reverse=True) # sort deals best --> worst
+            print longest_buy_price
             deal_index = 1
             for line_tuple in line_tuples:
                 profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
                     weighted_sellprice, kbid, percent_profit = line_tuple
                 weighted_buyprice = '${0:.3f}'.format(weighted_buyprice)
                 weighted_sellprice = '${0:.3f}'.format(weighted_sellprice)
-                line = '#{deal_index} ${0:.2f} | {1:.2f} of {2:>{vwidth}.2f} BTC for ${3:.2f} | {4:11} {5:>{bwidth}} => {6:>{swidth}} {7:11} | {8:>{pwidth}.2f}%'.format(\
+                line = '#{deal_index} ${0:.2f} | {1:.2f} of {2:>{vwidth}.2f} BTC for ${3:.2f} | {4:{mk1width}} {5:>{bwidth}} => {6:>{swidth}} {7:{mk2width}} | {8:>{pwidth}.2f}%'.format(\
                     profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,
-                    weighted_sellprice, kbid, percent_profit, deal_index=deal_index, vwidth=longest_available_volume_int,
-                    bwidth=longest_buy_price_int, swidth=longest_sell_price_int, pwidth=4)
+                    weighted_sellprice, kbid, percent_profit, deal_index=deal_index, mk1width=longest_buy_price,
+                    vwidth=longest_volume, bwidth=longest_buy_price, swidth=longest_sell_price, mk2width=longest_sell_market, pwidth=4)
                 bitbot.msg(channel, line)
                 deal_index += 1
             bitbot.msg(channel, '-' * len(line)) # '----' page break line_tuple'
