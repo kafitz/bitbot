@@ -224,7 +224,7 @@ class Arbitrer(object):
                             if len(str(round((line_tuple[5]), 3))) > longest_buy_price:
                                 longest_buy_price = len(str(round((line_tuple[5]), 3))) + 1
                             if len(str(round((line_tuple[6]), 3))) > longest_sell_price:
-                                longest_buy_price = len(str(round((line_tuple[6]), 3))) + 1
+                                longest_sell_price = len(str(round((line_tuple[6]), 3))) + 1
                                                                     
         if not deal_call and line_tuples != []:
             line_tuples.sort(key=lambda x: x[8], reverse=True) # sort deals best --> worst
