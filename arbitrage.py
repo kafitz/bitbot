@@ -216,7 +216,7 @@ class Arbitrer(object):
                             line_tuples.append(line_tuple)
                             # Get longest lengths of line elements for string formatting
                             if len(str(line_tuple[4])) > longest_buy_market:
-                                longest_buy_market = len(str(line_tuple[4])) + 1
+                                longest_buy_market = len(str(line_tuple[4]))
                             if len(str(line_tuple[7])) > longest_sell_market:
                                 longest_sell_market = len(str(line_tuple[7]))
                             if len(str(line_tuple[2])) > longest_volume:
@@ -237,7 +237,7 @@ class Arbitrer(object):
                 weighted_sellprice = '${0:.3f}'.format(weighted_sellprice)
                 line = '#{deal_index} ${0:.2f} | {1:.2f} of {2:' '>{vwidth}.2f} BTC for ${3:.2f} | {4:' '<{mk1width}} {5:>{bwidth}} => {6:>{swidth}} {7:' '<{mk2width}} | {8:>{pwidth}.2f}%'.format(\
                     profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,
-                    weighted_sellprice, kbid, percent_profit, deal_index=deal_index, mk1width=longest_buy_price,
+                    weighted_sellprice, kbid, percent_profit, deal_index=deal_index, mk1width=longest_buy_market,
                     vwidth=longest_volume, bwidth=longest_buy_price, swidth=longest_sell_price, mk2width=longest_sell_market, pwidth=4)
                 bitbot.msg(channel, line)
                 deal_index += 1
