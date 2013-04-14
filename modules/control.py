@@ -367,6 +367,7 @@ def deal(bitbot, input, deals=None):
             return
     
     irc(bitbot,'deal > verified')
+    names = dict([(v.lower(),k) for k,v in config.private_markets.items()])
     buy_market = names[deals[i]['buy_market'][:-3].lower()]
     sell_market = names[deals[i]['sell_market'][:-3].lower()]
     
