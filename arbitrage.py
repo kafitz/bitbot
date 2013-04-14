@@ -218,7 +218,7 @@ class Arbitrer(object):
                             if len(str(line_tuple[4])) > longest_buy_market:
                                 longest_buy_market = len(str(line_tuple[4])) + 1
                             if len(str(line_tuple[7])) > longest_sell_market:
-                                longest_sell_market = len(str(line_tuple[7])) + 1
+                                longest_sell_market = len(str(line_tuple[7]))
                             if len(str(line_tuple[2])) > longest_volume:
                                 longest_volume = len(str(line_tuple[2])) + 1
                             if len(str(round(line_tuple[5], 3))) > longest_buy_price:
