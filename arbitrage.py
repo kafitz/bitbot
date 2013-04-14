@@ -220,7 +220,7 @@ class Arbitrer(object):
                             if len(str(line_tuple[7])) > longest_sell_market:
                                 longest_sell_market = len(str(line_tuple[7])) + 1
                             if len(str(line_tuple[2])) > longest_volume:
-                                longest_volume = len(str(line_tuple[2])) + 1
+                                longest_volume = len(str(line_tuple[2])) + 2
                             if len(str(round((line_tuple[5]), 3))) > longest_buy_price:
                                 longest_buy_price = len(str(round((line_tuple[5]), 3))) + 1
                             if len(str(round((line_tuple[6]), 3))) > longest_sell_price:
@@ -228,7 +228,6 @@ class Arbitrer(object):
                                                                     
         if not deal_call and line_tuples != []:
             line_tuples.sort(key=lambda x: x[8], reverse=True) # sort deals best --> worst
-            print longest_buy_price
             deal_index = 1
             for line_tuple in line_tuples:
                 profit, purchase_volume, available_volume, buy_total, kask, weighted_buyprice,\
