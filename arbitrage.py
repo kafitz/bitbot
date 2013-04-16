@@ -270,7 +270,7 @@ class Arbitrer(object):
             end = time.time() - start
             print "TraderBot - tick: ", str(end)
 
-            time.sleep(60)
+            time.sleep(config.update_interval)
             
     def get_arb(self, bitbot):
         level = logging.INFO
