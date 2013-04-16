@@ -28,7 +28,7 @@ class PrivateBitstamp(Market):
 
     def _send_request(self, url, params):
         try:
-            response = requests.post(url, data=params, timeout=5)
+            response = requests.post(url, data=params, timeout=config.request_timeout)
         except requests.exceptions.Timeout:
             # print "Request timed out."
             self.error = "request timed out"

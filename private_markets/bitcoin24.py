@@ -40,7 +40,7 @@ class PrivateBitcoin24(Market):
                 headers[k] = v
 
         try:
-            response = requests.post(self.url, data=params, headers=headers, timeout=5)
+            response = requests.post(self.url, data=params, headers=headers, timeout=config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"

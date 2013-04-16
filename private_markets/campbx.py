@@ -30,7 +30,7 @@ class PrivateCampBX(Market):
     def _send_request(self, url, params, extra_headers=None):
         params.update({'user': self.user, 'pass': self.password})
         try:
-            response = requests.post(url['url'], data=params, timeout=10)
+            response = requests.post(url['url'], data=params, timeout=config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
