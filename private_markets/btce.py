@@ -48,16 +48,17 @@ class PrivateBTCe(Market):
                 headers[k] = v
 
         try:
-            response = requests.post(self.url, data=params, headers=headers, timeout=config.request_timeout)
+            response = requests.post(self.url, data=params, headers=headers, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
             return
         except requests.exceptions.SSLError, e:
             print e
-            print "SSL Error: check server certificate to " + self.name
             self.error = str(e)
             return
+        except Exception, e:
+            print e
         if response.status_code == 200:
             try:
                 return json.loads(response.text)

@@ -28,16 +28,17 @@ class PrivateBitstamp(Market):
 
     def _send_request(self, url, params):
         try:
-            response = requests.post(url, data=params, timeout=config.request_timeout)
+            response = requests.post(url, data=params, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             # print "Request timed out."
             self.error = "request timed out"
             return
         except requests.exceptions.SSLError, e:
             print e
-            print "SSL Error: check server certificate to " + self.name
             self.error = str(e)
             return
+        except Exception, e:
+            print e
         if response.status_code == 200:
             try:
                 jsonstr = json.loads(response.text)
@@ -77,9 +78,6 @@ class PrivateBitstamp(Market):
             self.usd_balance = float(response['usd_balance'])
             self.btc_balance = float(response['btc_balance'])
             self.fee = float(response['fee'])
-            return 1
-        elif response and 'error' in response:
-            self.error = str(response['error'])
             return 1
         self.usd_balance = None
         self.btc_balance = None

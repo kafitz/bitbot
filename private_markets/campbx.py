@@ -30,16 +30,17 @@ class PrivateCampBX(Market):
     def _send_request(self, url, params, extra_headers=None):
         params.update({'user': self.user, 'pass': self.password})
         try:
-            response = requests.post(url['url'], data=params, timeout=config.request_timeout)
+            response = requests.post(url['url'], data=params, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
-            return
+            return  
         except requests.exceptions.SSLError, e:
             print e
-            print "SSL Error: check server certificate to " + self.name
             self.error = str(e)
             return
+        except Exception, e:
+            print e
         if response.status_code == 200:
             try:
                 jsonstr = json.loads(response.text)
@@ -88,9 +89,6 @@ class PrivateCampBX(Market):
             self.usd_balance = float(response['Total USD'])
             self.btc_balance = float(response['Total BTC'])
             self.fee = '0.55'
-            return 1
-        elif response and 'Error' in response:
-            self.error = str(response['Error'])
             return 1
         self.btc_balance = None
         self.usd_balance = None

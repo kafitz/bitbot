@@ -40,7 +40,7 @@ class PrivateBitcoin24(Market):
                 headers[k] = v
 
         try:
-            response = requests.post(self.url, data=params, headers=headers, timeout=config.request_timeout)
+            response = requests.post(self.url, data=params, headers=headers, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
@@ -50,6 +50,8 @@ class PrivateBitcoin24(Market):
             print "SSL Error: check server certificate to " + self.name
             self.error = "SSL certificate mismatch"
             return
+        except Exception, e:
+            print e
         if response.status_code == 200:
             try:
                 return json.loads(response.text)
@@ -97,9 +99,6 @@ class PrivateBitcoin24(Market):
             self.btc_balance = float(response['btc_available'])
             self.usd_balance = float(response['usd'])
             self.fee = 0
-            return 1
-        elif response and 'error' in response:
-            self.error = str(response['error'])
             return 1
         self.btc_balance = None
         self.usd_balance = None

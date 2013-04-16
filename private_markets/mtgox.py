@@ -74,15 +74,16 @@ class PrivateMtGox(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
         try:
-            response = requests.post(self.base + path, data=params, headers=headers, timeout=config.request_timeout, verify=verify)
+            response = requests.post(self.base + path, data=params, headers=headers, timeout=self.config.request_timeout, verify=verify)
         except requests.exceptions.Timeout:
             print "Request to " + self.name + " timed out."
             self.error = "request timed out"
             return
         except requests.exceptions.SSLError, e:
-            print "SSL Error: check server certificate to " + self.name
             self.error = str(e)
             return
+        except Exception, e:
+            print e
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
             return jsonstr
@@ -126,9 +127,6 @@ class PrivateMtGox(Market):
             self.btc_balance = self._from_int_amount(int(response['data']['Wallets']['BTC']['Balance']['value_int']))
             self.usd_balance = self._from_int_price(int(response['data']['Wallets']['USD']['Balance']['value_int']))
             self.fee = float(response['data']['Trade_Fee'])
-            return 1
-        elif response and 'error' in response:
-            self.error = str(response['error'])
             return 1
         self.btc_balance = None
         self.usd_balance = None

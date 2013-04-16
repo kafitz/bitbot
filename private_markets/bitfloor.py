@@ -47,16 +47,17 @@ class PrivateBitfloor(Market):
                 headers[k] = v
 
         try:
-            response = requests.post(url['url'], data=params, headers=headers, timeout=config.request_timeout)
+            response = requests.post(url['url'], data=params, headers=headers, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
             self.error = "request timed out"
-            return
+            return 
         except requests.exceptions.SSLError, e:
             print e
-            print "SSL Error: check server certificate to " + self.name
             self.error = str(e)
             return
+        except Exception, e:
+            print e
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
             return jsonstr
@@ -105,10 +106,7 @@ class PrivateBitfloor(Market):
                 elif str(wallet['currency']) == 'USD':
                     self.usd_balance = float(wallet['amount'])
                 self.fee = 0.10
-            return 1
-        elif response and 'error' in response:
-            self.error = str(response['error'])
-            return 1
+            return
         self.btc_balance = None
         self.usd_balance = None
         return 0
