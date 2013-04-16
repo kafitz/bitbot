@@ -314,11 +314,11 @@ lag.name = 'lag'
 
 def deal(bitbot, input, deals=None, manual_run=False):
     verify = {}
+    deal_index = 1
     # Allow deals object to be passed in by outside function (e.g., TraderBot)
     if not deals:
         manual_run = True
         arbitrer = bitbot.variables.get('arbitrer')
-        deal_index = 1
         if arbitrer: # .arb is running and .deal is called manually
             arbitrer.deals = []     # Clear out old deals
             arbitrer.get_arb(bitbot)
@@ -345,6 +345,9 @@ def deal(bitbot, input, deals=None, manual_run=False):
                 deal_index += 1
     elif deals: # .arb is running and .deal is called by traderbot
         arbitrer = bitbot.variables.get('arbitrer')
+        for deal in deals:
+            verify[deal_index] = [deal['buy_market'], deal['sell_market']]
+            deal_index += 1
 
     if deals == []:
         irc(bitbot,'deal > error: no deals possible at this time')  
