@@ -256,7 +256,7 @@ class Arbitrer(object):
         channel = config.arbitrage_output
         deal_call = False
 
-        while True:
+        def loop_thread():
             self.deals = []
             start = time.time()
             self.depths, self.fees = self.update_depths()
@@ -269,8 +269,10 @@ class Arbitrer(object):
             self.tick(bitbot, channel, deal_call)
             end = time.time() - start
             print "TraderBot - tick: ", str(end)
+            threading.Timer(config.update_interval, loop_thread).start()
 
-            time.sleep(config.update_interval)
+        loop_thread()
+
             
     def get_arb(self, bitbot):
         level = logging.INFO

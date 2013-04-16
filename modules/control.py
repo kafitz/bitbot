@@ -58,10 +58,7 @@ def start_arbitrage(bitbot, input):
         irc(bitbot,'arb > starting up...')
         bitbot.variables['arbitrer'] = arbitrage.Arbitrer()
         arbitrer = bitbot.variables['arbitrer']
-        while True:
-            arbitrer.loop(bitbot)
-        bitbot.say('Arbitrage quitting...')
-        bitbot.variables['arb'] = False
+        arbitrer.loop(bitbot)
         
 start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
