@@ -45,8 +45,8 @@ class PrivateBitfloor(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-
         try:
+            # print "request to bitfloor: " + str(params) # request debug
             response = requests.post(url['url'], data=params, headers=headers, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
@@ -56,8 +56,6 @@ class PrivateBitfloor(Market):
             print e
             self.error = str(e)
             return
-        except Exception, e:
-            print e
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
             return jsonstr

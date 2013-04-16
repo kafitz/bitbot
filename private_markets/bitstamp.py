@@ -28,6 +28,7 @@ class PrivateBitstamp(Market):
 
     def _send_request(self, url, params):
         try:
+            # print "request to bitstamp: " + str(params) # request debug
             response = requests.post(url, data=params, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             # print "Request timed out."
@@ -37,8 +38,6 @@ class PrivateBitstamp(Market):
             print e
             self.error = str(e)
             return
-        except Exception, e:
-            print e
         if response.status_code == 200:
             try:
                 jsonstr = json.loads(response.text)

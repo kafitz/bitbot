@@ -30,6 +30,7 @@ class PrivateCampBX(Market):
     def _send_request(self, url, params, extra_headers=None):
         params.update({'user': self.user, 'pass': self.password})
         try:
+            # print "request to campbx: " + str(params) # request debug
             response = requests.post(url['url'], data=params, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
@@ -39,8 +40,6 @@ class PrivateCampBX(Market):
             print e
             self.error = str(e)
             return
-        except Exception, e:
-            print e
         if response.status_code == 200:
             try:
                 jsonstr = json.loads(response.text)

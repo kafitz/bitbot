@@ -67,9 +67,9 @@ start_arbitrage.commands = ['arb','arbitrage']
 start_arbitrage.name = 'start_arbitrage'
 
 def balance(bitbot, input, output=True):
-    markets = which(input, balance.commands) 
+    markets = which(input, balance.commands)
     irc(bitbot, 'bal > Getting balance from ' + ', '.join(markets) + ':', output)  
-    def update_info():
+    def update_info(market_obj):
         market_obj.get_info()
 
     threads = []
@@ -78,7 +78,7 @@ def balance(bitbot, input, output=True):
         error, market_obj = load(market)                                # load the correct market object        
         if error == 0:                                                  # market was loaded without errors
             market_instances[market] = market_obj
-            thread = threading.Thread(target=update_info)
+            thread = threading.Thread(target=update_info, args=(market_obj,))
             thread.start()
             threads.append(thread)
         elif error == 1:                                                # an error occured

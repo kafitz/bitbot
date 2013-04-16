@@ -74,6 +74,7 @@ class PrivateMtGox(Market):
             for k, v in extra_headers.iteritems():
                 headers[k] = v
         try:
+            # print "request to mtgox: " + str(params) # request debug
             response = requests.post(self.base + path, data=params, headers=headers, timeout=self.config.request_timeout, verify=verify)
         except requests.exceptions.Timeout:
             print "Request to " + self.name + " timed out."
@@ -82,8 +83,6 @@ class PrivateMtGox(Market):
         except requests.exceptions.SSLError, e:
             self.error = str(e)
             return
-        except Exception, e:
-            print e
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
             return jsonstr

@@ -46,8 +46,8 @@ class PrivateBTCe(Market):
         if extra_headers is not None:
             for k, v in extra_headers.iteritems():
                 headers[k] = v
-
         try:
+            # print "request to btce: " + str(params) # request debug
             response = requests.post(self.url, data=params, headers=headers, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
@@ -57,8 +57,6 @@ class PrivateBTCe(Market):
             print e
             self.error = str(e)
             return
-        except Exception, e:
-            print e
         if response.status_code == 200:
             try:
                 return json.loads(response.text)

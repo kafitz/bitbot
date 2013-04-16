@@ -40,6 +40,7 @@ class PrivateBitcoin24(Market):
                 headers[k] = v
 
         try:
+            # print "request to bitcoin24: " + str(params) # request debug
             response = requests.post(self.url, data=params, headers=headers, timeout=self.config.request_timeout)
         except requests.exceptions.Timeout:
             print "Request timed out."
@@ -50,8 +51,6 @@ class PrivateBitcoin24(Market):
             print "SSL Error: check server certificate to " + self.name
             self.error = "SSL certificate mismatch"
             return
-        except Exception, e:
-            print e
         if response.status_code == 200:
             try:
                 return json.loads(response.text)
