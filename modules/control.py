@@ -345,9 +345,6 @@ def deal(bitbot, input, deals=None, manual_run=False):
                 deal_index += 1
     elif deals: # .arb is running and .deal is called by traderbot
         arbitrer = bitbot.variables.get('arbitrer')
-        for deal in deals:
-            verify[deal_index] = [deal['buy_market'], deal['sell_market']]
-            deal_index += 1
 
     if deals == []:
         irc(bitbot,'deal > error: no deals possible at this time')  
