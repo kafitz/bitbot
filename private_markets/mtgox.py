@@ -123,8 +123,10 @@ class PrivateMtGox(Market):
         params = [('nonce', self._create_nonce())]
         response = self._send_request(self.info_url, params)
         if response and 'result' in response and response['result'] == 'success':
-            self.btc_balance = self._from_int_amount(int(response['data']['Wallets']['BTC']['Balance']['value_int']))
-            self.usd_balance = self._from_int_price(int(response['data']['Wallets']['USD']['Balance']['value_int']))
+            self.btc_hold = self._from_int_amount(int(response['data']['Wallets']['BTC']['Open_Orders']['value_int']))
+            self.btc_balance = self._from_int_amount(int(response['data']['Wallets']['BTC']['Balance']['value_int'])) - self.btc_hold
+            self.usd_hold = self._from_int_price(int(response['data']['Wallets']['USD']['Open_Orders']['value_int']))
+            self.usd_balance = self._from_int_price(int(response['data']['Wallets']['USD']['Balance']['value_int'])) - self.usd_hold
             self.fee = float(response['data']['Trade_Fee'])
             return 1
         self.btc_balance = None

@@ -105,6 +105,8 @@ class PrivateBTCe(Market):
             funds = response['return']['funds']
             self.btc_balance = float(funds['btc'])
             self.usd_balance = float(funds['usd'])
+            self.btc_hold = 0 # not in this API
+            self.usd_hold = 0 # not in this API
             try: # try to set fee dynamically from API
                 fee_res = requests.get('https://btc-e.com/api/2/btc_usd/fee')
                 fee_json = json.loads(fee_res.text)

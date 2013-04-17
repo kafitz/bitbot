@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 '''
 module to control the BitcoinArbitrage project from IRC
 
@@ -84,20 +85,24 @@ def balance(bitbot, input, output=True):
     for thread in threads:
         thread.join()
     for market, market_obj in market_instances.items():
-        try:
-            usd = market_obj.usd_balance
-            btc = market_obj.btc_balance
-        except AttributeError:
-            market_obj.error = ' ' # space for no output and avoiding next test
-        if market_obj.error == '':
-            usd = float(usd)
-            btc = float(btc)
-            irc(bitbot,'bal > ' + market + ' > USD: {0:7} | BTC: {1:7} | Fee: {2}' \
-                .format(str(round(usd, 3)), str(round(btc, 3)), round(float(market_obj.fee),2)))
-            if not output:
-                return usd, btc
+        if market_obj.error != '':
+            irc(bitbot,'bal > ' + market + ' > error: ' + market_obj.error)
         else:
-            irc(bitbot,'bal > ' + market + ' > ' + market_obj.error)
+            try:
+                usd = str(round(market_obj.usd_balance,3))
+                usd_hold = str(round(market_obj.usd_hold,3))
+                btc = str(round(market_obj.btc_balance,4))
+                btc_hold = str(round(market_obj.btc_hold,4))      
+            except AttributeError, e:
+                market_obj.error = str(e) # space for no output and avoiding next test
+
+            if market_obj.error == '':
+                irc(bitbot,'bal > ' + market + ' > ${0:7} + {1:6} | B {2:6} + {3:5} | Fee: {4}' \
+                    .format(usd, usd_hold, btc, btc_hold, round(float(market_obj.fee),2)))
+                if not output:
+                    return usd, btc
+    return
+            
             
             
 balance.commands = ['balance', 'bal']
@@ -139,8 +144,8 @@ def open_orders(bitbot, input, output=True):
         if market_obj.error == '':
             for order in market_obj.orders_list:
                 # Attempt to deal with unicode issues from difference encodings at different exchanges
-                order_string = 'open > ' + market + u' > ' + order['timestamp'] + u': ' + order['type'] + u' ' +\
-                    order['amount'] + u' for ' + order['price'] + u' [' + order['id'] + ']'
+                order_string = 'open > ' + market + u' > ' + order['type'] + u' ' +\
+                    order['amount'] + u' for ' + order['price'] + u': ' + order['id']
                 irc(bitbot,order_string,output)
                 orders[order['id']] = market
         else:
@@ -174,7 +179,7 @@ def cancel_order(bitbot, input, output=True):
         return 0
         
     if market_obj.error == '':
-        irc(bitbot,'cancel > ' + market + ' > ' + market_obj.cancelled_time + ': cancelled ' + market_obj.cancelled_amount + ' [' + market_obj.cancelled_id + '] ')
+        irc(bitbot,'cancel > ' + market + ' > cancelled ' + market_obj.cancelled_amount + ': ' + market_obj.cancelled_id)
     else:
         irc(bitbot,'cancel > ' + market + ' > error: ' + str(market_obj.error))
 
@@ -199,8 +204,8 @@ def buy(bitbot, input, output=True):
         return 0
         
     if market_obj.error == '':
-        irc(bitbot,'buy > ' + market + ' > ' + market_obj.timestamp + ': bid ' + str(market_obj.amount) + ' BTC for ' +\
-            str(market_obj.price) + ' USD/BTC placed [' + market_obj.id + ']')  
+        irc(bitbot,'buy > ' + market + ' > bid ' + str(market_obj.amount) + ' BTC for ' +\
+            str(market_obj.price) + ' USD/BTC placed: ' + market_obj.id)  
     else: 
         irc(bitbot,'buy > ' + market + ' > error: ' + market_obj.error) 
         return 1

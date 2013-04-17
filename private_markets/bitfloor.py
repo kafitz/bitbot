@@ -62,6 +62,10 @@ class PrivateBitfloor(Market):
         elif response.status_code == 502:
             print "Bitfloor 502"
             self.error = "bitfloor: 502"
+            return         
+        elif response.status_code == 400:
+            errormsg = json.loads(response.text)
+            self.error = errormsg['error']
             return
         return 0
 
@@ -76,7 +80,6 @@ class PrivateBitfloor(Market):
         if response and 'error' not in response:
             self.price = str(price)
             self.id = str(response['order_id'])
-            self.timestamp = self._format_time(response['timestamp'])
             self.amount = str(amount)
             return 1
         elif response:
@@ -100,9 +103,11 @@ class PrivateBitfloor(Market):
         if response and 'error' not in response:
             for wallet in response:
                 if str(wallet['currency']) == 'BTC':
-                    self.btc_balance = float(wallet['amount'])
+                    self.btc_balance = float(wallet['amount'])-float(wallet['hold'])
+                    self.btc_hold = float(wallet['hold'])
                 elif str(wallet['currency']) == 'USD':
-                    self.usd_balance = float(wallet['amount'])
+                    self.usd_balance = float(wallet['amount'])-float(wallet['hold'])
+                    self.usd_hold = float(wallet['hold'])
                 self.fee = 0.10
             return
         self.btc_balance = None

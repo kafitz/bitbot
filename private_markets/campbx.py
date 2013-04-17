@@ -37,7 +37,6 @@ class PrivateCampBX(Market):
             self.error = "request timed out"
             return  
         except requests.exceptions.SSLError, e:
-            print e
             self.error = str(e)
             return
         if response.status_code == 200:
@@ -85,8 +84,10 @@ class PrivateCampBX(Market):
         params = {}
         response = self._send_request(self.info_url, params)
         if response and 'Error' not in response:
-            self.usd_balance = float(response['Total USD'])
+            self.usd_balance = float(response['Liquid USD'])
+            self.usd_hold = float(response['Total USD'])-float(response['Liquid USD'])
             self.btc_balance = float(response['Total BTC'])
+            self.btc_hold = float(response['Total BTC'])-float(response['Liquid BTC'])
             self.fee = '0.55'
             return 1
         self.btc_balance = None

@@ -74,10 +74,12 @@ class PrivateBitstamp(Market):
         params = {'user': self.user, 'password': self.password}
         response = self._send_request(self.info_url, params)
         if response and 'error' not in response:
-            self.usd_balance = float(response['usd_balance'])
-            self.btc_balance = float(response['btc_balance'])
+            self.usd_balance = float(response['usd_available'])
+            self.usd_hold = float(response['usd_reserved'])
+            self.btc_balance = float(response['btc_available'])
+            self.btc_hold = float(response['btc_reserved'])
             self.fee = float(response['fee'])
-            return 1
+            return
         self.usd_balance = None
         self.btc_balance = None
         return 0
@@ -126,7 +128,7 @@ class PrivateBitstamp(Market):
                 elif order['type'] == 1:
                     o['type'] = 'sell'
                 o['timestamp'] = str(order['datetime'])
-                o['price'] = '$' + str(order['price']) + ' USD/BTC'
+                o['price'] = str(order['price']) + ' USD/BTC'
                 o['amount'] = str(round(float(order['amount']),1)) + ' BTC'
                 o['id'] = str(order['id'])
                 self.orders_list.append(o)
@@ -156,10 +158,8 @@ class PrivateBitstamp(Market):
                   ('id', order_id),
                   ('type', order_type)]
         response = self._send_request(self.cancel_url, params)
-        
-        if response and 'error' not in response:
+        if response:
             self.cancelled_id = order_id
-            self.cancelled_time = str(datetime.datetime.now()).split('.')[0]
             return 1
         elif response and 'error' in response:
             self.error = str(response['error'])
