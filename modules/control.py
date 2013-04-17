@@ -126,6 +126,30 @@ def transactions(bitbot, input, output=True):
 transactions.commands = ['transactions','txs']
 transactions.name = 'transactions'            
 
+def order_details(bitbot, input, output=True):
+    if input[1:] in order_details.commands:
+        irc(bitbot,'order > usage: .order #order_id')
+        return
+    parameters = input.split(' ')[1:]
+    market = parameters[0]
+    order_id = parameters[1]
+    
+    error, market_obj = load(market)        # load the correct market object
+    if error == 0:                          # market was loaded without errors
+        market_obj.order_details(order_id)             # execute the relevant function
+    elif error == 1:                        # an error occured
+        irc(bitbot,'order > ' + market + ' > error: ' + market_obj)
+        return 0
+
+    if market_obj.error == '': 
+        irc(bitbot,'order > ' + market + ' > ' + market_obj.status + ': ' + market_obj.type + u' ' +\
+            market_obj.amount + ' for ' + market_obj.price,output)
+    else:
+        irc(bitbot,'order > ' + market + ' > error: ' + market_obj.error,output)
+    return       
+
+order_details.commands = ['order', 'order_details', 'o']
+order_details.name = 'order_details'
 
 def open_orders(bitbot, input, output=True):
     markets = which(input,open_orders.commands)
@@ -136,7 +160,7 @@ def open_orders(bitbot, input, output=True):
         if error == 0:                          # market was loaded without errors
             market_obj.get_orders()             # execute the relevant function
         elif error == 1:                        # an error occured
-            irc(bitbot,'open > ' + market + ' > ' + market_obj)
+            irc(bitbot,'open > ' + market + ' > error: ' + market_obj)
             return 0
 
         if market_obj.error == '':

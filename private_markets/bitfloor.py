@@ -15,6 +15,7 @@ class PrivateBitfloor(Market):
     name = 'Bitfloor'
     trade_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/new'}
     open_orders_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/orders'}
+    order_url = {'method': 'POST', 'url' : 'https://api.bitfloor.com/order/details'}
     info_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/accounts'}
     withdraw_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/withdraw'}
     cancel_url = {'method': 'POST', 'url': 'https://api.bitfloor.com/order/cancel'}
@@ -142,6 +143,26 @@ class PrivateBitfloor(Market):
             self.error = str(response['error'])
             return 1
         return 0
+        
+    def order_details(self, order_id):
+        params = [('nonce', self._create_nonce()),
+                  ('order_id', order_id)]
+        response = self._send_request(self.order_url, params)
+        if response and 'error' not in response:
+            if response['side'] == 0:
+                self.type = 'buy'
+            elif response['side'] == 1:
+                self.type = 'sell'
+            self.timestamp = self._format_time(response['timestamp'])
+            self.price = unicode(round(float(response['price']), 2)) + ' USD/BTC' # Round to 2 places (e.g., $5.35) and output a unicode
+            self.amount = unicode(round(float(response['size']), 4)) + ' BTC' # e.g., 3.2534 BTC
+            self.id = response['order_id']
+            self.status = response['status']
+            return 1
+        elif response and 'error' in response:
+            self.error = str(response['error'])
+            return 1                    
+        return
 
     def cancel(self, order_id):
         self.get_orders()
@@ -153,7 +174,9 @@ class PrivateBitfloor(Market):
                 order_amount = order['amount']
                 self.cancelled_amount = order_amount
                 
-        params = [('nonce', self._create_nonce()),('order_id', order_id),('product_id', '1')]
+        params = [('nonce', self._create_nonce()),
+                  ('order_id', order_id),
+                  ('product_id', '1')]
         response = self._send_request(self.cancel_url, params)
         if response and 'error' not in response:
             self.cancelled_id = response['order_id']

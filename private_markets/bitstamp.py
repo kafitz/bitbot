@@ -43,7 +43,7 @@ class PrivateBitstamp(Market):
                 jsonstr = json.loads(response.text)
                 return jsonstr
             except Exception, e:
-                print e
+                self.error = str(e)
                 return
         elif response.status_code == 403:
             self.error = "bitstamp 403"
@@ -117,7 +117,7 @@ class PrivateBitstamp(Market):
         params = {'user': self.user, 'password': self.password}
         response = self._send_request(self.open_orders_url, params)
         self.orders_list = []
-        if len(response) == 0:
+        if response and len(response) == 0:
             self.error = 'no open orders listed'
             return 1
         elif response and 'error' not in response:
