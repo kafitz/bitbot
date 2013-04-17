@@ -12,3 +12,8 @@
 
     --
 
+    21:25:48 <  kafitz> .deal 3
+    21:25:48 <  bitbot> 1 => 0.98% | $0.32 | 0.50 BTC | MtGoxUSD    $65.700 => $66.607 BitfloorUSD
+    21:25:48 <  bitbot> deal > error: deal not in range
+    21:25:48 <  bitbot> deal > verified
+    21:25:48 <  bitbot> IndexError: list index out of range (file "/mnt/sdc1/ted/bitbot/modules/control.py", line 373, in deal)

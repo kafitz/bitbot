@@ -73,7 +73,7 @@ class TraderBot(Observer):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
         else:
-            bitbot.msg(channel, 'No trades available - '+', '.join(self.failed_outputs))
+            bitbot.msg(channel, 'No trades available - '+' | '.join(self.failed_outputs))
             return
         profit = best_deal['profit']
         volume = best_deal['purchase_volume']
@@ -100,14 +100,14 @@ class TraderBot(Observer):
                 ignored_exchange = buy_mkt
             if sell_mkt in self.ignore_exchange:
                 ignored_exchange = sell_mkt
-            output = "#{0} {1} ignored".format(trade_attempt, ignored_exchange)
+            output = "{0}. {1} ignored".format(trade_attempt, ignored_exchange)
             self.failed_outputs.append(output)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         # test 1
         if buy_mkt not in self.clients:
-            output = "#{0} {1} client not available".format(trade_attempt, buy_mkt)
+            output = "{0}. {1} client not available".format(trade_attempt, buy_mkt)
             logging.warn(output)
             self.failed_outputs.append(output)
             self.ignore_exchange.append(buy_mkt)
@@ -117,7 +117,7 @@ class TraderBot(Observer):
             return
         # test 2
         if sell_mkt not in self.clients:
-            output = "#{0} {1} client not available".format(trade_attempt, sell_mkt)
+            output = "{0}. {1} client not available".format(trade_attempt, sell_mkt)
             logging.warn(output)
             self.failed_outputs.append(output)
             self.ignore_exchange.append(sell_mkt)
@@ -126,7 +126,7 @@ class TraderBot(Observer):
             return
         # test 3
         if percent_profit < config.profit_thresh:
-            output = "#{0} {1}->{2}: {3:.2f}/{4:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
+            output = "{0}. {1} > {2} {3:.2f}/{4:.2f}%".format(trade_attempt, buy_mkt, sell_mkt, percent_profit, config.profit_thresh)
             logging.warn(output)
             self.failed_outputs.append(output)
             best_deal_index += 1
@@ -141,12 +141,12 @@ class TraderBot(Observer):
             sell_tradeable_amt = float(self.clients[sell_mkt].btc_balance) / (1 + config.balance_margin)
         except TypeError:
             # Couldnt update balance of buy or sell market so balance == None
-            output = "#{0} timeout while updating balances".format(trade_attempt)
+            output = "{0}. timeout while updating balances".format(trade_attempt)
             best_deal_index += 1
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         if buy_tradeable_amt < config.trade_amount:
-            output = "#{0} {2} balance: ${1} USD".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
+            output = "{0}. {2} balance: ${1} USD".format(trade_attempt, self.clients[buy_mkt].usd_balance, buy_mkt)
             self.ignore_exchange.append(buy_mkt)
             self.failed_outputs.append(output)
             logging.warn(output)
@@ -154,7 +154,7 @@ class TraderBot(Observer):
             self.execute_trade(bitbot, deals, best_deal_index)
             return
         if sell_tradeable_amt < config.trade_amount:
-            output = "#{0} {2} balance: {1} BTC".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
+            output = "{0}. {2} balance: {1} BTC".format(trade_attempt, self.clients[sell_mkt].btc_balance, sell_mkt)
             self.ignore_exchange.append(sell_mkt)
             self.failed_outputs.append(output)
             logging.warn(output)
@@ -192,4 +192,4 @@ class TraderBot(Observer):
         logging.info(output)
         bitbot.msg(channel, output)
         self.last_trade = time.time()
-        bitbot.msg('#merlin', 'O Dear Leaders kafitz & baspt, a trade has been executed!')
+        bitbot.msg('#merlin', 'baspt, kafitz: deal attempted from ' + buy_mkt + ' to ' sell_mkt + '(' + timestamp + ').')
