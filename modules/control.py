@@ -102,9 +102,7 @@ def balance(bitbot, input, output=True):
                 if not output:
                     return usd, btc
     return
-            
-            
-            
+                
 balance.commands = ['balance', 'bal']
 balance.name = 'balance'
 
@@ -252,7 +250,7 @@ def deposit(bitbot, input, output=True):
             irc(bitbot,'dep > ' + market + ' > ' + market_obj)
             return 1
         if market_obj.error == '':
-            irc(bitbot,'dep > ' + market + ' > address: ' + 'https://blockchain.info/address/' + market_obj.address + ' ' + market_obj.address)
+            irc(bitbot,'dep > ' + market + ' > address: ' + 'https://blockchain.info/address/' + market_obj.address + ' ' + market_obj.address, output)
             return market_obj.address
         else:
             irc(bitbot,'dep > ' + market + ' > error: ' + market_obj.error) 
@@ -266,12 +264,15 @@ def withdraw(bitbot, input, output=True):
     # Test input formatting
     parameters = input.split(' ')[1:]
     if len(parameters) != 3:
-        irc(bitbot,'wdw > invalid # of arguments specified: .wdw exchange amount address',output)
+        irc(bitbot,'wdw > usage: .wdw market amount address | .wdw market amount market',output)
         return
     market = parameters[0]
     amount = parameters[1]
-    address = parameters[2]
-    
+    if len(parameters[2]) == 34:
+        address = parameters[2]
+    else:
+        address = deposit(bitbot,'.dep {}'.format(parameters[2]),False)
+ 
     error, market_obj = load(market)                            # load the correct market object
     if error == 0:                                              # market was loaded without errors
         market_obj.withdraw(amount, address)                    # execute the relevant function          
@@ -279,7 +280,7 @@ def withdraw(bitbot, input, output=True):
         irc(bitbot,'wdw > ' + market + ' > ' + market_obj)
         return 1
     if market_obj.error == '':
-        irc(bitbot,'wdw > ' + market + ' > ' + market_obj.timestamp + ': withdrawal processed')
+        irc(bitbot,'wdw > ' + market + ' >  withdrawal processed: ' + str(amount) + ' BTC to ' + str(address))
     else:
         irc(bitbot,'wdw > ' + market + ' > ' + market_obj.error)
             
