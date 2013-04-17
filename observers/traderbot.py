@@ -35,6 +35,7 @@ class TraderBot(Observer):
         self.timeout = 300                          # in seconds (for buying wait time before error alert)
         self.potential_trades = []
         self.priority_list = [value for key, value in self.clients.items()]
+        self.gox_lag = 0
 
     def begin_opportunity_finder(self, depths):
         # List of exchanges that will be ignored during a deal iteration if the exchange
@@ -48,12 +49,11 @@ class TraderBot(Observer):
         # Sorts arbs list lowest profit to highest, then reverses to get the most profitable
         deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         # Execute only the best arb opportunity
-        gox_lag = control.lag(bitbot, '.lag mtgx', output=False)
-        if gox_lag > 60:
+        self.gox_lag = control.lag(bitbot, '.lag mtgx', output=False)
+        if self.gox_lag > 60:
             bitbot.msg(config.deal_output, "MtGox lag of {}, too risky to trade")
         else:
-            bitbot.msg(config.deal_output, "MtGox lag (seconds): " + str(gox_lag))
-            print "MtGox lag (seconds): " + str(gox_lag)
+            print "MtGox lag (seconds): " + str(self.gox_lag)
             self.execute_trade(bitbot, deals)
 
     def update_balance(self, buy_market, sell_market):
@@ -73,7 +73,7 @@ class TraderBot(Observer):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
         else:
-            bitbot.msg(channel, 'No trades available - '+' | '.join(self.failed_outputs))
+            bitbot.msg(channel, 'No trades available (' + str(self.gox_lag) + ') - | '.join(self.failed_outputs))
             return
         profit = best_deal['profit']
         volume = best_deal['purchase_volume']
@@ -163,7 +163,7 @@ class TraderBot(Observer):
             return
 
         end = time.time() - start
-        print "TraderBot - execute trade: ", str(end)
+        print "Executing trade (" + str(self.gox_lag) + "):", str(end)
             
         # Emulate input from IRC so bitbot.say continues to work in control.py
         class CommandInput(unicode):
