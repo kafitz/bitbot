@@ -192,4 +192,4 @@ class TraderBot(Observer):
         logging.info(output)
         bitbot.msg(channel, output)
         self.last_trade = time.time()
-        bitbot.msg('#merlin', 'baspt, kafitz: deal attempted from ' + buy_mkt + ' to ' sell_mkt + '(' + timestamp + ').')
+        bitbot.msg('#merlin', 'baspt, kafitz: deal attempted from ' + buy_mkt + ' to ' + sell_mkt + '(' + timestamp + ').')
