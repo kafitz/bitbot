@@ -73,7 +73,8 @@ class TraderBot(Observer):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
         else:
-            bitbot.msg(channel, 'No trades available (' + str(self.gox_lag) + ') - | '.join(self.failed_outputs))
+            output = 'No trades available (%.2f seconds) - '.format(self.gox_lag)
+            bitbot.msg(channel, output + ' | '.join(self.failed_outputs))
             return
         profit = best_deal['profit']
         volume = best_deal['purchase_volume']
@@ -192,4 +193,4 @@ class TraderBot(Observer):
         logging.info(output)
         bitbot.msg(channel, output)
         self.last_trade = time.time()
-        bitbot.msg('#merlin', 'baspt, kafitz: deal attempted from ' + buy_mkt + ' to ' + sell_mkt + '(' + timestamp + ').')
+        bitbot.msg('#merlin', 'baspt, kafitz: deal attempted from ' + buy_mkt + ' to ' + sell_mkt + ' (' + timestamp + ').')

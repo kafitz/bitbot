@@ -17,3 +17,14 @@
     21:25:48 <  bitbot> deal > error: deal not in range
     21:25:48 <  bitbot> deal > verified
     21:25:48 <  bitbot> IndexError: list index out of range (file "/mnt/sdc1/ted/bitbot/modules/control.py", line 373, in deal)
+
+    --
+
+    22:04:57 <  bitbot> deal > verified
+    22:04:57 <  bitbot> deal > .buy cpbx 0.5 69.92
+    22:05:05 <  bitbot> buy > cpbx > 2013-04-16 22:05:11: bid 0.5 BTC for 69.92 USD/BTC placed [successful market order]
+    22:05:06 <  bitbot> deal > .sell mtgx 0.5 71.6
+    22:05:06 <  bitbot> sell > mtgx > 2013-04-16 22:05:12.082957: ask 0.5 BTC for 71.6 USD/BTC placed [9396d90f-dec8-4914-964d-2c1e7330eb92]
+    22:05:06 <  bitbot> dep > mtgx > address: https://blockchain.info/address/1J1jf1QjrzpPVC61BxNVxVmieRycFedabt 1J1jf1QjrzpPVC61BxNVxVmieRycFedabt
+    22:05:06 <  bitbot> deal > .wdw cpbx 0.5 1J1jf1QjrzpPVC61BxNVxVmieRycFedabt
+    22:05:16 <  bitbot> wdw > cpbx > The read operation timed out
