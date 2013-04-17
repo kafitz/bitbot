@@ -3,6 +3,7 @@
 *   Make it so .bal function reflects pending withdrawals as unavailable cash immediately
 *   Fix verication when deal shifts position in list but is still valid ([A, B, C] -> [A, D, B, C] where selected deal 'B' is still valid between calls)
 *   Clean up deals IRC output so that it is readable
+*   Make it so wallet addresses are handled gracefully in background (so we can do things like ".wdw bflr 0.5 mtgx" instead) 
 
 
 *   Investigate:
