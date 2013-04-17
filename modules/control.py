@@ -324,7 +324,6 @@ def deal(bitbot, input, deals=None, manual_run=False):
                 deal['index'] = deal_index
                 deal_output = '{7} => {6:.2f}% | ${0:.2f} | {1:.2f} BTC | {2:11} ${3:.3f} => ${4:.3f} {5:11}'.format(\
                     deal['profit'], deal['purchase_volume'], deal['buy_market'], deal['buy_price'], deal['sell_price'], deal['sell_market'], deal['percent_profit'], deal_index)
-                deal['index'] = deal_index
                 verify[deal_index] = [deal['buy_market'], deal['sell_market']]
                 irc(bitbot, deal_output)
                 deal_index += 1
