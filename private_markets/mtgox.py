@@ -122,6 +122,7 @@ class PrivateMtGox(Market):
     def get_info(self):
         params = [('nonce', self._create_nonce())]
         response = self._send_request(self.info_url, params)
+        print response
         if response and 'result' in response and response['result'] == 'success':
             self.btc_hold = self._from_int_amount(int(response['data']['Wallets']['BTC']['Open_Orders']['value_int']))
             self.btc_balance = self._from_int_amount(int(response['data']['Wallets']['BTC']['Balance']['value_int'])) - self.btc_hold
