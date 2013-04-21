@@ -50,11 +50,11 @@ class TraderBot(Observer):
         deals.sort(key=lambda x: x['percent_profit'], reverse=True)
         # Execute only the best arb opportunity
         self.gox_lag = control.lag(bitbot, '.lag mtgx', output=False)
-        if self.gox_lag > 60:
-            bitbot.msg(config.deal_output, "MtGox lag of {}, too risky to trade")
-        else:
-            print "MtGox lag (seconds): " + str(self.gox_lag)
-            self.execute_trade(bitbot, deals)
+        # if self.gox_lag > 60:
+        #     bitbot.msg(config.deal_output, "MtGox lag of {}, too risky to trade")
+        # else:
+        #     print "MtGox lag (seconds): " + str(self.gox_lag)
+        self.execute_trade(bitbot, deals)
 
     def update_balance(self, buy_market, sell_market):
         self.clients[buy_market].get_info()
