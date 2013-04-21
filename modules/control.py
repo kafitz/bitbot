@@ -88,20 +88,20 @@ def balance(bitbot, input, output=True):
         if market_obj.error != '':
             irc(bitbot,'bal > ' + market + ' > error: ' + market_obj.error)
         else:
-            try:
-                usd = str(round(market_obj.usd_balance,3))
-                usd_hold = str(round(market_obj.usd_hold,3))
-                btc = str(round(market_obj.btc_balance,4))
-                btc_hold = str(round(market_obj.btc_hold,4))
-            except AttributeError, e:
-                market_obj.error = str([e, market_obj.usd_balance, market_obj.usd_hold,
-                                        market_obj.btc_balance, market_obj.btc_hold]) # space for no output and avoiding next test
+            if market_obj.usd_balance != None:
+                try:
+                    usd = str(round(market_obj.usd_balance,3))
+                    usd_hold = str(round(market_obj.usd_hold,3))
+                    btc = str(round(market_obj.btc_balance,4))
+                    btc_hold = str(round(market_obj.btc_hold,4))      
+                except AttributeError, e:
+                    market_obj.error = str(e) # space for no output and avoiding next test
 
-            if market_obj.error == '':
-                irc(bitbot,'bal > ' + market + ' > ${0:7} + {1:6} | B {2:6} + {3:5} | Fee: {4}' \
-                    .format(usd, usd_hold, btc, btc_hold, round(float(market_obj.fee),2)))
-                if not output:
-                    return usd, btc
+                if market_obj.error == '':
+                    irc(bitbot,'bal > ' + market + ' > ${0:7} + {1:6} | B {2:6} + {3:5} | Fee: {4}' \
+                        .format(usd, usd_hold, btc, btc_hold, round(float(market_obj.fee),2)))
+                    if not output:
+                        return usd, btc
     return
                 
 balance.commands = ['balance', 'bal']

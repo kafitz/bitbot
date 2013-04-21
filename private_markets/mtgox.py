@@ -86,6 +86,8 @@ class PrivateMtGox(Market):
         if response.status_code == 200:
             jsonstr = json.loads(response.text)
             return jsonstr
+        if response.status_code == 502:
+            return {'error': 'gateway down'}
         return 0
 
     def trade(self, amount, ttype, price=None):
@@ -122,7 +124,6 @@ class PrivateMtGox(Market):
     def get_info(self):
         params = [('nonce', self._create_nonce())]
         response = self._send_request(self.info_url, params)
-        print response
         if response and 'result' in response and response['result'] == 'success':
             self.btc_hold = self._from_int_amount(int(response['data']['Wallets']['BTC']['Open_Orders']['value_int']))
             self.btc_balance = self._from_int_amount(int(response['data']['Wallets']['BTC']['Balance']['value_int'])) - self.btc_hold
@@ -130,6 +131,8 @@ class PrivateMtGox(Market):
             self.usd_balance = self._from_int_price(int(response['data']['Wallets']['USD']['Balance']['value_int'])) - self.usd_hold
             self.fee = float(response['data']['Trade_Fee'])
             return 1
+        elif response and 'error' in response:
+            self.error = response['error']
         self.btc_balance = None
         self.usd_balance = None
         return 0
