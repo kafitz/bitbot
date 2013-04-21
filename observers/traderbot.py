@@ -73,7 +73,7 @@ class TraderBot(Observer):
             best_deal = deals[best_deal_index]
             trade_attempt = best_deal_index + 1
         else:
-            output = 'No trades available ({0:.2f} seconds) | '.format(float(self.gox_lag))
+            output = 'No trades available ({0} seconds) | '.format(self.gox_lag)
             bitbot.msg(channel, output + ' | '.join(self.failed_outputs))
             return
         profit = best_deal['profit']
